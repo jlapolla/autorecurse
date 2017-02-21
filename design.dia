@@ -645,7 +645,7 @@ desired value of 'gnu-make'. All other command line arguments are passed unchang
         <dia:point val="2.2314,3.84063"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="2.2314,3.22701;16.1425,4.02788"/>
+        <dia:rectangle val="2.2314,3.24563;16.1239,3.99063"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
@@ -1080,7 +1080,7 @@ in Makefile#</dia:string>
             <dia:real val="0.80000000000000004"/>
           </dia:attribute>
           <dia:attribute name="pos">
-            <dia:point val="39.7888,61.9969"/>
+            <dia:point val="39.7889,61.9969"/>
           </dia:attribute>
           <dia:attribute name="color">
             <dia:color val="#000000"/>
@@ -3938,7 +3938,7 @@ in file section#</dia:string>
         <dia:point val="104.7,48.4"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="104.65,48.35;117.185,55.85"/>
+        <dia:rectangle val="104.65,48.35;117.185,57.45"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
         <dia:point val="104.7,48.4"/>
@@ -3947,7 +3947,7 @@ in file section#</dia:string>
         <dia:real val="12.434999999999999"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
-        <dia:real val="7.4000000000000004"/>
+        <dia:real val="9"/>
       </dia:attribute>
       <dia:attribute name="name">
         <dia:string>#FileLineIterator#</dia:string>
@@ -4060,6 +4060,29 @@ in file section#</dia:string>
             <dia:boolean val="false"/>
           </dia:attribute>
         </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#_line#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#Line#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string>##</dia:string>
+          </dia:attribute>
+          <dia:attribute name="comment">
+            <dia:string>##</dia:string>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="1"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
       </dia:attribute>
       <dia:attribute name="operations">
         <dia:composite type="umloperation">
@@ -4095,6 +4118,36 @@ in file section#</dia:string>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
             <dia:string>#has_current_item (get)#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="stereotype">
+            <dia:string>##</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#bool#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="0"/>
+          </dia:attribute>
+          <dia:attribute name="comment">
+            <dia:string>##</dia:string>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="inheritance_type">
+            <dia:enum val="2"/>
+          </dia:attribute>
+          <dia:attribute name="query">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="parameters"/>
+        </dia:composite>
+        <dia:composite type="umloperation">
+          <dia:attribute name="name">
+            <dia:string>#is_at_start (get)#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -5336,8 +5389,8 @@ in file section#</dia:string>
       </dia:attribute>
       <dia:attribute name="orth_points">
         <dia:point val="97.2875,24.38"/>
-        <dia:point val="97.2875,25.23"/>
-        <dia:point val="97.2875,27.38"/>
+        <dia:point val="97.2875,26.305"/>
+        <dia:point val="97.2875,26.305"/>
         <dia:point val="97.2875,27.43"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
