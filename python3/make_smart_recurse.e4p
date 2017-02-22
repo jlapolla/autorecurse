@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-02-22, 12:01:23 -->
+<!-- Saved: 2017-02-22, 12:04:28 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -12,8 +12,12 @@
   <Version></Version>
   <Author></Author>
   <Email></Email>
+  <Eol index="-1"/>
   <Sources>
     <Source>__init__.py</Source>
+    <Source>lib/__init__.py</Source>
+    <Source>lib/generics.py</Source>
+    <Source>lib/test_generics.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
