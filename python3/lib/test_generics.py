@@ -104,19 +104,15 @@ class TestFileLineIterator(unittest.TestCase):
         self.verify_trajectory_2(FileLineIterator.make(src), src)
 
     def verify_trajectory_1(self, obj: FileLineIterator, src: MockFile) -> None:
+        self.verify_start_state(obj, src)
+        obj.move_to_next()
         while not obj.is_at_end:
-            if obj.is_at_start:
-                self.verify_start_state(obj, src)
-            if obj.has_current_item:
-                self.verify_intermediate_state(obj, src)
+            self.verify_intermediate_state(obj, src)
             obj.move_to_next()
         self.verify_end_state(obj, src)
 
     def verify_trajectory_2(self, obj: FileLineIterator, src: MockFile) -> None:
-        if obj.is_at_start:
-            self.verify_start_state(obj, src)
-        if obj.has_current_item:
-            self.verify_intermediate_state(obj, src)
+        self.verify_start_state(obj, src)
         obj.move_to_end()
         self.verify_end_state(obj, src)
         obj.move_to_end()
