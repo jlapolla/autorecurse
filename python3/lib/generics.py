@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import io
 from typing import TypeVar, Generic
+import typing
 
 
 T_co = TypeVar('T_co', covariant=True)
@@ -196,6 +197,49 @@ class Line:
 
     def __hash__(self) -> int:
         return hash(self.content)
+
+
+T = TypeVar('T')
+class ListIterator(Iterator[T]):
+
+    @staticmethod
+    def make(it: typing.Iterable[T]) -> 'ListIterator':
+        instance = ListIterator()
+        ListIterator._setup(instance, it)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'ListIterator', it: typing.Iterable[T]) -> None:
+        instance._list = list(it)
+        instance._is_at_start = True
+
+    @property
+    def current_item(self) -> T:
+        return self._list[0]
+
+    @property
+    def has_current_item(self) -> bool:
+        return not (self.is_at_start or (len(self._list) == 0))
+
+    @property
+    def is_at_start(self) -> bool:
+        return self._is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return (not self.is_at_start) and (len(self._list) == 0)
+
+    def move_to_next(self) -> None:
+        if self.is_at_start:
+            self._is_at_start = False
+        else:
+            self._list.pop(0)
+
+    def move_to_end(self) -> None:
+        self._is_at_start = False
+        self._list.clear()
+
+del T
 
 
 class FileLineIterator(Iterator[Line]):

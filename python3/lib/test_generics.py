@@ -196,6 +196,25 @@ class MockFile:
             return ''.join([self._current_line.content, self._line_sep])
 
 
+class TestListIterator(unittest.TestCase):
+
+    @staticmethod
+    def make_iterator_wrapper_content() -> IteratorTestWrapper[Line]:
+        expected = [None, 'Hello', 3, None]
+        actual = ListIterator.make(expected)
+        return IteratorTestWrapper.make(actual, expected)
+
+    @staticmethod
+    def make_iterator_wrapper_empty() -> IteratorTestWrapper[Line]:
+        expected = []
+        actual = ListIterator.make(expected)
+        return IteratorTestWrapper.make(actual, expected)
+
+    def test_iterator_tests(self):
+        IteratorTests.run_all(TestListIterator.make_iterator_wrapper_content)
+        IteratorTests.run_all(TestListIterator.make_iterator_wrapper_empty)
+
+
 class TestFileLineIterator(unittest.TestCase):
 
     @staticmethod
