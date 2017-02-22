@@ -5,6 +5,64 @@ from typing import TypeVar, Generic
 
 T_co = TypeVar('T_co', covariant=True)
 class Iterator(Generic[T_co], metaclass=ABCMeta):
+    """
+    A stream of items.
+
+    ## Transition System Definition
+
+    ### States
+
+    - S = Start
+    - I = Intermediate
+    - E = End
+
+    ### Transition Labels
+
+    - Next = Client calls move_to_next
+    - End = Client calls move_to_end
+
+    ### Transitions Grouped by Label
+
+    - Next
+      - S -> I
+      - S -> E
+      - I -> I
+      - I -> E
+    - End
+      - S -> E
+      - I -> E
+      - E -> E
+
+    ## Call Validity
+
+    For each method listed, client is allowed to call the method in the
+    given states.
+
+    - current_item (getter): I
+    - has_current_item (getter): S I E
+    - is_at_start (getter): S I E
+    - is_at_end (getter): S I E
+    - move_to_next: S I
+    - move_to_end: S I E
+
+    ## Call Results
+
+    For each state listed, calling the specified method will return the
+    given result.
+
+    - S
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+    - I
+      - has_current_item (getter): True
+      - is_at_start (getter): False
+      - is_at_end (getter): False
+    - E
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+    """
 
     @property
     @abstractmethod
