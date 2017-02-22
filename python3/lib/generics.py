@@ -137,6 +137,30 @@ class FileLineIterator(Iterator[Line]):
 
 
 class EmptyLineFilter(StreamCondition[Line]):
+    """
+    Skips empty lines, when used with a ConditionalSkipIterator.
+
+    ## Transition System Definition
+
+    ### States
+
+    - Y = Printing <- INITIAL
+    - N = No printing
+
+    ### Transition Labels
+
+    - Empty = Recieve Line equal to _EMPTY_LINE
+    - Line = Recieve Line not equal to _EMPTY_LINE
+
+    ### Transitions Grouped by Label
+
+    - Empty
+      - Y -> N
+      - N -> N
+    - Line
+      - Y -> Y
+      - N -> Y
+    """
 
     _EMPTY_LINE = Line.make('')
 
@@ -148,16 +172,19 @@ class EmptyLineFilter(StreamCondition[Line]):
 
     @staticmethod
     def _setup(instance: 'EmptyLineFilter') -> None:
-        instance._line = None
+        instance._printing = True
 
     def _set_current_item(self, value: Line) -> None:
-        self._line = value
+        if value == EmptyLineFilter._EMPTY_LINE:
+            self._printing = False
+        else:
+            self._printing = True
 
     current_item = property(None, _set_current_item)
 
     @property
     def condition(self) -> bool:
-        return self._line != EmptyLineFilter._EMPTY_LINE
+        return self._printing
 
 del EmptyLineFilter._set_current_item
 
@@ -234,9 +261,9 @@ class FileSectionFilter(StreamCondition[Line]):
         instance._state = FileSectionFilter._NO_PRINTING
 
     def _set_current_item(self, value: Line) -> None:
-        if FileSectionFilter._START_LINE == value:
+        if value == FileSectionFilter._START_LINE:
             self._do_transition(FileSectionFilter._START)
-        elif FileSectionFilter._END_LINE == value:
+        elif value == FileSectionFilter._END_LINE:
             self._do_transition(FileSectionFilter._END)
         else:
             self._do_transition(FileSectionFilter._LINE)
