@@ -33,7 +33,26 @@ class Iterator(Generic[T_co], metaclass=ABCMeta):
     @abstractmethod
     def move_to_end(self) -> None:
         pass
+
 del T_co
+
+
+T_contra = TypeVar('T_contra', contravariant=True)
+class StreamCondition(Generic[T_contra], metaclass=ABCMeta):
+
+    @abstractmethod
+    def _set_current_item(self, value: T_contra) -> None:
+        pass
+
+    current_item = property(None, _set_current_item)
+
+    @property
+    @abstractmethod
+    def condition(self) -> bool:
+        pass
+
+del StreamCondition._set_current_item
+del T_contra
 
 
 class LineBreakError(Exception):
@@ -119,5 +138,31 @@ class FileLineIterator(Iterator[Line]):
     def move_to_end(self) -> None:
         while not self.is_at_end:
             self.move_to_next()
+
+
+class EmptyLineFilter(StreamCondition[Line]):
+
+    _EMPTY_LINE = Line.make('')
+
+    @staticmethod
+    def make() -> 'EmptyLineFilter':
+        instance = EmptyLineFilter()
+        EmptyLineFilter._setup(instance)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'EmptyLineFilter') -> None:
+        instance._line = None
+
+    def _set_current_item(self, value: Line) -> None:
+        self._line = value
+
+    current_item = property(None, _set_current_item)
+
+    @property
+    def condition(self) -> bool:
+        return self._line != self._EMPTY_LINE
+
+del EmptyLineFilter._set_current_item
 
 

@@ -134,8 +134,28 @@ class TestFileLineIterator(unittest.TestCase):
         self.assertIs(obj.is_at_end, False)
 
     def verify_end_state(self, obj: FileLineIterator, src: MockFile) -> None:
+        self.assertIsNone(src.current_line)
         self.assertIs(obj.has_current_item, False)
         self.assertIs(obj.is_at_start, False)
         self.assertIs(obj.is_at_end, True)
+
+
+class TestEmptyLineFilter(unittest.TestCase):
+
+    def test_non_empty_line(self):
+        obj = EmptyLineFilter.make()
+        obj.current_item = Line.make('Hello')
+        self.assertIs(obj.condition, True)
+        obj.current_item = Line.make('')
+        self.assertIs(obj.condition, False)
+
+    def test_empty_line(self):
+        obj = EmptyLineFilter.make()
+        obj.current_item = Line.make('')
+        self.assertIs(obj.condition, False)
+        obj.current_item = Line.make('Hello')
+        self.assertIs(obj.condition, True)
+
+
 
 
