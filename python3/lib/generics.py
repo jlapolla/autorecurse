@@ -52,7 +52,7 @@ class StreamCondition(Generic[T_contra], metaclass=ABCMeta):
 
     ### Transition Labels
 
-    - Recieve = Call to current_item setter
+    - Recieve = Client calls current_item (setter)
 
     ### Transitions Grouped by Label
 
@@ -71,6 +71,16 @@ class StreamCondition(Generic[T_contra], metaclass=ABCMeta):
 
     - current_item (setter): S Y N
     - condition (getter): Y N
+
+    ## Call Results
+
+    For each state listed, calling the specified method will return the
+    given result.
+
+    - Y
+      - condition (getter): True
+    - N
+      - condition (getter): False
     """
 
     @abstractmethod
