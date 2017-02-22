@@ -39,6 +39,39 @@ del T_co
 
 T_contra = TypeVar('T_contra', contravariant=True)
 class StreamCondition(Generic[T_contra], metaclass=ABCMeta):
+    """
+    Stateful stream evaluator.
+
+    ## Transition System Definition
+
+    ### States
+
+    - S = Start condition
+    - Y = Condition is True
+    - N = Condition is False
+
+    ### Transition Labels
+
+    - Recieve = Call to current_item setter
+
+    ### Transitions Grouped by Label
+
+    - Recieve
+      - S -> Y
+      - S -> N
+      - Y -> Y
+      - Y -> N
+      - N -> Y
+      - N -> N
+
+    ## Call Validity
+
+    For each method listed, client is allowed to call the method in the
+    given states.
+
+    - current_item (setter): S Y N
+    - condition (getter): Y N
+    """
 
     @abstractmethod
     def _set_current_item(self, value: T_contra) -> None:
