@@ -30,9 +30,9 @@ class Iterator(Generic[T_co], metaclass=ABCMeta):
     def move_to_next(self) -> None:
         pass
 
-    @abstractmethod
     def move_to_end(self) -> None:
-        pass
+        while not self.is_at_end:
+            self.move_to_next()
 
 del T_co
 
@@ -134,10 +134,6 @@ class FileLineIterator(Iterator[Line]):
             self._line = None
         else:
             self._line = Line.make(line)
-
-    def move_to_end(self) -> None:
-        while not self.is_at_end:
-            self.move_to_next()
 
 
 class EmptyLineFilter(StreamCondition[Line]):
