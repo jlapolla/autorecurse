@@ -199,60 +199,25 @@ class MockFile:
 class TestFileLineIterator(unittest.TestCase):
 
     @staticmethod
-    def make_file_content() -> MockFile:
-        src = MockFile.make()
-        src.append_line(Line.make("Hello"))
-        src.append_line(Line.make("Goodbye"))
-        src.append_line(Line.make(""))
-        return src
+    def make_iterator_wrapper_content() -> IteratorTestWrapper[Line]:
+        file_ = MockFile.make()
+        file_.append_line(Line.make('Hello'))
+        file_.append_line(Line.make('Goodbye'))
+        file_.append_line(Line.make(''))
+        actual = FileLineIterator.make(file_)
+        expected = [Line.make('Hello'), Line.make('Goodbye'), Line.make('')]
+        return IteratorTestWrapper.make(actual, expected)
 
     @staticmethod
-    def make_file_empty() -> MockFile:
-        return MockFile.make()
+    def make_iterator_wrapper_empty() -> IteratorTestWrapper[Line]:
+        file_ = MockFile.make()
+        actual = FileLineIterator.make(file_)
+        expected = []
+        return IteratorTestWrapper.make(actual, expected)
 
-    def test_file_content(self):
-        src = TestFileLineIterator.make_file_content()
-        self.verify_trajectory_1(FileLineIterator.make(src), src)
-        src = TestFileLineIterator.make_file_content()
-        self.verify_trajectory_2(FileLineIterator.make(src), src)
-
-    def test_file_empty(self):
-        src = TestFileLineIterator.make_file_empty()
-        self.verify_trajectory_1(FileLineIterator.make(src), src)
-        src = TestFileLineIterator.make_file_empty()
-        self.verify_trajectory_2(FileLineIterator.make(src), src)
-
-    def verify_trajectory_1(self, obj: FileLineIterator, src: MockFile) -> None:
-        self.verify_start_state(obj, src)
-        obj.move_to_next()
-        while not obj.is_at_end:
-            self.verify_intermediate_state(obj, src)
-            obj.move_to_next()
-        self.verify_end_state(obj, src)
-
-    def verify_trajectory_2(self, obj: FileLineIterator, src: MockFile) -> None:
-        self.verify_start_state(obj, src)
-        obj.move_to_end()
-        self.verify_end_state(obj, src)
-        obj.move_to_end()
-        self.verify_end_state(obj, src)
-
-    def verify_start_state(self, obj: FileLineIterator, src: MockFile) -> None:
-        self.assertIs(obj.has_current_item, False)
-        self.assertIs(obj.is_at_start, True)
-        self.assertIs(obj.is_at_end, False)
-
-    def verify_intermediate_state(self, obj: FileLineIterator, src: MockFile) -> None:
-        self.assertEqual(obj.current_item, src.current_line)
-        self.assertIs(obj.has_current_item, True)
-        self.assertIs(obj.is_at_start, False)
-        self.assertIs(obj.is_at_end, False)
-
-    def verify_end_state(self, obj: FileLineIterator, src: MockFile) -> None:
-        self.assertIsNone(src.current_line)
-        self.assertIs(obj.has_current_item, False)
-        self.assertIs(obj.is_at_start, False)
-        self.assertIs(obj.is_at_end, True)
+    def test_iterator_tests(self):
+        IteratorTests.run_all(TestFileLineIterator.make_iterator_wrapper_content)
+        IteratorTests.run_all(TestFileLineIterator.make_iterator_wrapper_empty)
 
 
 class TestEmptyLineFilter(unittest.TestCase):
