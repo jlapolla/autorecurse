@@ -157,7 +157,7 @@ class EmptyLineFilter(StreamCondition[Line]):
 
     @property
     def condition(self) -> bool:
-        return self._line != self._EMPTY_LINE
+        return self._line != EmptyLineFilter._EMPTY_LINE
 
 del EmptyLineFilter._set_current_item
 
