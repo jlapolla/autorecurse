@@ -254,6 +254,18 @@ class TestConditionalSkipIterator(unittest.TestCase):
         return IteratorTestWrapper.make(actual, expected)
 
     @staticmethod
+    def make_iterator_wrapper_content_no_padding() -> IteratorTestWrapper[Line]:
+        blank_line = Line.make('')
+        line1 = Line.make('Hello')
+        line2 = Line.make('Goodbye')
+        line3 = Line.make('Goodbye again')
+        condition = EmptyLineFilter.make()
+        iterator = ListIterator.make([line1, line2, blank_line, line3])
+        actual = ConditionalSkipIterator.make(iterator, condition)
+        expected = [line1, line2, line3]
+        return IteratorTestWrapper.make(actual, expected)
+
+    @staticmethod
     def make_iterator_wrapper_content_blank() -> IteratorTestWrapper[Line]:
         blank_line = Line.make('')
         condition = EmptyLineFilter.make()
@@ -272,6 +284,7 @@ class TestConditionalSkipIterator(unittest.TestCase):
 
     def test_iterator_tests(self):
         IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_content)
+        IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_content_no_padding)
         IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_content_blank)
         IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_empty)
 
