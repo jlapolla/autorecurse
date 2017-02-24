@@ -8,5 +8,9 @@ python3/app/antlr/lexline.py: antlr4/LineLexer.py
 .PHONY: antlr
 antlr: $(ANTLR)
 
+.PHONY: test
+test: antlr
+	python3 -m unittest discover -s python3
+
 .DEFAULT_GOAL := antlr
 
