@@ -58,8 +58,8 @@ class MakefileRuleLexer(Lexer):
     COMMENT = 7
     LINE_CONTINATION = 8
     IDENTIFIER = 9
-    RECIPE_TEXT = 10
-    RECIPE_TEXT_MULTI = 11
+    RECIPE_TEXT_WITH_TERMINATION = 10
+    RECIPE_TEXT = 11
 
     modeNames = [ "DEFAULT_MODE", "RECIPE" ]
 
@@ -68,12 +68,12 @@ class MakefileRuleLexer(Lexer):
 
     symbolicNames = [ "<INVALID>",
             "EOL", "PIPE", "COLON", "SEMICOLON", "INITIAL_TAB", "WHITESPACE", 
-            "COMMENT", "LINE_CONTINATION", "IDENTIFIER", "RECIPE_TEXT", 
-            "RECIPE_TEXT_MULTI" ]
+            "COMMENT", "LINE_CONTINATION", "IDENTIFIER", "RECIPE_TEXT_WITH_TERMINATION", 
+            "RECIPE_TEXT" ]
 
     ruleNames = [ "EOL", "PIPE", "COLON", "SEMICOLON", "INITIAL_TAB", "WHITESPACE", 
-                  "COMMENT", "LINE_CONTINATION", "IDENTIFIER", "RECIPE_TEXT", 
-                  "RECIPE_TEXT_MULTI", "RECIPE_TEXT_BASE" ]
+                  "COMMENT", "LINE_CONTINATION", "IDENTIFIER", "RECIPE_TEXT_WITH_TERMINATION", 
+                  "RECIPE_TEXT", "RECIPE_TEXT_BASE" ]
 
     grammarFileName = "MakefileRuleLexer.g4"
 
