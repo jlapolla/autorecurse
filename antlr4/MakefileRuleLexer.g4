@@ -11,7 +11,7 @@ LINE_CONTINATION : '\\\n' -> skip ;
 IDENTIFIER : ~[ |:;#\t\n]+ ;
 
 mode RECIPE;
-RECIPE_TEXT : RECIPE_TEXT_BASE -> popMode ;
-RECIPE_TEXT_MULTI : RECIPE_TEXT_BASE '\\\n' '\t'? ;
-fragment RECIPE_TEXT_BASE : (~[\\\n] | '\\' ~'\n')+ ;
+RECIPE_TEXT : RECIPE_TEXT_BASE* '\n' -> popMode ;
+RECIPE_TEXT_MULTI : RECIPE_TEXT_BASE* ('\n\t' | '\\\n' '\t'?) ;
+fragment RECIPE_TEXT_BASE : (~[\\\n] | '\\' ~'\n') ;
 
