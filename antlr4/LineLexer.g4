@@ -1,5 +1,6 @@
 lexer grammar LineLexer;
 
-LINE : .+? EOL ;
+LINE : ~'\n'+ (EOL | EOF) ;
 BLANK : EOL ;
 fragment EOL : '\n' ;
+
