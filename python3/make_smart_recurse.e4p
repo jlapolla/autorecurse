@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-02-24, 08:41:35 -->
+<!-- Saved: 2017-02-24, 09:23:42 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -78,6 +78,8 @@
     <Source>lib/test_generics.py</Source>
     <Source>test_main.py</Source>
     <Source>app/antlr/test_lexline.py</Source>
+    <Source>app/antlr/lexparagraph.py</Source>
+    <Source>app/antlr/test_lexparagraph.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
