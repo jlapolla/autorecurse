@@ -8,7 +8,7 @@ INITIAL_TAB : '\n\t' -> pushMode(RECIPE) ;
 WHITESPACE : [ \t] -> skip ;
 COMMENT : '#' ~'\n'* -> skip ;
 LINE_CONTINATION : '\\\n' -> skip ;
-IDENTIFIER : ~[ |:;#\t\n]+ ;
+IDENTIFIER : (~[ \\|:;#\t\n] | '\\' ~'\n')+ ;
 
 mode RECIPE;
 RECIPE_TEXT_WITH_TERMINATION : RECIPE_TEXT_BASE* '\n' -> popMode ;

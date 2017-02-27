@@ -7,15 +7,15 @@ class TestMakefileRuleLexer(unittest.TestCase):
 
     def test_basic_operation(self):
         string = """# A comment
-\\backslash\\target\\: source\\|\t\\back\tslash\\
+\\backslash\\target\\:: source\\ |\t\\back\tslash\\ 
 \t  Hurray:|;#\t it works\\quite\\well\\
   And this is still recipe text \\
 \tAnd this tab is removed # Not a comment!
 # Interspersed comment
 
 \t  More recipe (trailing spaces)  
-next/target : next-source \\
-another-source \\
+next/target : next\\ source\\
+another-source\\
 \t and-another-source;|:recipes!!;; # Oh\tboy!
 \t :#I can't wait...
 # Still in the recipe
@@ -40,13 +40,13 @@ dist:;
         self.assertEqual(token.text, '\n')
         self.assertEqual(token.type, MakefileRuleLexer.EOL)
         token = lexer.nextToken()
-        self.assertEqual(token.text, '\\backslash\\target\\')
+        self.assertEqual(token.text, '\\backslash\\target\\:')
         self.assertEqual(token.type, MakefileRuleLexer.IDENTIFIER)
         token = lexer.nextToken()
         self.assertEqual(token.text, ':')
         self.assertEqual(token.type, MakefileRuleLexer.COLON)
         token = lexer.nextToken()
-        self.assertEqual(token.text, 'source\\')
+        self.assertEqual(token.text, 'source\\ ')
         self.assertEqual(token.type, MakefileRuleLexer.IDENTIFIER)
         token = lexer.nextToken()
         self.assertEqual(token.text, '|')
@@ -55,7 +55,7 @@ dist:;
         self.assertEqual(token.text, '\\back')
         self.assertEqual(token.type, MakefileRuleLexer.IDENTIFIER)
         token = lexer.nextToken()
-        self.assertEqual(token.text, 'slash\\')
+        self.assertEqual(token.text, 'slash\\ ')
         self.assertEqual(token.type, MakefileRuleLexer.IDENTIFIER)
         token = lexer.nextToken()
         self.assertEqual(token.text, '\n\t')
@@ -88,7 +88,7 @@ dist:;
         self.assertEqual(token.text, ':')
         self.assertEqual(token.type, MakefileRuleLexer.COLON)
         token = lexer.nextToken()
-        self.assertEqual(token.text, 'next-source')
+        self.assertEqual(token.text, 'next\\ source')
         self.assertEqual(token.type, MakefileRuleLexer.IDENTIFIER)
         token = lexer.nextToken()
         self.assertEqual(token.text, 'another-source')
