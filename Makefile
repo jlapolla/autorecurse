@@ -4,6 +4,9 @@ antlr4/LineLexer.py antlr4/LineLexer.tokens: antlr4/LineLexer.g4
 antlr4/MakefileRuleLexer.py antlr4/MakefileRuleLexer.tokens: antlr4/MakefileRuleLexer.g4
 	antlr4 -Dlanguage=Python3 $<
 
+antlr4/MakefileRuleParser.py antlr4/MakefileRuleParser.tokens: antlr4/MakefileRuleParser.g4 antlr4/MakefileRuleLexer.tokens
+	antlr4 -Dlanguage=Python3 -lib antlr4 $<
+
 antlr4/ParagraphLexer.py antlr4/ParagraphLexer.tokens: antlr4/ParagraphLexer.g4
 	antlr4 -Dlanguage=Python3 $<
 
@@ -16,6 +19,10 @@ python3/app/antlr/lexline.py: antlr4/LineLexer.py
 
 ANTLR += python3/app/antlr/lexmakefilerule.py
 python3/app/antlr/lexmakefilerule.py: antlr4/MakefileRuleLexer.py
+	cp $< $@
+
+ANTLR += python3/app/antlr/parsemakefilerule.py
+python3/app/antlr/parsemakefilerule.py: antlr4/MakefileRuleParser.py
 	cp $< $@
 
 ANTLR += python3/app/antlr/lexparagraph.py
