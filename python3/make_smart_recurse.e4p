@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-02-24, 09:23:42 -->
+<!-- Saved: 2017-02-27, 11:14:46 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -71,15 +71,21 @@
     <Source>antlr4/xpath/XPath.py</Source>
     <Source>app/antlr/__init__.py</Source>
     <Source>app/antlr/lexline.py</Source>
+    <Source>app/antlr/lexmakefilerule.py</Source>
+    <Source>app/antlr/lexparagraph.py</Source>
+    <Source>app/antlr/lextargetparagraph.py</Source>
+    <Source>app/antlr/parsemakefilerule.py</Source>
+    <Source>app/antlr/test_lexline.py</Source>
+    <Source>app/antlr/test_lexmakefilerule.py</Source>
+    <Source>app/antlr/test_lexparagraph.py</Source>
+    <Source>app/antlr/test_lextargetparagraph.py</Source>
+    <Source>app/antlr/test_parsemakefilerule.py</Source>
     <Source>app/__init__.py</Source>
     <Source>__init__.py</Source>
     <Source>lib/generics.py</Source>
     <Source>lib/__init__.py</Source>
     <Source>lib/test_generics.py</Source>
     <Source>test_main.py</Source>
-    <Source>app/antlr/test_lexline.py</Source>
-    <Source>app/antlr/lexparagraph.py</Source>
-    <Source>app/antlr/test_lexparagraph.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
