@@ -41,7 +41,7 @@ class MakefileRuleParser ( Parser ):
 
     symbolicNames = [ "<INVALID>", "EOL", "PIPE", "COLON", "SEMICOLON", 
                       "INITIAL_TAB", "WHITESPACE", "COMMENT", "LINE_CONTINATION", 
-                      "IDENTIFIER", "RECIPE_TEXT" ]
+                      "IDENTIFIER", "RECIPE_LINE" ]
 
     RULE_makefileRule = 0
     RULE_target = 1
@@ -62,7 +62,7 @@ class MakefileRuleParser ( Parser ):
     COMMENT=7
     LINE_CONTINATION=8
     IDENTIFIER=9
-    RECIPE_TEXT=10
+    RECIPE_LINE=10
 
     def __init__(self, input:TokenStream):
         super().__init__(input)
@@ -304,11 +304,11 @@ class MakefileRuleParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def RECIPE_TEXT(self, i:int=None):
+        def RECIPE_LINE(self, i:int=None):
             if i is None:
-                return self.getTokens(MakefileRuleParser.RECIPE_TEXT)
+                return self.getTokens(MakefileRuleParser.RECIPE_LINE)
             else:
-                return self.getToken(MakefileRuleParser.RECIPE_TEXT, i)
+                return self.getToken(MakefileRuleParser.RECIPE_LINE, i)
 
         def EOL(self, i:int=None):
             if i is None:
@@ -341,7 +341,7 @@ class MakefileRuleParser ( Parser ):
         try:
             self.state = 45
             token = self._input.LA(1)
-            if token in [MakefileRuleParser.EOL, MakefileRuleParser.RECIPE_TEXT]:
+            if token in [MakefileRuleParser.EOL, MakefileRuleParser.RECIPE_LINE]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 40 
                 self._errHandler.sync(self)
@@ -349,14 +349,14 @@ class MakefileRuleParser ( Parser ):
                 while True:
                     self.state = 39
                     _la = self._input.LA(1)
-                    if not(_la==MakefileRuleParser.EOL or _la==MakefileRuleParser.RECIPE_TEXT):
+                    if not(_la==MakefileRuleParser.EOL or _la==MakefileRuleParser.RECIPE_LINE):
                         self._errHandler.recoverInline(self)
                     else:
                         self.consume()
                     self.state = 42 
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
-                    if not (_la==MakefileRuleParser.EOL or _la==MakefileRuleParser.RECIPE_TEXT):
+                    if not (_la==MakefileRuleParser.EOL or _la==MakefileRuleParser.RECIPE_LINE):
                         break
 
 
