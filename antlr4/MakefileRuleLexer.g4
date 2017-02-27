@@ -1,6 +1,6 @@
 lexer grammar MakefileRuleLexer;
 
-EOL : '\n' -> skip;
+EOL : '\n';
 PIPE : '|' ;
 COLON : ':' ;
 SEMICOLON : ';' -> pushMode(RECIPE), skip ;

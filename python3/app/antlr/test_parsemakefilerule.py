@@ -1,6 +1,7 @@
 from app.antlr.parsemakefilerule import *
 from app.antlr.lexmakefilerule import *
 from antlr4 import InputStream, Token
+from antlr4.error.Errors import ParseCancellationException
 import unittest
 
 
@@ -33,13 +34,20 @@ dist:;
 \t
 a b c:
 a b c: d | e
-a b c: d; # The recipe!
-"""
+a b c: d
+
+# A comment
+
+\t# The recipe!
+a:"""
         input_ = InputStream(string)
         lexer = MakefileRuleLexer(input_)
         token_stream = CommonTokenStream(lexer)
         parser = MakefileRuleParser(token_stream)
         parser._errHandler = BailErrorStrategy()
+        with self.assertRaises(ParseCancellationException):
+            parser.makefileRule() # Because the first token is EOL
+        token_stream.consume() # Consume the EOL token
         ctx = parser.makefileRule()
         self.assertIsNone(ctx.exception)
         self.assertEqual(len(ctx.target()), 1)
@@ -105,5 +113,39 @@ a b c: d; # The recipe!
         self.assertEqual(len(ctx.prerequisite()), 0)
         self.assertEqual(len(ctx.orderOnlyPrerequisite()), 0)
         self.assertEqual(len(ctx.recipe().RECIPE_TEXT()), 0)
+        ctx = parser.makefileRule()
+        self.assertIsNone(ctx.exception)
+        self.assertEqual(len(ctx.target()), 3)
+        self.assertEqual(ctx.target()[0].IDENTIFIER().symbol.text, 'a')
+        self.assertEqual(ctx.target()[1].IDENTIFIER().symbol.text, 'b')
+        self.assertEqual(ctx.target()[2].IDENTIFIER().symbol.text, 'c')
+        self.assertEqual(len(ctx.prerequisite()), 1)
+        self.assertEqual(ctx.prerequisite()[0].IDENTIFIER().symbol.text, 'd')
+        self.assertEqual(len(ctx.orderOnlyPrerequisite()), 1)
+        self.assertEqual(ctx.orderOnlyPrerequisite()[0].IDENTIFIER().symbol.text, 'e')
+        self.assertEqual(len(ctx.recipe().RECIPE_TEXT()), 0)
+        ctx = parser.makefileRule()
+        self.assertIsNone(ctx.exception)
+        self.assertEqual(len(ctx.target()), 3)
+        self.assertEqual(ctx.target()[0].IDENTIFIER().symbol.text, 'a')
+        self.assertEqual(ctx.target()[1].IDENTIFIER().symbol.text, 'b')
+        self.assertEqual(ctx.target()[2].IDENTIFIER().symbol.text, 'c')
+        self.assertEqual(len(ctx.prerequisite()), 1)
+        self.assertEqual(ctx.prerequisite()[0].IDENTIFIER().symbol.text, 'd')
+        self.assertEqual(len(ctx.orderOnlyPrerequisite()), 0)
+        self.assertEqual(len(ctx.recipe().RECIPE_TEXT()), 1)
+        self.assertEqual(ctx.recipe().RECIPE_TEXT()[0].symbol.text, '# The recipe!\n')
+        ctx = parser.makefileRule()
+        self.assertIsNone(ctx.exception)
+        self.assertEqual(len(ctx.target()), 1)
+        self.assertEqual(ctx.target()[0].IDENTIFIER().symbol.text, 'a')
+        self.assertEqual(len(ctx.prerequisite()), 0)
+        self.assertEqual(len(ctx.orderOnlyPrerequisite()), 0)
+        self.assertEqual(len(ctx.recipe().RECIPE_TEXT()), 0)
+        with self.assertRaises(ParseCancellationException):
+            parser.makefileRule() # Because the next token is EOF
+        token = lexer.nextToken()
+        self.assertEqual(token.text, '<EOF>')
+        self.assertEqual(token.type, Token.EOF)
 
 

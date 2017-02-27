@@ -6,22 +6,23 @@ from io import StringIO
 def serializedATN():
     with StringIO() as buf:
         buf.write("\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\f")
-        buf.write("\60\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\6\2\16")
+        buf.write("\62\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\6\2\16")
         buf.write("\n\2\r\2\16\2\17\3\2\3\2\7\2\24\n\2\f\2\16\2\27\13\2\3")
-        buf.write("\2\3\2\7\2\33\n\2\f\2\16\2\36\13\2\5\2 \n\2\3\2\5\2#\n")
-        buf.write("\2\3\3\3\3\3\4\3\4\3\5\3\5\3\6\6\6,\n\6\r\6\16\6-\3\6")
-        buf.write("\2\2\7\2\4\6\b\n\2\2\60\2\r\3\2\2\2\4$\3\2\2\2\6&\3\2")
-        buf.write("\2\2\b(\3\2\2\2\n+\3\2\2\2\f\16\5\4\3\2\r\f\3\2\2\2\16")
-        buf.write("\17\3\2\2\2\17\r\3\2\2\2\17\20\3\2\2\2\20\21\3\2\2\2\21")
-        buf.write("\25\7\5\2\2\22\24\5\6\4\2\23\22\3\2\2\2\24\27\3\2\2\2")
-        buf.write("\25\23\3\2\2\2\25\26\3\2\2\2\26\37\3\2\2\2\27\25\3\2\2")
-        buf.write("\2\30\34\7\4\2\2\31\33\5\b\5\2\32\31\3\2\2\2\33\36\3\2")
-        buf.write("\2\2\34\32\3\2\2\2\34\35\3\2\2\2\35 \3\2\2\2\36\34\3\2")
-        buf.write("\2\2\37\30\3\2\2\2\37 \3\2\2\2 \"\3\2\2\2!#\5\n\6\2\"")
-        buf.write("!\3\2\2\2\"#\3\2\2\2#\3\3\2\2\2$%\7\13\2\2%\5\3\2\2\2")
-        buf.write("&\'\7\13\2\2\'\7\3\2\2\2()\7\13\2\2)\t\3\2\2\2*,\7\f\2")
-        buf.write("\2+*\3\2\2\2,-\3\2\2\2-+\3\2\2\2-.\3\2\2\2.\13\3\2\2\2")
-        buf.write("\b\17\25\34\37\"-")
+        buf.write("\2\3\2\7\2\33\n\2\f\2\16\2\36\13\2\5\2 \n\2\3\2\3\2\3")
+        buf.write("\3\3\3\3\4\3\4\3\5\3\5\3\6\6\6+\n\6\r\6\16\6,\3\6\5\6")
+        buf.write("\60\n\6\3\6\2\2\7\2\4\6\b\n\2\3\4\2\3\3\f\f\62\2\r\3\2")
+        buf.write("\2\2\4#\3\2\2\2\6%\3\2\2\2\b\'\3\2\2\2\n/\3\2\2\2\f\16")
+        buf.write("\5\4\3\2\r\f\3\2\2\2\16\17\3\2\2\2\17\r\3\2\2\2\17\20")
+        buf.write("\3\2\2\2\20\21\3\2\2\2\21\25\7\5\2\2\22\24\5\6\4\2\23")
+        buf.write("\22\3\2\2\2\24\27\3\2\2\2\25\23\3\2\2\2\25\26\3\2\2\2")
+        buf.write("\26\37\3\2\2\2\27\25\3\2\2\2\30\34\7\4\2\2\31\33\5\b\5")
+        buf.write("\2\32\31\3\2\2\2\33\36\3\2\2\2\34\32\3\2\2\2\34\35\3\2")
+        buf.write("\2\2\35 \3\2\2\2\36\34\3\2\2\2\37\30\3\2\2\2\37 \3\2\2")
+        buf.write("\2 !\3\2\2\2!\"\5\n\6\2\"\3\3\2\2\2#$\7\13\2\2$\5\3\2")
+        buf.write("\2\2%&\7\13\2\2&\7\3\2\2\2\'(\7\13\2\2(\t\3\2\2\2)+\t")
+        buf.write("\2\2\2*)\3\2\2\2+,\3\2\2\2,*\3\2\2\2,-\3\2\2\2-\60\3\2")
+        buf.write("\2\2.\60\7\2\2\3/*\3\2\2\2/.\3\2\2\2\60\13\3\2\2\2\b\17")
+        buf.write("\25\34\37,/")
         return buf.getvalue()
 
 
@@ -80,6 +81,10 @@ class MakefileRuleParser ( Parser ):
         def COLON(self):
             return self.getToken(MakefileRuleParser.COLON, 0)
 
+        def recipe(self):
+            return self.getTypedRuleContext(MakefileRuleParser.RecipeContext,0)
+
+
         def target(self, i:int=None):
             if i is None:
                 return self.getTypedRuleContexts(MakefileRuleParser.TargetContext)
@@ -96,10 +101,6 @@ class MakefileRuleParser ( Parser ):
 
         def PIPE(self):
             return self.getToken(MakefileRuleParser.PIPE, 0)
-
-        def recipe(self):
-            return self.getTypedRuleContext(MakefileRuleParser.RecipeContext,0)
-
 
         def orderOnlyPrerequisite(self, i:int=None):
             if i is None:
@@ -170,13 +171,8 @@ class MakefileRuleParser ( Parser ):
 
 
 
-            self.state = 32
-            _la = self._input.LA(1)
-            if _la==MakefileRuleParser.RECIPE_TEXT:
-                self.state = 31
-                self.recipe()
-
-
+            self.state = 31
+            self.recipe()
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -214,7 +210,7 @@ class MakefileRuleParser ( Parser ):
         self.enterRule(localctx, 2, self.RULE_target)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 34
+            self.state = 33
             self.match(MakefileRuleParser.IDENTIFIER)
         except RecognitionException as re:
             localctx.exception = re
@@ -253,7 +249,7 @@ class MakefileRuleParser ( Parser ):
         self.enterRule(localctx, 4, self.RULE_prerequisite)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 36
+            self.state = 35
             self.match(MakefileRuleParser.IDENTIFIER)
         except RecognitionException as re:
             localctx.exception = re
@@ -292,7 +288,7 @@ class MakefileRuleParser ( Parser ):
         self.enterRule(localctx, 6, self.RULE_orderOnlyPrerequisite)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 38
+            self.state = 37
             self.match(MakefileRuleParser.IDENTIFIER)
         except RecognitionException as re:
             localctx.exception = re
@@ -314,6 +310,15 @@ class MakefileRuleParser ( Parser ):
             else:
                 return self.getToken(MakefileRuleParser.RECIPE_TEXT, i)
 
+        def EOL(self, i:int=None):
+            if i is None:
+                return self.getTokens(MakefileRuleParser.EOL)
+            else:
+                return self.getToken(MakefileRuleParser.EOL, i)
+
+        def EOF(self):
+            return self.getToken(MakefileRuleParser.EOF, 0)
+
         def getRuleIndex(self):
             return MakefileRuleParser.RULE_recipe
 
@@ -334,18 +339,34 @@ class MakefileRuleParser ( Parser ):
         self.enterRule(localctx, 8, self.RULE_recipe)
         self._la = 0 # Token type
         try:
-            self.enterOuterAlt(localctx, 1)
-            self.state = 41 
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
-            while True:
-                self.state = 40
-                self.match(MakefileRuleParser.RECIPE_TEXT)
-                self.state = 43 
+            self.state = 45
+            token = self._input.LA(1)
+            if token in [MakefileRuleParser.EOL, MakefileRuleParser.RECIPE_TEXT]:
+                self.enterOuterAlt(localctx, 1)
+                self.state = 40 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not (_la==MakefileRuleParser.RECIPE_TEXT):
-                    break
+                while True:
+                    self.state = 39
+                    _la = self._input.LA(1)
+                    if not(_la==MakefileRuleParser.EOL or _la==MakefileRuleParser.RECIPE_TEXT):
+                        self._errHandler.recoverInline(self)
+                    else:
+                        self.consume()
+                    self.state = 42 
+                    self._errHandler.sync(self)
+                    _la = self._input.LA(1)
+                    if not (_la==MakefileRuleParser.EOL or _la==MakefileRuleParser.RECIPE_TEXT):
+                        break
+
+
+            elif token in [MakefileRuleParser.EOF]:
+                self.enterOuterAlt(localctx, 2)
+                self.state = 44
+                self.match(MakefileRuleParser.EOF)
+
+            else:
+                raise NoViableAltException(self)
 
         except RecognitionException as re:
             localctx.exception = re
