@@ -1,10 +1,10 @@
 lexer grammar MakefileRuleLexer;
 
-EOL : '\n' ;
+EOL : '\n' -> skip;
 PIPE : '|' ;
 COLON : ':' ;
-SEMICOLON : ';' -> pushMode(RECIPE) ;
-INITIAL_TAB : '\n\t' -> pushMode(RECIPE) ;
+SEMICOLON : ';' -> pushMode(RECIPE), skip ;
+INITIAL_TAB : '\n\t' -> pushMode(RECIPE), skip ;
 WHITESPACE : [ \t] -> skip ;
 COMMENT : '#' ~'\n'* -> skip ;
 LINE_CONTINATION : '\\\n' -> skip ;
