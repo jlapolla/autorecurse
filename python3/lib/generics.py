@@ -94,7 +94,7 @@ class Iterator(Generic[T_co], metaclass=ABCMeta):
             self.move_to_next()
 
 
-class RestartableIterator(Iterator[T_co]):
+class Buffer(Iterator[T_co]):
     """
     A stream of items that can return to its start.
 
@@ -229,7 +229,7 @@ del T_contra
 
 
 T = TypeVar('T')
-class FifoBuffer(RestartableIterator[T]):
+class Fifo(Buffer[T]):
     """
     A first-in first-out buffer.
 
@@ -346,7 +346,7 @@ class FifoBuffer(RestartableIterator[T]):
     def shift(self) -> None:
         pass
 
-class LinkedFifoBuffer(FifoBuffer[T]):
+class LinkedFifo(Fifo[T]):
 
     class LinkElement(Generic[T]):
 
@@ -374,13 +374,13 @@ class LinkedFifoBuffer(FifoBuffer[T]):
             self._next = value
 
     @staticmethod
-    def make() -> 'LinkedFifoBuffer':
-        instance = LinkedFifoBuffer()
-        LinkedFifoBuffer._setup(instance)
+    def make() -> 'LinkedFifo':
+        instance = LinkedFifo()
+        LinkedFifo._setup(instance)
         return instance
 
     @staticmethod
-    def _setup(instance: 'LinkedFifoBuffer') -> None:
+    def _setup(instance: 'LinkedFifo') -> None:
         instance._to_SE()
 
     @property
@@ -532,16 +532,16 @@ class LinkedFifoBuffer(FifoBuffer[T]):
         self._end_element = None
 
 
-class FifoGlobalIndexingWrapper(FifoBuffer[T]):
+class FifoGlobalIndexWrapper(Fifo[T]):
 
     @staticmethod
-    def make(fifo: FifoBuffer[T]) -> 'FifoGlobalIndexingWrapper':
-        instance = FifoGlobalIndexingWrapper()
-        FifoGlobalIndexingWrapper._setup(instance, fifo)
+    def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper':
+        instance = FifoGlobalIndexWrapper()
+        FifoGlobalIndexWrapper._setup(instance, fifo)
         return instance
 
     @staticmethod
-    def _setup(instance: 'FifoGlobalIndexingWrapper', fifo: FifoBuffer[T]) -> None:
+    def _setup(instance: 'FifoGlobalIndexWrapper', fifo: Fifo[T]) -> None:
         instance._fifo = fifo
         instance._start_index = 0
         instance._current_index = -1
