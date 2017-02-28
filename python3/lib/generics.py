@@ -630,7 +630,61 @@ class LinkedFifo(Fifo[T]):
         self._to_E()
 
 
-class FifoGlobalIndexWrapper(Fifo[T]):
+class FifoWrapper(Fifo[T]):
+
+    @property
+    def current_item(self) -> T:
+        return self.inner_object.current_item
+
+    @property
+    def has_current_item(self) -> bool:
+        return self.inner_object.has_current_item
+
+    @property
+    def is_at_start(self) -> bool:
+        return self.inner_object.is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return self.inner_object.is_at_end
+
+    def move_to_next(self) -> None:
+        self.inner_object.move_to_next()
+
+    def move_to_end(self) -> None:
+        self.inner_object.move_to_end()
+
+    @property
+    def count(self) -> int:
+        return self.inner_object.count
+
+    @property
+    def current_index(self) -> int:
+        return self.inner_object.current_index
+
+    @property
+    def is_empty(self) -> bool:
+        return self.inner_object.is_empty
+
+    def move_to_start(self) -> None:
+        self.inner_object.move_to_start()
+
+    def move_to_index(self, index: int) -> None:
+        self.inner_object.move_to_index(index)
+
+    def push(self, item: T) -> None:
+        self.inner_object.push(item)
+
+    def shift(self) -> None:
+        self.inner_object.shift()
+
+    @property
+    @abstractmethod
+    def inner_object(self) -> Fifo[T]:
+        pass
+
+
+class FifoGlobalIndexWrapper(FifoWrapper[T]):
 
     @staticmethod
     def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper':
@@ -642,81 +696,10 @@ class FifoGlobalIndexWrapper(Fifo[T]):
     def _setup(instance: 'FifoGlobalIndexWrapper', fifo: Fifo[T]) -> None:
         instance._fifo = fifo
         instance._start_index = 0
-        instance._current_index = -1
-        instance._count = 0
 
     @property
-    def current_item(self) -> T:
-        return self._fifo.current_item
-
-    @property
-    def has_current_item(self) -> bool:
-        return self._fifo.has_current_item
-
-    @property
-    def is_at_start(self) -> bool:
-        return self._fifo.is_at_start
-
-    @property
-    def is_at_end(self) -> bool:
-        return self._fifo.is_at_end
-
-    def move_to_next(self) -> None:
-        self._current_index = self._current_index + 1
-        self._fifo.move_to_next()
-
-    def move_to_end(self) -> None:
-        self._current_index = self._start_index + self._count
-        self._fifo.move_to_end()
-
-    def move_to_start(self) -> None:
-        self._current_index = self._start_index - 1
-        self._fifo.move_to_start()
-
-    @property
-    def is_empty(self) -> bool:
-        return self._fifo.is_empty
-
-    def push(self, item: T) -> None:
-        if self.is_at_end:
-            self._current_index = self._current_index + 1
-        self._count = self._count + 1
-        self._fifo.push(item)
-
-    def shift(self) -> None:
-        if self.is_at_start:
-            self._current_index = self._current_index + 1
-        self._start_index = self._start_index + 1
-        self._count = self._count - 1
-        self._fifo.shift()
-
-    @property
-    def count(self) -> int:
-        return self._count
-
-    @property
-    def current_index(self) -> int:
-        """
-        Specification domain:
-
-        - self.has_current_item
-        """
-        return self._current_index
-
-    def move_to_index(self, index: int) -> None:
-        """
-        Specification domain:
-
-        - index > self._start_index /\ index < self._start_index + self._count
-        """
-        if index >= self.current_index:
-            diff = index - self.current_index
-            while (diff != 0):
-                self.move_to_next()
-                diff = diff - 1
-        else:
-            self.move_to_start()
-            self.move_to_index(index)
+    def inner_object(self) -> Fifo[T]:
+        return self._fifo
 
 del T
 
