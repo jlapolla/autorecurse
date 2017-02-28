@@ -685,6 +685,12 @@ class FifoWrapper(Fifo[T]):
 
 
 class FifoGlobalIndexWrapper(FifoWrapper[T]):
+    """
+    ## Call State Validity
+
+    - current_global_index (getter): I
+    - move_to_global_index: S I E
+    """
 
     @staticmethod
     def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper':
@@ -697,9 +703,21 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
         instance._fifo = fifo
         instance._start_index = 0
 
+    def shift(self) -> None:
+        self._start_index = self._start_index + 1
+        super().shift()
+
     @property
     def inner_object(self) -> Fifo[T]:
         return self._fifo
+
+    @property
+    def current_global_index(self) -> int:
+        return self._start_index + self.inner_object.current_index
+
+    def move_to_global_index(self, index: int) -> None:
+        local_index = index - self._start_index
+        self.inner_object.move_to_index(local_index)
 
 del T
 
