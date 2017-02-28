@@ -366,12 +366,22 @@ class LinkedFifoBuffer(FifoBuffer[T]):
             return self._content
 
         @property
-        def next(self) -> LinkElement:
+        def next(self) -> 'LinkElement':
             return self._next
 
         @next.setter
         def next(self, value: 'LinkElement') -> None:
             self._next = value
+
+    @staticmethod
+    def make() -> 'LinkedFifoBuffer':
+        instance = LinkedFifoBuffer()
+        LinkedFifoBuffer._setup(instance)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'LinkedFifoBuffer') -> None:
+        instance._to_SE()
 
     @property
     def current_item(self) -> T:
