@@ -93,6 +93,77 @@ class Iterator(Generic[T_co], metaclass=ABCMeta):
         while not self.is_at_end:
             self.move_to_next()
 
+
+class RestartableIterator(Iterator[T_co]):
+    """
+    A stream of items that can return to its start.
+
+    ## Transition System Definition
+
+    ### States
+
+    - S = Start
+    - I = Intermediate
+    - E = End
+
+    ### Transition Labels
+
+    - Next = Client calls move_to_next
+    - End = Client calls move_to_end
+    - Start = Client calls move_to_start
+
+    ### Transitions Grouped by Label
+
+    - Next
+      - S -> I
+      - S -> E
+      - I -> I
+      - I -> E
+    - End
+      - S -> E
+      - I -> E
+      - E -> E
+    - Start
+      - S -> S
+      - I -> S
+      - E -> S
+
+    ## Call Validity
+
+    For each method listed, client is allowed to call the method in the
+    given states.
+
+    - current_item (getter): I
+    - has_current_item (getter): S I E
+    - is_at_start (getter): S I E
+    - is_at_end (getter): S I E
+    - move_to_next: S I
+    - move_to_end: S I E
+    - move_to_start: S I E
+
+    ## Call Results
+
+    For each state listed, calling the specified method will return the
+    given result.
+
+    - S
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+    - I
+      - has_current_item (getter): True
+      - is_at_start (getter): False
+      - is_at_end (getter): False
+    - E
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+    """
+
+    @abstractmethod
+    def move_to_start(self) -> None:
+        pass
+
 del T_co
 
 
