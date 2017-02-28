@@ -149,7 +149,7 @@ class Buffer(Iterator[T_co]):
     - move_to_next: S I SE
     - move_to_end: S I E SE EE
     - move_to_start: S I E SE EE
-    - move_to_index: S I E SE EE
+    - move_to_index: S I E
 
     ## Call Argument Validity
 
@@ -184,11 +184,13 @@ class Buffer(Iterator[T_co]):
       - is_at_start (getter): True
       - is_at_end (getter): False
       - is_empty (getter): True
+      - count (getter): 0
     - EE
       - has_current_item (getter): False
       - is_at_start (getter): False
       - is_at_end (getter): True
       - is_empty (getter): True
+      - count (getter): 0
 
     ## Notes
 
@@ -217,9 +219,22 @@ class Buffer(Iterator[T_co]):
     def move_to_start(self) -> None:
         pass
 
-    @abstractmethod
     def move_to_index(self, index: int) -> None:
-        pass
+        if self.is_at_start: # State S
+            self.move_to_next() # S -> I
+            self.move_to_index(index)
+        elif self.has_current_item: # State I
+            if index >= self.current_index:
+                diff = index - self.current_index
+                while (diff != 0):
+                    self.move_to_next()
+                    diff = diff - 1
+            else:
+                self.move_to_start() # I -> S
+                self.move_to_index(index)
+        else: # State E
+            self.move_to_start() # E -> S
+            self.move_to_index(index)
 
 del T_co
 
@@ -357,7 +372,7 @@ class Fifo(Buffer[T]):
     - move_to_next: S I SE
     - move_to_end: S I E SE EE
     - move_to_start: S I E SE EE
-    - move_to_index: S I E SE EE
+    - move_to_index: S I E
     - push: S I E SE EE
     - shift: S I E
 
@@ -394,11 +409,13 @@ class Fifo(Buffer[T]):
       - is_at_start (getter): True
       - is_at_end (getter): False
       - is_empty (getter): True
+      - count (getter): 0
     - EE
       - has_current_item (getter): False
       - is_at_start (getter): False
       - is_at_end (getter): True
       - is_empty (getter): True
+      - count (getter): 0
     """
 
     @abstractmethod
