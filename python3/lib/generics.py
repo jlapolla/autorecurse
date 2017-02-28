@@ -508,6 +508,18 @@ class LinkedFifo(Fifo[T]):
             # EE -> EE
             self._to_EE()
 
+    @property
+    def count(self) -> int:
+        pass
+
+    @property
+    def current_index(self) -> int:
+        pass
+
+    @property
+    def is_empty(self) -> bool:
+        return self._end_element is None
+
     def move_to_start(self) -> None:
         if not self.is_empty: # State S, I, or E
             # S -> S
@@ -518,10 +530,6 @@ class LinkedFifo(Fifo[T]):
             # SE -> SE
             # EE -> SE
             self._to_SE()
-
-    @property
-    def is_empty(self) -> bool:
-        return self._end_element is None
 
     def push(self, item: T) -> None:
         element = LinkElement.make(item)
