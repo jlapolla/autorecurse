@@ -102,9 +102,11 @@ class Buffer(Iterator[T_co]):
 
     ### States
 
-    - S = Start
-    - I = Intermediate
-    - E = End
+    - S = Start, Not empty
+    - I = Intermediate, Not empty
+    - E = End, Not empty
+    - SE = Start, Empty
+    - EE = End, Empty
 
     ### Transition Labels
 
@@ -116,30 +118,46 @@ class Buffer(Iterator[T_co]):
 
     - Next
       - S -> I
-      - S -> E
       - I -> I
       - I -> E
+      - SE -> EE
     - End
       - S -> E
       - I -> E
       - E -> E
+      - SE -> EE
+      - EE -> EE
     - Start
       - S -> S
       - I -> S
       - E -> S
+      - SE -> SE
+      - EE -> SE
 
-    ## Call Validity
+    ## Call State Validity
 
     For each method listed, client is allowed to call the method in the
     given states.
 
+    - count (getter): S I E SE EE
+    - current_index (getter): I
     - current_item (getter): I
-    - has_current_item (getter): S I E
-    - is_at_start (getter): S I E
-    - is_at_end (getter): S I E
-    - move_to_next: S I
-    - move_to_end: S I E
-    - move_to_start: S I E
+    - has_current_item (getter): S I E SE EE
+    - is_at_start (getter): S I E SE EE
+    - is_at_end (getter): S I E SE EE
+    - is_empty (getter): S I E SE EE
+    - move_to_next: S I SE
+    - move_to_end: S I E SE EE
+    - move_to_start: S I E SE EE
+    - move_to_index: S I E SE EE
+
+    ## Call Argument Validity
+
+    For each method listed, client is allowed to call the method with
+    the given parameters.
+
+    - move_to_index(self, index: int)
+      - 0 <= index /\ index < self.count
 
     ## Call Results
 
@@ -150,18 +168,57 @@ class Buffer(Iterator[T_co]):
       - has_current_item (getter): False
       - is_at_start (getter): True
       - is_at_end (getter): False
+      - is_empty (getter): False
     - I
       - has_current_item (getter): True
       - is_at_start (getter): False
       - is_at_end (getter): False
+      - is_empty (getter): False
     - E
       - has_current_item (getter): False
       - is_at_start (getter): False
       - is_at_end (getter): True
+      - is_empty (getter): False
+    - SE
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+      - is_empty (getter): True
+    - EE
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+      - is_empty (getter): True
+
+    ## Notes
+
+    - The index of the first item (if any) is always 0.
+      - In other words, if 'self.count > 0', then running
+        'self.move_to_start(); self.move_to_next()' will cause
+        'self.current_index' to return 0.
     """
+
+    @property
+    @abstractmethod
+    def count(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def current_index(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def is_empty(self) -> bool:
+        pass
 
     @abstractmethod
     def move_to_start(self) -> None:
+        pass
+
+    @abstractmethod
+    def move_to_index(self, index: int) -> None:
         pass
 
 del T_co
@@ -285,21 +342,32 @@ class Fifo(Buffer[T]):
       - E -> E
       - E -> EE
 
-    ## Call Validity
+    ## Call State Validity
 
     For each method listed, client is allowed to call the method in the
     given states.
 
+    - count (getter): S I E SE EE
+    - current_index (getter): I
     - current_item (getter): I
     - has_current_item (getter): S I E SE EE
     - is_at_start (getter): S I E SE EE
     - is_at_end (getter): S I E SE EE
+    - is_empty (getter): S I E SE EE
     - move_to_next: S I SE
     - move_to_end: S I E SE EE
     - move_to_start: S I E SE EE
-    - is_empty: S I E SE EE
+    - move_to_index: S I E SE EE
     - push: S I E SE EE
     - shift: S I E
+
+    ## Call Argument Validity
+
+    For each method listed, client is allowed to call the method with
+    the given parameters.
+
+    - move_to_index(self, index: int)
+      - 0 <= index /\ index < self.count
 
     ## Call Results
 
@@ -332,11 +400,6 @@ class Fifo(Buffer[T]):
       - is_at_end (getter): True
       - is_empty (getter): True
     """
-
-    @property
-    @abstractmethod
-    def is_empty(self) -> bool:
-        pass
 
     @abstractmethod
     def push(self, item: T) -> None:
