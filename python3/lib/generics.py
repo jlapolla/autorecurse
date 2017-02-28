@@ -228,6 +228,288 @@ del StreamCondition._set_current_item
 del T_contra
 
 
+T = TypeVar('T')
+class FifoBuffer(RestartableIterator[T]):
+    """
+    A first-in first-out buffer.
+
+    ## Transition System Definition
+
+    ### States
+
+    - S = Start, Not empty
+    - I = Intermediate, Not empty
+    - E = End, Not empty
+    - SE = Start, Empty
+    - EE = End, Empty
+
+    ### Transition Labels
+
+    - Next = Client calls move_to_next
+    - End = Client calls move_to_end
+    - Start = Client calls move_to_start
+    - Push = Client calls push
+    - Shift = Client calls shift
+
+    ### Transitions Grouped by Label
+
+    - Next
+      - S -> I
+      - I -> I
+      - I -> E
+      - SE -> EE
+    - End
+      - S -> E
+      - I -> E
+      - E -> E
+      - SE -> EE
+      - EE -> EE
+    - Start
+      - S -> S
+      - I -> S
+      - E -> S
+      - SE -> SE
+      - EE -> SE
+    - Push
+      - S -> S
+      - I -> I # push never changes current_item
+      - E -> E
+      - SE -> S
+      - EE -> E
+    - Shift
+      - S -> S
+      - S -> SE
+      - I -> I # shift does not change current_item in this case
+      - I -> S # happens when shift removes current_item from the buffer
+      - I -> SE
+      - E -> E
+      - E -> EE
+
+    ## Call Validity
+
+    For each method listed, client is allowed to call the method in the
+    given states.
+
+    - current_item (getter): I
+    - has_current_item (getter): S I E SE EE
+    - is_at_start (getter): S I E SE EE
+    - is_at_end (getter): S I E SE EE
+    - move_to_next: S I SE
+    - move_to_end: S I E SE EE
+    - move_to_start: S I E SE EE
+    - is_empty: S I E SE EE
+    - push: S I E SE EE
+    - shift: S I E
+
+    ## Call Results
+
+    For each state listed, calling the specified method will return the
+    given result.
+
+    - S
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+      - is_empty (getter): False
+    - I
+      - has_current_item (getter): True
+      - is_at_start (getter): False
+      - is_at_end (getter): False
+      - is_empty (getter): False
+    - E
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+      - is_empty (getter): False
+    - SE
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+      - is_empty (getter): True
+    - EE
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+      - is_empty (getter): True
+    """
+
+    @property
+    @abstractmethod
+    def is_empty(self) -> bool:
+        pass
+
+    @abstractmethod
+    def push(self, item: T) -> None:
+        pass
+
+    @abstractmethod
+    def shift(self) -> None:
+        pass
+
+class LinkedFifoBuffer(FifoBuffer[T]):
+
+    class LinkElement(Generic[T]):
+
+        @staticmethod
+        def make(content: T) -> 'LinkElement':
+            instance = LinkElement()
+            LinkElement._setup(instance, content)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'LinkElement', content: T) -> None:
+            instance._content = content
+            instance._next = None
+
+        @property
+        def content(self) -> T:
+            return self._content
+
+        @property
+        def next(self) -> LinkElement:
+            return self._next
+
+        @next.setter
+        def next(self, value: 'LinkElement') -> None:
+            self._next = value
+
+    @property
+    def current_item(self) -> T:
+        return self._current_element.content
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._current_element is not None
+
+    @property
+    def is_at_start(self) -> bool:
+        return not (self.has_current_item or self.is_at_end)
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._is_at_end
+
+    def move_to_next(self) -> None:
+        if not self.is_empty:
+            if self.is_at_start: # State S
+                self._move_to_next_S_I()
+            else: # State I
+                if self._current_item.next is not None:
+                    self._move_to_next_I_I()
+                else:
+                    self._move_to_next_I_E()
+        else: # State SE
+            self._move_to_next_SE_EE()
+
+    def _move_to_next_S_I(self) -> None:
+        self._current_element = self._start_element
+
+    def _move_to_next_I_I(self) -> None:
+        self._current_element = self._current_element.next
+
+    def _move_to_next_I_E(self) -> None:
+        self._current_element = None
+        self._is_at_end = True
+
+    def _move_to_next_SE_EE(self) -> None:
+        self._is_at_end = True
+
+    def move_to_end(self) -> None:
+        self._current_element = None
+        self._is_at_end = True
+
+    def move_to_start(self) -> None:
+        self._current_element = None
+        self._is_at_end = False
+
+    @property
+    def is_empty(self) -> bool:
+        return self._end_element is None
+
+    def push(self, item: T) -> None:
+        element = LinkElement.make(item)
+        if not self.is_empty:
+            if self.is_at_start: # State S
+                self._push_S_S(element)
+            elif self.has_current_item: # State I
+                self._push_I_I(element)
+            else: # State E
+                self._push_E_E(element)
+        else:
+            if self.is_at_start: # State SE
+                self._push_SE_S(element)
+            else: # State EE
+                self._push_EE_E(element)
+
+    def _push_S_S(self, element: LinkElement[T]) -> None:
+        self._end_element.next = element
+        self._end_element = element
+
+    def _push_I_I(self, element: LinkElement[T]) -> None:
+        self._end_element.next = element
+        self._end_element = element
+
+    def _push_E_E(self, element: LinkElement[T]) -> None:
+        self._end_element.next = element
+        self._end_element = element
+
+    def _push_SE_S(self, element: LinkElement[T]) -> None:
+        self._start_element = element
+        self._end_element = element
+
+    def _push_EE_E(self, element: LinkElement[T]) -> None:
+        self._start_element = element
+        self._end_element = element
+
+    def shift(self) -> None:
+        if self.is_at_start: # State S
+            if self._start_element.next is not None:
+                self._shift_S_S()
+            else:
+                self._shift_S_SE()
+        elif self.has_current_item: # State I
+            if self._current_element is not self._start_element:
+                self._shift_I_I()
+            else:
+                if self._start_element.next is not None:
+                    self._shift_I_S()
+                else:
+                    self._shift_I_SE()
+        else: # State E
+            if self._start_element.next is not None:
+                self._shift_E_E()
+            else:
+                self._shift_E_EE()
+
+    def _shift_S_S(self) -> None:
+        self._start_element = self._start_element.next
+
+    def _shift_S_SE(self) -> None:
+        self._start_element = None
+        self._end_element = None
+
+    def _shift_I_I(self) -> None:
+        self._start_element = self._start_element.next
+
+    def _shift_I_S(self) -> None:
+        self._current_element = None
+        self._start_element = self._start_element.next
+
+    def _shift_I_SE(self) -> None:
+        self._current_element = None
+        self._start_element = None
+        self._end_element = None
+
+    def _shift_E_E(self) -> None:
+        self._start_element = self._start_element.next
+
+    def _shift_E_EE(self) -> None:
+        self._start_element = None
+        self._end_element = None
+
+del T
+
+
 class LineBreakError(Exception):
 
     def __init__(self, message: str = None) -> None:
