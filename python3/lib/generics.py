@@ -483,11 +483,13 @@ class LinkedFifo(Fifo[T]):
         if not self.is_empty:
             if self.is_at_start: # State S
                 # S -> I
+                self._current_index = self._current_index + 1
                 self._current_element = self._start_element
                 self._to_I()
             else: # State I
                 if self._current_item.next is not None:
                     # I -> I
+                    self._current_index = self._current_index + 1
                     self._current_element = self._current_element.next
                     self._to_I()
                 else:
@@ -510,11 +512,11 @@ class LinkedFifo(Fifo[T]):
 
     @property
     def count(self) -> int:
-        pass
+        return self._count
 
     @property
     def current_index(self) -> int:
-        pass
+        return self._current_index
 
     @property
     def is_empty(self) -> bool:
@@ -557,10 +559,12 @@ class LinkedFifo(Fifo[T]):
                 self._to_E()
 
     def _do_push(self, element: LinkElement[T]) -> None:
+        self._count = self._count + 1
         self._end_element.next = element
         self._end_element = element
 
     def _do_empty_push(self, element: LinkElement[T]) -> None:
+        self._count = self._count + 1
         self._start_element = element
         self._end_element = element
 
@@ -576,6 +580,7 @@ class LinkedFifo(Fifo[T]):
         elif self.has_current_item: # State I
             if self._current_element is not self._start_element:
                 # I -> I
+                self._current_index = self._current_index - 1
                 self._do_shift()
                 self._to_I()
             else:
@@ -596,9 +601,11 @@ class LinkedFifo(Fifo[T]):
                 self._to_EE()
 
     def _do_shift(self) -> None:
+        self._count = self._count - 1
         self._start_element = self._start_element.next
 
     def _to_S(self) -> None:
+        self._current_index = -1
         self._current_element = None
         self._is_at_end = False
 
@@ -606,18 +613,21 @@ class LinkedFifo(Fifo[T]):
         self._is_at_end = False
 
     def _to_E(self) -> None:
+        self._current_index = self.count
         self._current_element = None
         self._is_at_end = True
 
     def _to_SE(self) -> None:
-        self._to_S()
+        self._count = 0
         self._start_element = None
         self._end_element = None
+        self._to_S()
 
     def _to_EE(self) -> None:
-        self._to_E()
+        self._count = 0
         self._start_element = None
         self._end_element = None
+        self._to_E()
 
 
 class FifoGlobalIndexWrapper(Fifo[T]):
@@ -848,7 +858,6 @@ class ConditionalSkipIterator(Iterator[T]):
     def _setup(instance: 'ConditionalSkipIterator', iterator: Iterator[T], condition: StreamCondition[T]) -> None:
         instance._iterator = iterator
         instance._condition = condition
-        pass
 
     @property
     def current_item(self) -> T:
