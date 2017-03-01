@@ -939,6 +939,7 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
     """
     ## Call State Validity
 
+    - global_count (getter): S I E SE EE
     - current_global_index (getter): I
     - move_to_global_index: S I E
     """
@@ -961,6 +962,10 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
     @property
     def inner_object(self) -> Fifo[T]:
         return self._fifo
+
+    @property
+    def global_count(self) -> int:
+        return self._start_index + self.count
 
     @property
     def current_global_index(self) -> int:
