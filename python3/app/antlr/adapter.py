@@ -147,7 +147,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
     @property
     def index(self) -> int:
         result = None
-        if self.has_current_item: # State I
+        if self._is_I: # State I
             result = self._buffer_global.current_global_index
         else: # State E or EE
             result = self.size
@@ -162,7 +162,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
         raise NotImplementedError()
 
     def consume(self) -> None:
-        if self.has_current_item: # State I
+        if self._is_I: # State I
             self.move_to_next()
         else: # State E or EE
             raise Exception('cannot consume EOF')
@@ -177,20 +177,20 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
         if index < 0:
             return Token.EOF
         result = None
-        if self.has_current_item: # State I
+        if self._is_I: # State I
             current_global_index = self.index
             ref_token = self._buffer.new_strong_reference()
             self.seek(index)
-            if self.has_current_item: # State I
+            if self._is_I: # State I
                 result = ord(self.current_item)
             else: # State E
                 result = Token.EOF
             self.seek(current_global_index)
             self._buffer.release_strong_reference(ref_token)
-        elif not self._buffer.is_empty: # State E
+        elif self._is_E: # State E
             current_global_index = self.index
             self.seek(index)
-            if self.has_current_item: # State I
+            if self._is_I: # State I
                 result = ord(self.current_item)
             else: # State E
                 result = Token.EOF
@@ -201,9 +201,9 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
 
     def mark(self) -> int:
         result = None
-        if self.has_current_item: # State I
+        if self._is_I: # State I
             result = self._buffer.new_strong_reference()
-        elif not self._buffer.is_empty: # State E
+        elif self._is_E: # State E
             result = -1
         else: # State EE
             result = -1
@@ -213,7 +213,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
         self._buffer.release_strong_reference(marker)
 
     def seek(self, _index: int) -> None:
-        if self.has_current_item: # State I
+        if self._is_I: # State I
             if _index >= self.index:
                 if _index >= self.size:
                     self._buffer_global.move_to_global_index(self.size - 1)
@@ -225,7 +225,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
                     self._buffer_global.move_to_global_index(_index)
             else:
                 self._buffer_global.move_to_global_index(_index)
-        elif not self._buffer.is_empty: # State E
+        elif self._is_E: # State E
             if _index >= self.index:
                 # Already at end
                 pass
@@ -242,7 +242,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
 
     def getText(self, start: int, stop: int) -> str:
         with StringIO() as strbuffer:
-            if self.has_current_item: # State I
+            if self._is_I: # State I
                 current_global_index = self.index
                 ref_token = self._buffer.new_strong_reference()
                 self.seek(start)
@@ -250,7 +250,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
                 self._write_text(strbuffer, length)
                 self.seek(current_global_index)
                 self._buffer.release_strong_reference(ref_token)
-            elif not self._buffer.is_empty: # State E
+            elif self._is_E: # State E
                 current_global_index = self.index
                 self.seek(start)
                 length = stop - start + 1
@@ -262,17 +262,20 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
 
     def _write_text(self, buffer_: TextIOBase, length: int) -> None:
         count = length
-        while self.has_current_item and (count != 0):
+        while self._is_I and (count != 0):
             buffer_.write(self.current_item)
             self.move_to_next()
             count = count - 1
 
+    @property
     def _is_I(self) -> bool:
         return self.has_current_item
 
+    @property
     def _is_E(self) -> bool:
         return self.is_at_end and (not self._buffer.is_empty)
 
+    @property
     def _is_EE(self) -> bool:
         return self.is_at_end and self._buffer.is_empty
 
