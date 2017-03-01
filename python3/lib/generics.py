@@ -301,7 +301,14 @@ del T_contra
 
 
 T = TypeVar('T')
-class Fifo(Buffer[T]):
+class FifoBase(Buffer[T]):
+
+    @abstractmethod
+    def push(self, item: T) -> None:
+        pass
+
+
+class Fifo(FifoBase[T]):
     """
     A first-in first-out buffer.
 
@@ -344,7 +351,7 @@ class Fifo(Buffer[T]):
       - EE -> SE
     - Push
       - S -> S
-      - I -> I # push never changes current_item
+      - I -> I # never changes current_item
       - E -> E
       - SE -> S
       - EE -> E
@@ -419,12 +426,167 @@ class Fifo(Buffer[T]):
     """
 
     @abstractmethod
-    def push(self, item: T) -> None:
+    def shift(self) -> None:
+        pass
+
+
+class ManagedFifo(FifoBase[T]):
+    """
+    A Fifo that uses garbage collection to remove items, instead of
+    having the client make explicit calls to shift.
+
+    ## Transition System Definition
+
+    ### States
+
+    - S = Start, Not empty
+    - I = Intermediate, Not empty
+    - E = End, Not empty
+    - SE = Start, Empty
+    - EE = End, Empty
+
+    ### Transition Labels
+
+    - Next = Client calls move_to_next
+    - End = Client calls move_to_end
+    - Start = Client calls move_to_start
+    - Push = Client calls push
+    - Collect = Client calls collect_garbage
+
+    ### Transitions Grouped by Label
+
+    - Next
+      - S -> I
+      - I -> I
+      - I -> E
+      - SE -> EE
+    - End
+      - S -> E
+      - I -> E
+      - E -> E
+      - SE -> EE
+      - EE -> EE
+    - Start
+      - S -> S
+      - I -> S
+      - E -> S
+      - SE -> SE
+      - EE -> SE
+    - Push # may automatically trigger Collect
+      - S -> S
+      - I -> I # never changes current_item
+      - E -> E
+      - E -> EE
+      - SE -> S
+      - EE -> E
+      - EE -> EE
+    - Collect
+      - S -> S # has no effect
+      - I -> I # preserves current_item and all items after
+      - E -> E
+      - E -> EE
+      - SE -> SE # has no effect
+      - EE -> EE # has no effect
+
+    ## Call State Validity
+
+    For each method listed, client is allowed to call the method in the
+    given states.
+
+    - count (getter): S I E SE EE
+    - current_index (getter): I
+    - current_item (getter): I
+    - has_current_item (getter): S I E SE EE
+    - is_at_start (getter): S I E SE EE
+    - is_at_end (getter): S I E SE EE
+    - is_empty (getter): S I E SE EE
+    - move_to_next: S I SE
+    - move_to_end: S I E SE EE
+    - move_to_start: S I E SE EE
+    - move_to_index: S I E
+    - push: S I E SE EE
+    - collect_garbage: S I E SE EE
+    - new_strong_reference: I
+    - release_strong_reference: S I E SE EE
+
+    ## Call Argument Validity
+
+    For each method listed, client is allowed to call the method with
+    the given parameters.
+
+    - move_to_index(self, index: int)
+      - 0 <= index /\ index < self.count
+
+    ## Call Results
+
+    For each state listed, calling the specified method will return the
+    given result.
+
+    - S
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+      - is_empty (getter): False
+    - I
+      - has_current_item (getter): True
+      - is_at_start (getter): False
+      - is_at_end (getter): False
+      - is_empty (getter): False
+    - E
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+      - is_empty (getter): False
+    - SE
+      - has_current_item (getter): False
+      - is_at_start (getter): True
+      - is_at_end (getter): False
+      - is_empty (getter): True
+      - count (getter): 0
+    - EE
+      - has_current_item (getter): False
+      - is_at_start (getter): False
+      - is_at_end (getter): True
+      - is_empty (getter): True
+      - count (getter): 0
+
+    ## Notes
+
+    - release_strong_reference is tolerant, and may be called with any
+      int. Calling release_strong_reference with an invalid int has no
+      effect.
+    """
+
+    @abstractmethod
+    def collect_garbage(self) -> None:
+        """
+        Client code may call collect_garbage to force an immediate
+        garbage collection.
+
+        Implementations may call collect_garbage automatically when push
+        is called.
+        """
         pass
 
     @abstractmethod
-    def shift(self) -> None:
+    def new_strong_reference(self) -> int:
+        """
+        Returns a reference token that represents a strong reference to
+        current_item. ManagedFifo will not remove current_item until all
+        strong references to the item have been released.
+
+        To release a reference token, client code must call
+        release_strong_reference with the token.
+        """
         pass
+
+    @abstractmethod
+    def release_strong_reference(self, ref_token: int) -> None:
+        """
+        Allows ManagedFifo to remove the referenced item.
+        """
+        pass
+
 
 class LinkedFifo(Fifo[T]):
 
@@ -718,6 +880,33 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
     def move_to_global_index(self, index: int) -> None:
         local_index = index - self._start_index
         self.inner_object.move_to_index(local_index)
+
+
+class FifoGcManager:
+
+    def new_strong_reference(self) -> int:
+        pass
+
+    def release_strong_reference(self, ref_token: int) -> None:
+        pass
+
+    def prune(self) -> None:
+        while self._can_shift:
+            self.fifo.shift()
+            self._refcount.pop(0)
+
+    def _can_shift(self) -> bool:
+        result = None
+        if not self.fifo.is_empty:
+            if self.fifo.is_at_start: # State S
+                result = False
+            elif self.fifo.has_current_item: # State I
+                result = (self._refcount[0] == 0) and (self.fifo.current_index > 0)
+            else: # State E
+                result = self._refcount[0] == 0
+        else: # State SE or EE
+            result = False
+        return result
 
 del T
 
