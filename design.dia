@@ -3239,13 +3239,13 @@ in file section#</dia:string>
         <dia:point val="53.87,21.755"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="53.82,21.705;87.915,31.605"/>
+        <dia:rectangle val="53.82,21.705;78.29,31.605"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
         <dia:point val="53.87,21.755"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
-        <dia:real val="33.994999999999997"/>
+        <dia:real val="24.369999999999997"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
         <dia:real val="9.8000000000000007"/>
@@ -3578,7 +3578,7 @@ in file section#</dia:string>
             <dia:boolean val="false"/>
           </dia:attribute>
           <dia:attribute name="class_scope">
-            <dia:boolean val="false"/>
+            <dia:boolean val="true"/>
           </dia:attribute>
           <dia:attribute name="parameters">
             <dia:composite type="umlparameter">
@@ -3602,7 +3602,7 @@ in file section#</dia:string>
         </dia:composite>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#make_from_paragraph#</dia:string>
+            <dia:string>#make_from_parse_context#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -3631,10 +3631,10 @@ in file section#</dia:string>
           <dia:attribute name="parameters">
             <dia:composite type="umlparameter">
               <dia:attribute name="name">
-                <dia:string>#file#</dia:string>
+                <dia:string>#context#</dia:string>
               </dia:attribute>
               <dia:attribute name="type">
-                <dia:string>#Makefile#</dia:string>
+                <dia:string>##</dia:string>
               </dia:attribute>
               <dia:attribute name="value">
                 <dia:string>##</dia:string>
@@ -3648,10 +3648,10 @@ in file section#</dia:string>
             </dia:composite>
             <dia:composite type="umlparameter">
               <dia:attribute name="name">
-                <dia:string>#paragraph#</dia:string>
+                <dia:string>#target_index#</dia:string>
               </dia:attribute>
               <dia:attribute name="type">
-                <dia:string>#RestartableIterator&lt;Line&gt;#</dia:string>
+                <dia:string>##</dia:string>
               </dia:attribute>
               <dia:attribute name="value">
                 <dia:string>##</dia:string>
