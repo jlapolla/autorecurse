@@ -593,13 +593,13 @@ class LinkedFifo(Fifo[T]):
     class LinkElement(Generic[T]):
 
         @staticmethod
-        def make(content: T) -> 'LinkElement':
-            instance = LinkElement()
-            LinkElement._setup(instance, content)
+        def make(content: T) -> 'LinkedFifo.LinkElement':
+            instance = LinkedFifo.LinkElement()
+            LinkedFifo.LinkElement._setup(instance, content)
             return instance
 
         @staticmethod
-        def _setup(instance: 'LinkElement', content: T) -> None:
+        def _setup(instance: 'LinkedFifo.LinkElement', content: T) -> None:
             instance._content = content
             instance._next = None
 
@@ -608,11 +608,11 @@ class LinkedFifo(Fifo[T]):
             return self._content
 
         @property
-        def next(self) -> 'LinkElement':
+        def next(self) -> 'LinkedFifo.LinkElement':
             return self._next
 
         @next.setter
-        def next(self, value: 'LinkElement') -> None:
+        def next(self, value: 'LinkedFifo.LinkElement') -> None:
             self._next = value
 
     @staticmethod
@@ -696,7 +696,7 @@ class LinkedFifo(Fifo[T]):
             self._to_SE()
 
     def push(self, item: T) -> None:
-        element = LinkElement.make(item)
+        element = LinkedFifo.LinkElement.make(item)
         if not self.is_empty:
             if self.is_at_start: # State S
                 # S -> S
@@ -720,12 +720,12 @@ class LinkedFifo(Fifo[T]):
                 self._do_empty_push(element)
                 self._to_E()
 
-    def _do_push(self, element: LinkElement[T]) -> None:
+    def _do_push(self, element: 'LinkedFifo.LinkElement[T]') -> None:
         self._count = self._count + 1
         self._end_element.next = element
         self._end_element = element
 
-    def _do_empty_push(self, element: LinkElement[T]) -> None:
+    def _do_empty_push(self, element: 'LinkedFifo.LinkElement[T]') -> None:
         self._count = self._count + 1
         self._start_element = element
         self._end_element = element
@@ -882,31 +882,161 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
         self.inner_object.move_to_index(local_index)
 
 
-class FifoGcManager:
+class FifoToManagedFifoAdapter(ManagedFifo[T]):
 
-    def new_strong_reference(self) -> int:
-        pass
+    class ReferenceCounter:
 
-    def release_strong_reference(self, ref_token: int) -> None:
-        pass
+        @staticmethod
+        def make() -> 'FifoToManagedFifoAdapter.ReferenceCounter':
+            instance = FifoToManagedFifoAdapter.ReferenceCounter()
+            FifoToManagedFifoAdapter.ReferenceCounter._setup(instance)
+            return instance
 
-    def prune(self) -> None:
+        @staticmethod
+        def _setup(instance: 'FifoToManagedFifoAdapter.ReferenceCounter') -> None:
+            instance._count = 0
+
+        @property
+        def is_at_zero(self) -> bool:
+            return self._count == 0
+
+        def increment(self) -> None:
+            self._count = self._count + 1
+
+        def decrement(self) -> None:
+            self._count = self._count - 1
+
+    @staticmethod
+    def make(fifo: Fifo[T]) -> 'FifoToManagdFifoAdapter':
+        instance = FifoToManagedFifoAdapter()
+        FifoToManagedFifoAdapter._setup(instance, fifo)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'FifoToManagedFifoAdapter', fifo: Fifo[T]) -> None:
+        instance._refcounters = []
+        instance._ref_token_dict = {}
+        instance._current_reference_token = 0
+        instance._fifo = fifo
+        FifoToManagedFifoAdapter._initialize_ref_counters(instance)
+
+    @staticmethod
+    def _initialize_ref_counters(instance: 'FifoToManagedFifoAdapter') -> None:
+        count = instance._fifo.count
+        while (count != 0):
+            instance._refcounters.append(FifoToManagedFifoAdapter.ReferenceCounter.make())
+            count = count - 1
+
+    MAX_ACTIVE_REFERENCES = 2147483647 # Max signed 32-bit int
+
+    @property
+    def current_item(self) -> T:
+        return self.inner_object.current_item
+
+    @property
+    def has_current_item(self) -> bool:
+        return self.inner_object.has_current_item
+
+    @property
+    def is_at_start(self) -> bool:
+        return self.inner_object.is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return self.inner_object.is_at_end
+
+    def move_to_next(self) -> None:
+        self.inner_object.move_to_next()
+
+    def move_to_end(self) -> None:
+        self.inner_object.move_to_end()
+
+    @property
+    def count(self) -> int:
+        return self.inner_object.count
+
+    @property
+    def current_index(self) -> int:
+        return self.inner_object.current_index
+
+    @property
+    def is_empty(self) -> bool:
+        return self.inner_object.is_empty
+
+    def move_to_start(self) -> None:
+        self.inner_object.move_to_start()
+
+    def move_to_index(self, index: int) -> None:
+        self.inner_object.move_to_index(index)
+
+    def push(self, item: T) -> None:
+        self.inner_object.push(item)
+        self._refcounters.append(FifoToManagedFifoAdapter.ReferenceCounter.make())
+        self.collect_garbage()
+
+    def collect_garbage(self) -> None:
         while self._can_shift:
-            self.fifo.shift()
-            self._refcount.pop(0)
+            self.inner_object.shift()
+            self._refcounters.pop(0)
 
+    @property
     def _can_shift(self) -> bool:
         result = None
-        if not self.fifo.is_empty:
-            if self.fifo.is_at_start: # State S
+        if not self.is_empty:
+            if self.is_at_start: # State S
+                # S -> S
                 result = False
-            elif self.fifo.has_current_item: # State I
-                result = (self._refcount[0] == 0) and (self.fifo.current_index > 0)
+            elif self.has_current_item: # State I
+                # I -> I
+                result = (self._refcounters[0].is_at_zero) and (self.current_index != 0)
             else: # State E
-                result = self._refcount[0] == 0
+                # E -> E
+                # E -> EE
+                result = self._refcounters[0].is_at_zero
         else: # State SE or EE
+            # SE -> SE
+            # EE -> EE
             result = False
         return result
+
+    def new_strong_reference(self) -> int:
+        # State I
+        ref_token = self._next_available_reference_token()
+        refcounter = self._current_reference_counter()
+        self._ref_token_dict[ref_token] = refcounter
+        refcounter.increment()
+        self._current_reference_token = ref_token
+        return ref_token
+
+    def _next_available_reference_token(self) -> int:
+        ref_token = self._next_reference_token(self._current_reference_token)
+        while (ref_token in self._ref_token_dict) and (ref_token != self._current_reference_token):
+            ref_token = self._next_reference_token(self._current_reference_token)
+        if ref_token == self._current_reference_token:
+            raise RuntimeError('Reached maximum number of active strong references: ' + FifoToManagedFifoAdapter.MAX_ACTIVE_REFERENCES + '. You must release some references to continue.')
+        return ref_token
+
+    def _next_reference_token(self, ref_token: int) -> int:
+        result = None
+        if ref_token != FifoToManagedFifoAdapter.MAX_ACTIVE_REFERENCES:
+            result = ref_token + 1
+        else:
+            result = 0
+        return result
+
+    def _current_reference_counter(self) -> 'FifoToManagedFifoAdapter.ReferenceCounter[T]':
+        # State I
+        return self._refcounters[self.current_index]
+
+    def release_strong_reference(self, ref_token: int) -> None:
+        if ref_token in self._ref_token_dict:
+            refcounter = self._ref_token_dict[ref_token]
+            refcounter.decrement()
+            del self._ref_token_dict[ref_token]
+
+    @property
+    def inner_object(self) -> Fifo[T]:
+        return self._fifo
 
 del T
 
@@ -915,7 +1045,7 @@ class LineBreakError(Exception):
 
     def __init__(self, message: str = None) -> None:
         if message is None:
-            super().__init__("String has multiple line breaks.")
+            super().__init__('String has multiple line breaks.')
         else:
             super().__init__(message)
 
