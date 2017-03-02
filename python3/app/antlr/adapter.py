@@ -1,10 +1,13 @@
+from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
 from antlr4 import InputStream, Token
 from lib.generics import Iterator, LinkedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
 from app.antlr.abstract import IntStream
+from typing import TypeVar
 
 
-class IteratorToIntStreamAdapter(Iterator[int], IntStream):
+T = TypeVar('T')
+class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     """
     ## Transition System Definition
 
@@ -107,13 +110,13 @@ class IteratorToIntStreamAdapter(Iterator[int], IntStream):
     """
 
     @staticmethod
-    def make(iterator: Iterator[int]) -> 'IteratorToIntStreamAdapter':
+    def make(iterator: Iterator[T]) -> 'IteratorToIntStreamAdapter':
         instance = IteratorToIntStreamAdapter()
         IteratorToIntStreamAdapter._setup(instance, iterator)
         return instance
 
     @staticmethod
-    def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[int]):
+    def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[T]):
         instance._buffer_global = FifoGlobalIndexWrapper.make(LinkedFifo.make())
         instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
         instance._iterator = iterator
@@ -131,7 +134,7 @@ class IteratorToIntStreamAdapter(Iterator[int], IntStream):
             instance._buffer.move_to_next()
 
     @property
-    def current_item(self) -> int:
+    def current_item(self) -> T:
         return self._buffer.current_item
 
     @property
@@ -184,6 +187,10 @@ class IteratorToIntStreamAdapter(Iterator[int], IntStream):
         else: # State EE
             # Already at end
             pass
+
+    @abstractmethod
+    def _item_to_int(self, item: T) -> int:
+        pass
 
 # BOOKMARK
 
