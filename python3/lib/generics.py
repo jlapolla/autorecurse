@@ -1231,8 +1231,7 @@ class FileLineIterator(Iterator[Line]):
     @staticmethod
     def _setup(instance: 'FileLineIterator', fp: io.TextIOBase) -> None:
         instance._file = fp
-        instance._line = None
-        instance._is_at_end = False
+        instance._to_S()
 
     @property
     def current_item(self) -> Line:
@@ -1251,12 +1250,35 @@ class FileLineIterator(Iterator[Line]):
         return self._is_at_end
 
     def move_to_next(self) -> None:
-        line = self._file.readline()
-        if len(line) == 0: # End of file
-            self._is_at_end = True
-            self._line = None
-        else:
-            self._line = Line.make(line)
+        if self.is_at_start: # State S
+            line = self._file.readline()
+            if len(line) != 0:
+                # S -> I
+                self._line = Line.make(line)
+                self._to_I()
+            else: # End of file
+                # S -> E
+                self._to_E()
+        else: # State I
+            line = self._file.readline()
+            if len(line) != 0:
+                # I -> I
+                self._line = Line.make(line)
+                self._to_I()
+            else: # End of file
+                # I -> E
+                self._to_E()
+
+    def _to_S(self) -> None:
+        self._line = None
+        self._is_at_end = False
+
+    def _to_I(self) -> None:
+        self._is_at_end = False
+
+    def _to_E(self) -> None:
+        self._line = None
+        self._is_at_end = True
 
 
 T = TypeVar('T')
