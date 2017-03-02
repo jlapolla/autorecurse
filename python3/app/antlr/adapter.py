@@ -57,7 +57,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
     - reset: (I E EE throws)
     - LA: I E EE
     - LT: I E EE
-    - mark: I
+    - mark: I E EE
     - release: I E EE
     - getText: I E EE
 
@@ -79,6 +79,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
       - 0 <= start
       - 0 <= stop
       - start <= stop
+      - start < self.index -> start is in self._buffer
 
     ## Call Results
 
@@ -112,6 +113,12 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
     - release is tolerant, and may be called with any int. Calling
       release with an invalid int has no effect.
     """
+
+    @staticmethod
+    def make(iterator: Iterator[str]) -> 'IteratorToInputStreamAdapter':
+        instance = IteratorToInputStreamAdapter()
+        IteratorToInputStreamAdapter._setup(instance, iterator)
+        return instance
 
     @staticmethod
     def _setup(instance: 'IteratorToInputStreamAdapter', iterator: Iterator[str]):
@@ -149,7 +156,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
 
     def move_to_next(self) -> None:
         # State I
-        if self._buffer.current_index + 1 != self._buffer.count:
+        if self._has_more_buffered_text:
             # I -> I
             self._buffer.move_to_next()
         else:
@@ -163,11 +170,18 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
                     # I -> E
                     self._buffer.move_to_next()
             else: # State E
+                # Unreachable since self._is_I -> self._iterator.has_current_item
                 # I -> E
                 self._buffer.move_to_next()
 
+    def _has_more_buffered_text(self) -> bool:
+        return self._buffer.current_index + 1 != self._buffer.count
+
     def move_to_end(self) -> None:
         if self._is_I: # State I
+            self._buffer_global.move_to_global_index(self.size - 1)
+            while not self.is_at_end:
+                self.move_to_next()
         elif self._is_E: # State E
             # Already at end
             pass
@@ -177,12 +191,10 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
 
     @property
     def index(self) -> int:
-        result = None
         if self._is_I: # State I
-            result = self._buffer_global.current_global_index
+            return self._buffer_global.current_global_index
         else: # State E or EE
-            result = self.size
-        return result
+            return self.size
 
     @property
     def size(self) -> int:
@@ -190,6 +202,7 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
         return self._buffer_global.global_count
 
     def reset(self) -> None:
+        # State I, E, or EE
         raise NotImplementedError()
 
     def consume(self) -> None:
@@ -199,8 +212,9 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
             raise Exception('cannot consume EOF')
 
     def LA(self, offset: int) -> int:
-        if offset == 0:
+        if offset == 0: # Defensive. From InputStream source code.
             return 0
+        index = None
         if offset < 0:
             index = self.index + offset
         else:
@@ -209,89 +223,106 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
             return Token.EOF
         result = None
         if self._is_I: # State I
-            current_global_index = self.index
+            original_index = self.index
             ref_token = self._buffer.new_strong_reference()
             self.seek(index)
-            if self._is_I: # State I
-                result = ord(self.current_item)
-            else: # State E
-                result = Token.EOF
-            self.seek(current_global_index)
+            result = self._LA_result
+            self.seek(original_index)
             self._buffer.release_strong_reference(ref_token)
         elif self._is_E: # State E
-            current_global_index = self.index
+            original_index = self.index
             self.seek(index)
-            if self._is_I: # State I
-                result = ord(self.current_item)
-            else: # State E
-                result = Token.EOF
-            self.seek(current_global_index)
+            result = self._LA_result
+            self.seek(original_index)
         else: # State EE
             result = Token.EOF
         return result
 
-    def mark(self) -> int:
-        result = None
+    @property
+    def _LA_result(self) -> int:
         if self._is_I: # State I
-            result = self._buffer.new_strong_reference()
-        elif self._is_E: # State E
-            result = -1
-        else: # State EE
-            result = -1
-        return result
+            return ord(self.current_item)
+        else: # State E or EE
+            return Token.EOF
+
+    def mark(self) -> int:
+        if self._is_I: # State I
+            # Reserve -1 for states E and EE.
+            #
+            # If client code calls release(-1), we are assured that
+            # self._buffer.new_strong_reference never issued -1 as a
+            # ref_token. Therefore, -1 is not a ref_token that is
+            # recognized by self._buffer, and calling release(-1) will
+            # not affect self._buffer.
+            return self._new_strong_reference_exclude(-1)
+        else: # State E or EE
+            return -1
+
+    def _new_strong_reference_exclude(self, exclude: int) -> int:
+        # State I
+        ref_token = self._buffer.new_strong_reference()
+        if ref_token == exclude:
+            ref_token = self._buffer.new_strong_reference()
+            self._buffer.release_strong_reference(exclude)
+        return ref_token
 
     def release(self, marker: int) -> None:
+        # State I, E, or EE
         self._buffer.release_strong_reference(marker)
+        self._buffer.collect_garbage()
 
     def seek(self, _index: int) -> None:
         if self._is_I: # State I
             if _index >= self.index:
                 if _index >= self.size:
+                    # I -> I
+                    # I -> E
                     self._buffer_global.move_to_global_index(self.size - 1)
                     diff = _index - self.index
                     while not (diff == 0 or self.is_at_end):
                         self.move_to_next()
                         diff = diff - 1
                 else:
+                    # I -> I
                     self._buffer_global.move_to_global_index(_index)
             else:
+                # I -> I
                 self._buffer_global.move_to_global_index(_index)
         elif self._is_E: # State E
             if _index >= self.index:
-                # Already at end
+                # E -> E
+                # Already at E
                 pass
             else:
+                # E -> I
                 self._buffer_global.move_to_global_index(_index)
         else: # State EE
-            if _index >= self.index:
-                # Already at end
-                pass
-            else:
-                # Buffer is empty
-                # This is unreachable code, since it violates the argument validity rules
-                pass
+            # EE -> EE
+            # Already at EE
+            pass
 
     def getText(self, start: int, stop: int) -> str:
         with StringIO() as strbuffer:
             if self._is_I: # State I
-                current_global_index = self.index
+                length = stop - start + 1
+                original_index = self.index
                 ref_token = self._buffer.new_strong_reference()
                 self.seek(start)
-                length = stop - start + 1
                 self._write_text(strbuffer, length)
-                self.seek(current_global_index)
+                self.seek(original_index)
                 self._buffer.release_strong_reference(ref_token)
             elif self._is_E: # State E
-                current_global_index = self.index
-                self.seek(start)
                 length = stop - start + 1
+                original_index = self.index
+                self.seek(start)
                 self._write_text(strbuffer, length)
-                self.seek(current_global_index)
+                self.seek(original_index)
             else: # State EE
                 pass
             return strbuffer.getvalue()
 
     def _write_text(self, buffer_: TextIOBase, length: int) -> None:
+        # State I, E, or EE
         count = length
         while self._is_I and (count != 0):
             buffer_.write(self.current_item)
