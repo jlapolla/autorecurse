@@ -15,20 +15,27 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
 
     ### Transition Labels
 
-    - Consume = Client calls consume
     - Next = Client calls move_to_next
     - End = Client calls move_to_end
+    - Consume = Client calls consume
+    - Seek = Client calls seek
 
     ### Transitions Grouped by Label
 
-    - Consume
-      - I -> I
-      - I -> E
     - Next
       - I -> I
       - I -> E
     - End
       - I -> E
+      - E -> E
+      - EE -> EE
+    - Consume
+      - I -> I
+      - I -> E
+    - Seek
+      - I -> I
+      - I -> E
+      - E -> I
       - E -> E
       - EE -> EE
 
@@ -37,13 +44,22 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
     For each method listed, client is allowed to call the method in the
     given states.
 
-    - consume: I
     - current_item (getter): I
     - has_current_item (getter): I E EE
     - is_at_start (getter): I E EE
     - is_at_end (getter): I E EE
     - move_to_next: I
     - move_to_end: I E EE
+    - consume: I (E EE throws)
+    - seek: I E EE
+    - index: I E EE
+    - size: I E EE
+    - reset: (I E EE throws)
+    - LA: I E EE
+    - LT: I E EE
+    - mark: I
+    - release: I E EE
+    - getText: I E EE
 
     ## Call Argument Validity
 
@@ -51,10 +67,18 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
     the given parameters.
 
     - LA(self, offset: int)
-      - offset is in self._buffer
+      - offset != 0
+      - 0 < offset -> offset < self.index -> offset is in self._buffer
+    - LT(self, offset: int) # Same as LA
+      - offset != 0
+      - 0 < offset -> offset < self.index -> offset is in self._buffer
     - seek(self, _index: int)
-      - _index >= 0
+      - 0 <= _index
       - _index < self.index -> _index is in self._buffer
+    - getText(self, start: int, stop: int)
+      - 0 <= start
+      - 0 <= stop
+      - start <= stop
 
     ## Call Results
 
@@ -74,12 +98,19 @@ class IteratorToInputStreamAdapter(Iterator[str], InputStream):
       - is_at_start (getter): False
       - is_at_end (getter): True
 
-    Notes:
+    ## State Inference
 
-    - We are never at start state. InputStream only has intermediate
+    - State I <-> self.has_current_item
+    - State I <-> self.index < self.size.
+    - State E \/ State EE <-> self.is_at_end
+    - State E \/ State EE <-> self.index == self.size.
+
+    ## Notes:
+
+    - There is no start state. InputStream only has intermediate
       state and end state.
-    - In intermediate state, self.index < self.size.
-    - In end state, self.index == self.size.
+    - release is tolerant, and may be called with any int. Calling
+      release with an invalid int has no effect.
     """
 
     @staticmethod
