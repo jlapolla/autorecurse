@@ -54,7 +54,6 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     - is_at_end (getter): I E EE
     - move_to_next: I
     - move_to_end: I E EE
-
     - index: I E EE
     - size: I E EE
     - getSourceName: I E EE
@@ -71,10 +70,12 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
 
     - LA(self, offset: int)
       - offset != 0
-      - 0 < offset -> offset < self.index -> offset is in self._buffer
-    - seek(self, _index: int)
-      - 0 <= _index
-      - _index < self.index -> _index is in self._buffer
+      - offset is in self._buffer \/ offset is beyond end of stream
+        (otherwise throws)
+    - seek(self, index: int)
+      - 0 <= index (otherwise throws)
+      - index is in self._buffer \/ index is beyond end of stream
+        (otherwise throws)
 
     ## Call Results
 
@@ -188,12 +189,6 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
             # Already at end
             pass
 
-    @abstractmethod
-    def _item_to_int(self, item: T) -> int:
-        pass
-
-# BOOKMARK
-
     @property
     def index(self) -> int:
         if self._is_I: # State I
@@ -206,62 +201,28 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
         # State I, E, or EE
         return self._buffer_global.global_count
 
-    def reset(self) -> None:
-        # State I, E, or EE
-        raise NotImplementedError()
-
-    def consume(self) -> None:
-        if self._is_I: # State I
-            self.move_to_next()
-        else: # State E or EE
-            raise Exception('cannot consume EOF')
-
-    def LA(self, offset: int) -> int:
-        if offset == 0: # Defensive. From InputStream source code.
-            return 0
-        index = None
-        if offset < 0:
-            index = self.index + offset
+    def getSourceName(self) -> str:
+        if self._source_name is not None:
+            return self._source_name
         else:
-            index = self.index + offset - 1
-        if index < 0:
-            return Token.EOF
-        result = None
-        if self._is_I: # State I
-            original_index = self.index
-            ref_token = self._buffer.new_strong_reference()
-            self.seek(index)
-            result = self._LA_result
-            self.seek(original_index)
-            self._buffer.release_strong_reference(ref_token)
-        elif self._is_E: # State E
-            original_index = self.index
-            self.seek(index)
-            result = self._LA_result
-            self.seek(original_index)
-        else: # State EE
-            result = Token.EOF
-        return result
-
-    @property
-    def _LA_result(self) -> int:
-        if self._is_I: # State I
-            return ord(self.current_item)
-        else: # State E or EE
-            return Token.EOF
+            return super().getSourceName()
 
     def mark(self) -> int:
         if self._is_I: # State I
-            # Reserve -1 for states E and EE.
-            #
-            # If client code calls release(-1), we are assured that
-            # self._buffer.new_strong_reference never issued -1 as a
-            # ref_token. Therefore, -1 is not a ref_token that is
-            # recognized by self._buffer, and calling release(-1) will
-            # not affect self._buffer.
-            return self._new_strong_reference_exclude(-1)
+            # 0 is reserved for states E and EE (see below). We use
+            # self._new_strong_refernce_exclude(0) to ensure that 0 is
+            # never returned in state I.
+            return self._new_strong_reference_exclude(0)
         else: # State E or EE
-            return -1
+            # We cannot call self._buffer.new_strong_reference() in
+            # states E or EE. But we still have to return an int. So we
+            # reserve 0 for states E and EE. Using
+            # self._new_strong_reference_exclude(0) to generate
+            # reference tokens in state I above ensures that 0 is always
+            # an invalid ref_token in self._buffer. Therefore, calling
+            # self.release(0) will not accidentally release a ref_token
+            # that was returned in state I.
+            return 0
 
     def _new_strong_reference_exclude(self, exclude: int) -> int:
         # State I
@@ -276,63 +237,87 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
         self._buffer.release_strong_reference(marker)
         self._buffer.collect_garbage()
 
-    def seek(self, _index: int) -> None:
+    def LA(self, offset: int) -> int:
+        index = self.index + offset
+        if offset > 0:
+            index = index - 1
+        result = None
         if self._is_I: # State I
-            if _index >= self.index:
-                if _index >= self.size:
-                    # I -> I
-                    # I -> E
-                    self._buffer_global.move_to_global_index(self.size - 1)
-                    diff = _index - self.index
-                    while not (diff == 0 or self.is_at_end):
-                        self.move_to_next()
-                        diff = diff - 1
-                else:
-                    # I -> I
-                    self._buffer_global.move_to_global_index(_index)
-            else:
+            original_index = self.index
+            ref_token = self._buffer.new_strong_reference()
+            self.seek(index)
+            result = self._LA_result
+            self.seek(original_index)
+            self._buffer.release_strong_reference(ref_token)
+        else: # State E or EE
+            original_index = self.index
+            self.seek(index)
+            result = self._LA_result
+            self.seek(original_index)
+        return result
+
+    @property
+    def _LA_result(self) -> int:
+        if self._is_I: # State I
+            return self._item_to_int(self.current_item)
+        else: # State E or EE
+            return IntStream.EOF
+
+    @abstractmethod
+    def _item_to_int(self, item: T) -> int:
+        pass
+
+    def consume(self) -> None:
+        if self._is_I: # State I
+            self.move_to_next()
+        else: # State E or EE
+            raise Exception('Cannot consume EOF.')
+
+    def seek(self, index: int) -> None:
+        if index < 0:
+            raise Exception('Cannot seek to negative index.')
+        if self._is_I: # State I
+            if self.size <= index:
                 # I -> I
-                self._buffer_global.move_to_global_index(_index)
+                # I -> E
+                self._buffer.move_to_index(self._buffer.count - 1)
+                diff = index - self.index
+                while not (diff == 0 or self.is_at_end):
+                    self.move_to_next()
+                    diff = diff - 1
+            else:
+                if self._index_is_in_buffer(index):
+                    # I -> I
+                    self._buffer_global.move_to_global_index(index)
+                else:
+                    raise Exception('Cannot seek to released index.')
         elif self._is_E: # State E
-            if _index >= self.index:
+            if self.size <= index:
                 # E -> E
                 # Already at E
                 pass
             else:
-                # E -> I
-                self._buffer_global.move_to_global_index(_index)
+                if self._index_is_in_buffer(index):
+                    # E -> I
+                    self._buffer_global.move_to_global_index(index)
+                else:
+                    raise Exception('Cannot seek to released index.')
         else: # State EE
-            # EE -> EE
-            # Already at EE
-            pass
-
-    def getText(self, start: int, stop: int) -> str:
-        with StringIO() as strbuffer:
-            if self._is_I: # State I
-                length = stop - start + 1
-                original_index = self.index
-                ref_token = self._buffer.new_strong_reference()
-                self.seek(start)
-                self._write_text(strbuffer, length)
-                self.seek(original_index)
-                self._buffer.release_strong_reference(ref_token)
-            elif self._is_E: # State E
-                length = stop - start + 1
-                original_index = self.index
-                self.seek(start)
-                self._write_text(strbuffer, length)
-                self.seek(original_index)
-            else: # State EE
+            if self.size <= index:
+                # EE -> EE
+                # Already at EE
                 pass
-            return strbuffer.getvalue()
+            else:
+                raise Exception('Cannot seek to released index.')
 
-    def _write_text(self, buffer_: TextIOBase, length: int) -> None:
+    def _index_is_in_buffer(self, index: int) -> bool:
         # State I, E, or EE
-        count = length
-        while self._is_I and (count != 0):
-            buffer_.write(self.current_item)
-            self.move_to_next()
-            count = count - 1
+        return (self._lowest_index_in_buffer <= index) and (index < self.size)
+
+    @property
+    def _lowest_index_in_buffer(self) -> int:
+        # State I, E, or EE
+        return self._buffer_global.global_count - self._buffer.count
 
     @property
     def _is_I(self) -> bool:
@@ -345,6 +330,8 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     @property
     def _is_EE(self) -> bool:
         return self.is_at_end and self._buffer.is_empty
+
+del T
 
 
 class IteratorToInputStreamAdapter(Iterator[str], InputStream):
