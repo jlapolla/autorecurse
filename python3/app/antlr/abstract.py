@@ -51,3 +51,10 @@ class IntStream(metaclass=ABCMeta):
         pass
 
 
+class CharStream(IntStream):
+
+    @abstractmethod
+    def getText(self, start: int, stop: int) -> str:
+        pass
+
+
