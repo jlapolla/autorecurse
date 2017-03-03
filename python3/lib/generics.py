@@ -1220,6 +1220,115 @@ class ListIterator(Iterator[T]):
 del T
 
 
+class StringBuffer(Buffer[str]):
+
+    @staticmethod
+    def make(string: str) -> 'StringBuffer':
+        instance = StringBuffer()
+        StringBuffer._setup(instance, string)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'StringBuffer', string: str) -> None:
+        instance._string = string
+        instance._to_S()
+
+    @property
+    def current_item(self) -> str:
+        return self._string[self.current_index]
+
+    @property
+    def has_current_item(self) -> bool:
+        return not (self.is_at_start or self.is_at_end or self.is_empty)
+
+    @property
+    def is_at_start(self) -> bool:
+        return self._is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._is_at_end
+
+    def move_to_next(self) -> None:
+        if not self.is_empty:
+            if self.is_at_start: # State S
+                # S -> I
+                self._current_index = self._current_index + 1
+                self._to_I()
+            else: # State I
+                if self.current_index + 1 != self.count:
+                    # I -> I
+                    self._current_index = self._current_index + 1
+                    self._to_I()
+                else:
+                    # I -> E
+                    self._to_E()
+        else: # State SE
+            # SE -> EE
+            self._to_EE()
+
+    def move_to_end(self) -> None:
+        if not self.is_empty:
+            # S -> E
+            # I -> E
+            # E -> E
+            self._to_E()
+        else:
+            # SE -> EE
+            # EE -> EE
+            self._to_EE()
+
+    @property
+    def count(self) -> int:
+        return len(self._string)
+
+    @property
+    def current_index(self) -> int:
+        return self._current_index
+
+    @property
+    def is_empty(self) -> bool:
+        return self.count == 0
+
+    def move_to_start(self) -> None:
+        if not self.is_empty:
+            # S -> S
+            # I -> S
+            # E -> S
+            self._to_S()
+        else:
+            # SE -> SE
+            # EE -> SE
+            self._to_SE()
+
+    def move_to_index(self, index: int) -> None:
+        # S -> I
+        # I -> I
+        # E -> I
+        self._current_index = index
+        self._to_I()
+
+    def _to_S(self) -> None:
+        self._current_index = -1
+        self._is_at_start = True
+        self._is_at_end = False
+
+    def _to_I(self) -> None:
+        self._is_at_start = False
+        self._is_at_end = False
+
+    def _to_E(self) -> None:
+        self._current_index = self.count
+        self._is_at_start = False
+        self._is_at_end = True
+
+    def _to_SE(self) -> None:
+        self._to_S()
+
+    def _to_EE(self) -> None:
+        self._to_E()
+
+
 class FileLineIterator(Iterator[Line]):
 
     @staticmethod
