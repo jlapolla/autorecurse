@@ -44,7 +44,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class MakefileRuleLexer(app.antlr.custom.Lexer):
+class MakefileRuleLexer(app.antlr.custom.CustomLexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
