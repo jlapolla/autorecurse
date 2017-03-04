@@ -1,6 +1,8 @@
+from lib.generics import StringBuffer
 from app.antlr.parsemakefilerule import *
 from app.antlr.lexmakefilerule import *
-from antlr4 import InputStream, Token
+from app.antlr.adapter import IteratorToCharStreamAdapter
+from antlr4 import Token
 from antlr4.error.Errors import ParseCancellationException
 import unittest
 
@@ -40,7 +42,8 @@ a b c: d
 
 \t# The recipe!
 a:"""
-        input_ = InputStream(string)
+        char_iterator = StringBuffer.make(string)
+        input_ = IteratorToCharStreamAdapter.make(char_iterator)
         lexer = MakefileRuleLexer(input_)
         token_stream = CommonTokenStream(lexer)
         parser = MakefileRuleParser(token_stream)

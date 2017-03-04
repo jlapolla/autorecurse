@@ -23,7 +23,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class ParagraphLexer(Lexer):
+class ParagraphLexer(app.antlr.custom.CustomLexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 

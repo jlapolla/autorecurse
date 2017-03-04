@@ -1,3 +1,4 @@
+import app.antlr.custom
 # Generated from antlr4/LineLexer.g4 by ANTLR 4.5.1
 from antlr4 import *
 from io import StringIO
@@ -17,7 +18,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class LineLexer(Lexer):
+class LineLexer(app.antlr.custom.CustomLexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 

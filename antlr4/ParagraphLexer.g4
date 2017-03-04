@@ -1,4 +1,5 @@
 lexer grammar ParagraphLexer;
+options { superClass=app.antlr.custom.CustomLexer; }
 
 PARAGRAPH : LINE+ ;
 BLANK : EOL+ -> skip ;

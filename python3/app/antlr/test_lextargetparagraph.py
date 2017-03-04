@@ -1,5 +1,7 @@
+from lib.generics import StringBuffer
 from app.antlr.lextargetparagraph import *
-from antlr4 import InputStream, Token
+from app.antlr.adapter import IteratorToCharStreamAdapter
+from antlr4 import Token
 import unittest
 
 
@@ -34,7 +36,8 @@ class TestTargetParagraphLexer(unittest.TestCase):
 #  File has been updated.
 #  Successfully updated."""
         string = '\n\n'.join([not_a_target, phony, target1, not_a_target, target2])
-        input_ = InputStream(string)
+        char_iterator = StringBuffer.make(string)
+        input_ = IteratorToCharStreamAdapter.make(char_iterator)
         lexer = TargetParagraphLexer(input_)
         token = lexer.nextToken()
         self.assertEqual(token.text, ''.join([target1, '\n']))

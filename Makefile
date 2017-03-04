@@ -15,7 +15,7 @@ antlr4/TargetParagraphLexer.py antlr4/TargetParagraphLexer.tokens: antlr4/Target
 
 ANTLR += python3/app/antlr/lexline.py
 python3/app/antlr/lexline.py: antlr4/LineLexer.py
-	cp $< $@
+	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/lexmakefilerule.py
 python3/app/antlr/lexmakefilerule.py: antlr4/MakefileRuleLexer.py

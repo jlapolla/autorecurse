@@ -738,7 +738,7 @@ class LinkedFifo(Fifo[T]):
                 self._current_element = self._start_element
                 self._to_I()
             else: # State I
-                if self._current_item.next is not None:
+                if self._current_element.next is not None:
                     # I -> I
                     self._current_index = self._current_index + 1
                     self._current_element = self._current_element.next

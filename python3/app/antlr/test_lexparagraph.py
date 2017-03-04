@@ -1,5 +1,7 @@
+from lib.generics import StringBuffer
 from app.antlr.lexparagraph import *
-from antlr4 import InputStream, Token
+from app.antlr.adapter import IteratorToCharStreamAdapter
+from antlr4 import Token
 import unittest
 
 
@@ -12,7 +14,8 @@ Goodbye
 
 
 Goodbye again"""
-        input_ = InputStream(string)
+        char_iterator = StringBuffer.make(string)
+        input_ = IteratorToCharStreamAdapter.make(char_iterator)
         lexer = ParagraphLexer(input_)
         token = lexer.nextToken()
         self.assertEqual(token.text, 'Hello\nGoodbye\n')

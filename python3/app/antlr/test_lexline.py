@@ -1,5 +1,7 @@
+from lib.generics import StringBuffer
 from app.antlr.lexline import *
-from antlr4 import InputStream, Token
+from app.antlr.adapter import IteratorToCharStreamAdapter
+from antlr4 import Token
 import unittest
 
 
@@ -11,7 +13,8 @@ Hello
 Goodbye
 
 Goodbye again"""
-        input_ = InputStream(string)
+        char_iterator = StringBuffer.make(string)
+        input_ = IteratorToCharStreamAdapter.make(char_iterator)
         lexer = LineLexer(input_)
         token = lexer.nextToken()
         self.assertEqual(token.text, '\n')

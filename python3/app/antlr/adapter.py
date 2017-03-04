@@ -337,8 +337,6 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     def _is_EE(self) -> bool:
         return self.is_at_end and self._buffer.is_empty
 
-del T
-
 
 class IteratorToCharStreamAdapter(IteratorToIntStreamAdapter[str], CharStream):
     """
@@ -588,5 +586,7 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
     def _eof_token(self) -> Token:
         # State E or EE
         return self._iterator.current_item
+
+del T
 
 
