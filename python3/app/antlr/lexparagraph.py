@@ -1,3 +1,4 @@
+import app.antlr.custom
 # Generated from antlr4/ParagraphLexer.g4 by ANTLR 4.5.1
 from antlr4 import *
 from io import StringIO

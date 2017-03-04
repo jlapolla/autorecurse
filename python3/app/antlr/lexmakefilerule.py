@@ -1,3 +1,4 @@
+import app.antlr.custom
 # Generated from antlr4/MakefileRuleLexer.g4 by ANTLR 4.5.1
 from antlr4 import *
 from io import StringIO
@@ -43,7 +44,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class MakefileRuleLexer(Lexer):
+class MakefileRuleLexer(app.antlr.custom.Lexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 

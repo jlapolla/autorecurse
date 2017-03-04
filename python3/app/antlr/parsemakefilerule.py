@@ -1,3 +1,4 @@
+import app.antlr.custom
 # Generated from antlr4/MakefileRuleParser.g4 by ANTLR 4.5.1
 # encoding: utf-8
 from antlr4 import *

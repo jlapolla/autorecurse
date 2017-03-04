@@ -19,19 +19,19 @@ python3/app/antlr/lexline.py: antlr4/LineLexer.py
 
 ANTLR += python3/app/antlr/lexmakefilerule.py
 python3/app/antlr/lexmakefilerule.py: antlr4/MakefileRuleLexer.py
-	cp $< $@
+	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/parsemakefilerule.py
 python3/app/antlr/parsemakefilerule.py: antlr4/MakefileRuleParser.py
-	cp $< $@
+	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/lexparagraph.py
 python3/app/antlr/lexparagraph.py: antlr4/ParagraphLexer.py
-	cp $< $@
+	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/lextargetparagraph.py
 python3/app/antlr/lextargetparagraph.py: antlr4/TargetParagraphLexer.py
-	cp $< $@
+	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 .PHONY: antlr
 antlr: $(ANTLR)
