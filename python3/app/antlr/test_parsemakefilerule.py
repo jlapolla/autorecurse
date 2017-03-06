@@ -1,7 +1,7 @@
 from lib.generics import StringBuffer
 from app.antlr.parsemakefilerule import *
 from app.antlr.lexmakefilerule import *
-from app.antlr.adapter import IteratorToCharStreamAdapter
+from app.antlr.adapter import IteratorToCharStreamAdapter, TokenSourceToIteratorAdapter, IteratorToTokenStreamAdapter
 from antlr4 import Token
 from antlr4.error.Errors import ParseCancellationException
 import unittest
@@ -45,7 +45,8 @@ a:"""
         char_iterator = StringBuffer.make(string)
         input_ = IteratorToCharStreamAdapter.make(char_iterator)
         lexer = MakefileRuleLexer(input_)
-        token_stream = CommonTokenStream(lexer)
+        token_iterator = TokenSourceToIteratorAdapter.make(lexer)
+        token_stream = IteratorToTokenStreamAdapter.make(token_iterator)
         parser = MakefileRuleParser(token_stream)
         parser._errHandler = BailErrorStrategy()
         with self.assertRaises(ParseCancellationException):

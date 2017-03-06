@@ -552,6 +552,7 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
             self.seek(original_index)
         return result
 
+    @property
     def _get_result(self) -> Token:
         if self._is_I: # State I
             return self.current_item
@@ -560,7 +561,19 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
 
     def LT(self, offset: int) -> Token:
         index = self._offset_to_index(offset)
-        return self.get(index)
+        if 0 <= index:
+            return self.get(index)
+        else:
+            # This behavior is not in the specification and must not be
+            # relied upon. Calling LT with an offset that represents an
+            # index less than zero violates call argument validity
+            # conditions (since a negative index will never be in the
+            # buffer). However, the ANTLR4 runtime is known to violate
+            # this condition. Other TokenStream implementations that are
+            # included with the ANTLR4 runtime return None in this case,
+            # and this is what the ANTLR4 runtime expects. It seems this
+            # is an undocumented "feature" of TokenStream.
+            return None
 
     @property
     def _total_stream_size(self) -> int:
