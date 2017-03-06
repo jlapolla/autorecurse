@@ -1161,20 +1161,53 @@ class Line:
             instance._content = ''
         else:
             raise LineBreakError()
+        instance._line_number = None
+
+    @staticmethod
+    def make_with_line_number(content: str, line_number: int) -> 'Line':
+        instance = Line()
+        Line._setup_with_line_number(instance, content, line_number)
+        return instance
+
+    @staticmethod
+    def _setup_with_line_number(instance: 'Line', content: str, line_number: int) -> None:
+        Line._setup(instance, content)
+        instance._line_number = line_number
 
     @property
     def content(self) -> str:
         return self._content
 
+    @property
+    def has_line_number(self) -> bool:
+        return self._line_number is not None
+
+    @property
+    def line_number(self) -> int:
+        """
+        ## Specification Domain
+
+        - self.has_line_number is True
+        """
+        return self._line_number
+
     def __str__(self) -> str:
         return self.content
 
     def __eq__(self, other: 'Line') -> bool:
-        return ((other.__class__ is self.__class__)
-            and (self.content == other.content))
+        if (other.__class__ is self.__class__) and (self.content == other.content) and (self.has_line_number is other.has_line_number):
+            if self.has_line_number:
+                if self.line_number == other.line_number:
+                    return True
+            else:
+                return True
+        return False
 
     def __hash__(self) -> int:
-        return hash(self.content)
+        if self.has_line_number:
+            return hash(self.content, self.line_number)
+        else:
+            return hash(self.content)
 
 
 T = TypeVar('T')
@@ -1363,7 +1396,7 @@ class FileLineIterator(Iterator[Line]):
             line = self._file.readline()
             if len(line) != 0:
                 # S -> I
-                self._line = Line.make(line)
+                self._line = Line.make_with_line_number(line, 1)
                 self._to_I()
             else: # End of file
                 # S -> E
@@ -1372,7 +1405,7 @@ class FileLineIterator(Iterator[Line]):
             line = self._file.readline()
             if len(line) != 0:
                 # I -> I
-                self._line = Line.make(line)
+                self._line = Line.make_with_line_number(line, self._line.line_number + 1)
                 self._to_I()
             else: # End of file
                 # I -> E

@@ -224,7 +224,7 @@ class TestFileLineIterator(unittest.TestCase):
         file_.append_line(Line.make('Goodbye'))
         file_.append_line(Line.make(''))
         actual = FileLineIterator.make(file_)
-        expected = [Line.make('Hello'), Line.make('Goodbye'), Line.make('')]
+        expected = [Line.make_with_line_number('Hello', 1), Line.make_with_line_number('Goodbye', 2), Line.make_with_line_number('', 3)]
         return IteratorTestWrapper.make(actual, expected)
 
     @staticmethod
