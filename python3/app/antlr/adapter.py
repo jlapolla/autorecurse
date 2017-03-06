@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
-from antlr4 import InputStream, Token
+from antlr4 import Token
 from lib.generics import Iterator, LinkedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
-from app.antlr.abstract import IntStream, CharStream, TokenStream
+from app.antlr.abstract import IntStream, CharStream, TokenStream, TokenSource
 from typing import TypeVar
 
 
@@ -489,7 +489,7 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
         return instance
 
     @staticmethod
-    def _setup(instance: 'IteratorToTokenStreamAdapter', iterator: Iterator[T]):
+    def _setup(instance: 'IteratorToTokenStreamAdapter', iterator: Iterator[Token]):
         """
         ## Specification Domain
 
@@ -586,6 +586,65 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
     def _eof_token(self) -> Token:
         # State E or EE
         return self._iterator.current_item
+
+
+class TokenSourceToIteratorAdapter(Iterator[Token]):
+
+    @staticmethod
+    def make(token_source: TokenSource) -> Iterator[Token]:
+        instance = TokenSourceToIteratorAdapter()
+        TokenSourceToIteratorAdapter._setup(instance, token_source)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'TokenSourceToIteratorAdapter', token_source: TokenSource) -> None:
+        instance._token_source = token_source
+        instance._to_S()
+
+    @property
+    def current_item(self) -> Token:
+        return self._current_item
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._current_item is not None
+
+    @property
+    def is_at_start(self) -> bool:
+        return not (self.has_current_item or self.is_at_end)
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._is_at_end
+
+    def move_to_next(self) -> None:
+        if self.is_at_start: # State S
+            # S -> I
+            self._current_item = self._token_source.nextToken()
+            self._to_I()
+            # S -> E
+            # Transition S -> E cannot happen since a TokenSource is
+            # never actually empty: an otherwise empty TokenSource
+            # generates one EOF token.
+        else: # State I
+            if self.current_item.type != Token.EOF:
+                # I -> I
+                self._current_item = self._token_source.nextToken()
+                self._to_I()
+            else:
+                # I -> E
+                self._to_E()
+
+    def _to_S(self):
+        self._current_item = None
+        self._is_at_end = False
+
+    def _to_I(self):
+        self._is_at_end = False
+
+    def _to_E(self):
+        self._current_item = None
+        self._is_at_end = True
 
 del T
 

@@ -88,3 +88,10 @@ class TokenStream(IntStream):
         pass
 
 
+class TokenSource(metaclass=ABCMeta):
+
+    @abstractmethod
+    def nextToken(self) -> Token:
+        pass
+
+
