@@ -48,7 +48,6 @@ a:"""
         token_iterator = TokenSourceToIteratorAdapter.make(lexer)
         token_stream = IteratorToTokenStreamAdapter.make(token_iterator)
         parser = MakefileRuleParser(token_stream)
-        parser._errHandler = BailErrorStrategy()
         with self.assertRaises(ParseCancellationException):
             parser.makefileRule() # Because the first token is EOL
         token_stream.consume() # Consume the EOL token

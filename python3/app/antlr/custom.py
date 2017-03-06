@@ -1,7 +1,10 @@
+from antlr4.error.ErrorStrategy import BailErrorStrategy
+from antlr4.error.DiagnosticErrorListener import DiagnosticErrorListener
 from antlr4.CommonTokenFactory import CommonTokenFactory
 from antlr4.Lexer import Lexer
+from antlr4.Parser import Parser
 from antlr4.Token import CommonToken, Token
-from app.antlr.abstract import CharStream
+from app.antlr.abstract import CharStream, TokenStream
 from typing import Tuple
 
 
@@ -26,5 +29,13 @@ class CustomLexer(Lexer):
     def __init__(self, input: CharStream) -> None:
         super().__init__(input)
         self._factory = CustomTokenFactory.DEFAULT_INSTANCE
+
+
+class CustomParser(Parser):
+
+    def __init__(self, input: TokenStream) -> None:
+        super().__init__(input)
+        self.addErrorListener(DiagnosticErrorListener())
+        self._errHandler = BailErrorStrategy()
 
 

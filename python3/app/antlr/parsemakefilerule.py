@@ -27,7 +27,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class MakefileRuleParser ( Parser ):
+class MakefileRuleParser ( app.antlr.custom.CustomParser ):
 
     grammarFileName = "MakefileRuleParser.g4"
 
