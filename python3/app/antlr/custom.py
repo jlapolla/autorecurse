@@ -1,3 +1,4 @@
+from antlr4.error.Errors import RecognitionException
 from antlr4.error.ErrorStrategy import BailErrorStrategy
 from antlr4.error.DiagnosticErrorListener import DiagnosticErrorListener
 from antlr4.CommonTokenFactory import CommonTokenFactory
@@ -28,7 +29,11 @@ class CustomLexer(Lexer):
 
     def __init__(self, input: CharStream) -> None:
         super().__init__(input)
+        self.addErrorListener(DiagnosticErrorListener())
         self._factory = CustomTokenFactory.DEFAULT_INSTANCE
+
+    def recover(self, ex: RecognitionException) -> None:
+        raise ex
 
 
 class CustomParser(Parser):
