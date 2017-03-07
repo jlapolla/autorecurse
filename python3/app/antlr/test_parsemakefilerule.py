@@ -1,5 +1,4 @@
 from lib.generics import StringBuffer
-from app.antlr.parsemakefilerule import *
 from app.antlr.grammar import *
 from app.antlr.adapter import IteratorToCharStreamAdapter, TokenSourceToIteratorAdapter, IteratorToTokenStreamAdapter
 from antlr4 import Token
