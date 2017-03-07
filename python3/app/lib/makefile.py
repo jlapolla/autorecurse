@@ -146,7 +146,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
             pass
 
     def _generate_target(self) -> None:
-        self._target = MakefileRule.make_from_parse_context(self._context, self._index)
+        self._target = MakefileTarget.make_from_parse_context(self._context, self._index)
 
     def _get_next_non_empty_context(self) -> None:
         # State S or I

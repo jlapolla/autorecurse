@@ -1580,7 +1580,7 @@ class EmptyLineFilter(StreamCondition[Line]):
         instance._printing = True
 
     def _set_current_item(self, value: Line) -> None:
-        if value == EmptyLineFilter._EMPTY_LINE:
+        if value.content == EmptyLineFilter._EMPTY_LINE.content:
             self._printing = False
         else:
             self._printing = True
@@ -1666,9 +1666,9 @@ class FileSectionFilter(StreamCondition[Line]):
         instance._state = FileSectionFilter._NO_PRINTING
 
     def _set_current_item(self, value: Line) -> None:
-        if value == FileSectionFilter._START_LINE:
+        if value.content == FileSectionFilter._START_LINE.content:
             self._do_transition(FileSectionFilter._START)
-        elif value == FileSectionFilter._END_LINE:
+        elif value.content == FileSectionFilter._END_LINE.content:
             self._do_transition(FileSectionFilter._END)
         else:
             self._do_transition(FileSectionFilter._LINE)
