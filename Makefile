@@ -25,8 +25,8 @@ ANTLR += python3/app/antlr/parsemakefilerule.py
 python3/app/antlr/parsemakefilerule.py: antlr4/MakefileRuleParser.py
 	printf '%s\n' 'import app.antlr.custom' | cat - $< | sed '7d;8d' 1>$@
 
-ANTLR += python3/app/antlr/lexparagraph.py
-python3/app/antlr/lexparagraph.py: antlr4/ParagraphLexer.py
+ANTLR += python3/app/antlr/grammar/ParagraphLexer.py
+python3/app/antlr/grammar/ParagraphLexer.py: antlr4/ParagraphLexer.py
 	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/lextargetparagraph.py
