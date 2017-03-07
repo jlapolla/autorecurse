@@ -662,3 +662,99 @@ class TokenSourceToIteratorAdapter(Iterator[Token]):
 del T
 
 
+class TokenToCharIterator(Iterator[str]):
+    """
+    ## Notes
+
+    - Stops at first EOF token encountered.
+    - Does not print EOF token.
+    """
+
+    @staticmethod
+    def make(source: Iterator[Token]) -> Iterator[str]:
+        instance = TokenToCharIterator()
+        TokenToCharIterator._setup(instance, source)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'TokenToCharIterator', source: Iterator[Token]) -> None:
+        instance._source = source
+        instance._index = 0
+        instance._text = None
+        TokenToCharIterator._initialize(instance)
+
+    @staticmethod
+    def _initialize(instance: 'TokenToCharIterator') -> None:
+        if instance._source.is_at_start: # State S (self._source)
+            pass # State S
+        elif instance._source.has_current_item: # State I (self._source)
+            instance._set_text() # State I or E
+        else: # State E (self._source)
+            pass # State E
+
+    @property
+    def current_item(self) -> str:
+        # State I
+        return self._text[self._index]
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._text is not None
+
+    @property
+    def is_at_start(self) -> bool:
+        return self._source.is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return not (self.has_current_item or self.is_at_start)
+
+    def move_to_next(self) -> None:
+        if self.is_at_start: # State S
+            # S -> I
+            # S -> E
+            self._move_to_next_non_blank_token()
+        else: # State I
+            if self._index + 1 != self._current_length:
+                # I -> I
+                self._index = self._index + 1
+            else:
+                # I -> I
+                # I -> E
+                self._index = 0
+                self._move_to_next_non_blank_token()
+
+    @property
+    def _current_length(self) -> int:
+        if self.is_at_start: # State S
+            return 0
+        elif self.has_current_item: # State I
+            return len(self._text)
+        else: # State E
+            return 0
+
+    def _move_to_next_non_blank_token(self) -> None:
+        # State S or I
+        self._move_to_next_text()
+        while (self._current_length == 0) and (not self.is_at_end):
+            self._move_to_next_text()
+
+    def _move_to_next_text(self) -> None:
+        # State S or I
+        self._source.move_to_next()
+        if self._source.has_current_item: # State I
+            self._set_text()
+        else: # State E
+            self._to_E() # State E
+
+    def _set_text(self) -> None:
+        # State I (self._source)
+        if self._source.current_item.type != Token.EOF:
+            self._text = self._source.current_item.text # State I
+        else:
+            self._to_E() # State E
+
+    def _to_E(self) -> None:
+        self._text = None
+
+
