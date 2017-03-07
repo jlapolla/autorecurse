@@ -1,6 +1,6 @@
 from lib.generics import ListIterator, Iterator
 from antlr4.error.Errors import ParseCancellationException
-from app.antlr.parsemakefilerule import MakefileRuleParser
+from app.antlr.grammar import MakefileRuleParser
 
 
 class Makefile:
