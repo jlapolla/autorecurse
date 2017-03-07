@@ -1,4 +1,5 @@
 from lib.generics import ListIterator, Iterator
+from antlr4.error.Errors import ParseCancellationException
 from app.antlr.parsemakefilerule import MakefileRuleParser
 
 
@@ -74,5 +75,108 @@ class MakefileTarget:
     @property
     def order_only_prerequisites(self) -> Iterator[str]:
         return ListIterator.make(self._order_only_prerequisites)
+
+
+class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
+
+    @staticmethod
+    def make(parser: MakefileRuleParser) -> Iterator[MakefileTarget]:
+        instance = MakefileRuleParserToIteratorAdapter()
+        MakefileRuleParserToIteratorAdapter._setup(instance, parser)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'MakefileRuleParserToIteratorAdapter', parser: MakefileRuleParser) -> None:
+        instance._parser = parser
+        instance._to_S()
+
+    @property
+    def current_item(self) -> MakefileTarget:
+        return self._target
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._target is not None
+
+    @property
+    def is_at_start(self) -> bool:
+        return not (self.has_current_item or self.is_at_end)
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._is_at_end
+
+    def move_to_next(self) -> None:
+        if self.is_at_start: # State S
+            # S -> I
+            # S -> E
+            self._get_next_target()
+        else: # State I
+            if self._index + 1 != self._current_length:
+                # I -> I
+                self._index = self._index + 1
+                self._generate_target()
+            else:
+                # I -> I
+                # I -> E
+                self._index = 0
+                self._get_next_target()
+
+    @property
+    def _current_length(self) -> int:
+        if self.is_at_start: # State S
+            return 0
+        elif self.has_current_item: # State I
+            return len(self._context.target())
+        else: # State E
+            return 0
+
+    def _get_next_target(self) -> None:
+        # State S or I
+        self._get_next_non_empty_context()
+        if not self.is_at_end:
+            # S -> I
+            # I -> I
+            self._generate_target()
+            self._to_I()
+        else:
+            # S -> E
+            # I -> E
+            # Already at state E
+            pass
+
+    def _generate_target(self) -> None:
+        self._target = MakefileRule.make_from_parse_context(self._context, self._index)
+
+    def _get_next_non_empty_context(self) -> None:
+        # State S or I
+        self._get_next_context()
+        while not ((self._context is not None) or self.is_at_end):
+            self._get_next_context()
+
+    def _get_next_context(self) -> None:
+        # State S or I
+        ctx = None
+        try:
+            ctx = self._parser.declaration()
+        except ParseCancellationException:
+            self._to_E()
+        else:
+            self._context = ctx.makefileRule()
+
+    def _to_S(self) -> None:
+        self._index = 0
+        self._target = None
+        self._context = None
+        self._is_at_end = False
+
+    def _to_I(self) -> None:
+        self._is_at_end = False
+
+    def _to_E(self) -> None:
+        self._index = 0
+        self._target = None
+        self._context = None
+        self._is_at_end = True
 
 
