@@ -1,5 +1,5 @@
 from lib.generics import StringBuffer
-from app.antlr.lexmakefilerule import *
+from app.antlr.grammar import *
 from app.antlr.adapter import IteratorToCharStreamAdapter
 from antlr4 import Token
 import unittest

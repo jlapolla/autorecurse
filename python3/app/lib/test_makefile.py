@@ -1,5 +1,5 @@
 from app.lib.makefile import *
-from app.antlr.lexmakefilerule import MakefileRuleLexer
+from app.antlr.grammar import *
 from app.antlr.parsemakefilerule import MakefileRuleParser
 from antlr4 import *
 from antlr4.error.Errors import ParseCancellationException

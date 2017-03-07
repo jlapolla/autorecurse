@@ -17,8 +17,8 @@ ANTLR += python3/app/antlr/grammar/LineLexer.py
 python3/app/antlr/grammar/LineLexer.py: antlr4/LineLexer.py
 	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
-ANTLR += python3/app/antlr/lexmakefilerule.py
-python3/app/antlr/lexmakefilerule.py: antlr4/MakefileRuleLexer.py
+ANTLR += python3/app/antlr/grammar/MakefileRuleLexer.py
+python3/app/antlr/grammar/MakefileRuleLexer.py: antlr4/MakefileRuleLexer.py
 	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/parsemakefilerule.py
