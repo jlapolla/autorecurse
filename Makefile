@@ -29,8 +29,8 @@ ANTLR += python3/app/antlr/grammar/ParagraphLexer.py
 python3/app/antlr/grammar/ParagraphLexer.py: antlr4/ParagraphLexer.py
 	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
-ANTLR += python3/app/antlr/lextargetparagraph.py
-python3/app/antlr/lextargetparagraph.py: antlr4/TargetParagraphLexer.py
+ANTLR += python3/app/antlr/grammar/TargetParagraphLexer.py
+python3/app/antlr/grammar/TargetParagraphLexer.py: antlr4/TargetParagraphLexer.py
 	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 .PHONY: antlr
