@@ -1,4 +1,6 @@
 *.coverage
 *.pyc
 .eric6project
+/profile.prof
+/cachegrind.out.0
 

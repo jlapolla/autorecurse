@@ -37,8 +37,22 @@ python3/app/antlr/grammar/TargetParagraphLexer.py: antlr4/TargetParagraphLexer.p
 antlr: $(ANTLR)
 
 .PHONY: test
-test: antlr
+test: $(ANTLR)
 	python3 -m unittest discover -s python3
+
+profile.prof: $(ANTLR)
+	python3 -m cProfile -o $@ python3/test_main.py
+
+cachegrind.out.0: profile.prof
+	pyprof2calltree -o $@ -i $<
+
+.PHONY: profile
+profile: cachegrind.out.0
+	kcachegrind cachegrind.out.0
+
+.PHONY: profile-clean
+profile-clean:
+	rm -f profile.prof cachegrind.out.0
 
 .DEFAULT_GOAL := antlr
 
