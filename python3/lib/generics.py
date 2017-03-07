@@ -1362,6 +1362,81 @@ class StringBuffer(Buffer[str]):
         self._to_E()
 
 
+class LineToCharIterator(Iterator[str]):
+
+    EOL_LF = '\n'
+
+    @staticmethod
+    def make(source: Iterator[Line]) -> Iterator[str]:
+        instance = LineToCharIterator()
+        LineToCharIterator._setup(instance, source)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'LineToCharIterator', source: Iterator[Line]) -> None:
+        instance._source = source
+        instance._index = 0
+        instance._eol = LineToCharIterator.EOL_LF
+
+    @property
+    def current_item(self) -> str:
+        # State I
+        if self._index < len(self._content):
+            return self._content[self._index]
+        else:
+            return self._eol[self._index - len(self._content)]
+
+    @property
+    def _content(self) -> str:
+        # State I
+        return self._source.current_item.content
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._source.has_current_item
+
+    @property
+    def is_at_start(self) -> bool:
+        return self._source.is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._source.is_at_end
+
+    def move_to_next(self) -> None:
+        if self.is_at_start: # State S
+            # S -> I
+            # S -> E
+            self._move_to_next_non_blank_line()
+        else: # State I
+            if self._index + 1 != self._current_length:
+                # I -> I
+                self._index = self._index + 1
+            else:
+                # I -> I
+                # I -> E
+                self._index = 0
+                self._move_to_next_non_blank_line()
+
+    @property
+    def _current_length(self) -> int:
+        if self.is_at_start: # State S
+            return 0
+        elif self.has_current_item: # State I
+            return len(self._content) + len(self._eol)
+        else: # State E
+            return 0
+
+    def _move_to_next_non_blank_line(self) -> None:
+        # State S or I
+        self._source.move_to_next()
+        while (self._current_length == 0) and (not self.is_at_end):
+            self._source.move_to_next()
+
+    def move_to_end(self) -> None:
+        self._source.move_to_end()
+
+
 class FileLineIterator(Iterator[Line]):
 
     @staticmethod
