@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
 from antlr4 import Token
-from lib.generics import Iterator, LinkedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
+from lib.generics import Iterator, ArrayedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
 from app.antlr.abstract import IntStream, CharStream, TokenStream, TokenSource
 from typing import TypeVar
 
@@ -118,7 +118,7 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
 
     @staticmethod
     def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[T]):
-        instance._buffer_global = FifoGlobalIndexWrapper.make(LinkedFifo.make())
+        instance._buffer_global = FifoGlobalIndexWrapper.make(ArrayedFifo.make())
         instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToIntStreamAdapter._initialize_buffer(instance)
@@ -504,7 +504,7 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
           iterator.has_current_item True.
         - iterator.has_current_item is True.
         """
-        instance._buffer_global = FifoGlobalIndexWrapper.make(LinkedFifo.make())
+        instance._buffer_global = FifoGlobalIndexWrapper.make(ArrayedFifo.make())
         instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToTokenStreamAdapter._initialize_buffer(instance)

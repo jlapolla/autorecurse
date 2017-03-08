@@ -882,6 +882,236 @@ class LinkedFifo(Fifo[T]):
         self._to_E()
 
 
+class ArrayedFifo(Fifo[T]):
+
+    DEFAULT_CAPACITY_FACTOR = 1.0
+
+    @staticmethod
+    def make() -> 'ArrayedFifo[T]':
+        instance = ArrayedFifo()
+        ArrayedFifo._setup(instance)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'ArrayedFifo[T]') -> None:
+        instance._list = [None]
+        instance._physical_index_start = 0
+        instance._physical_index_end = 0
+        instance._inverted = False
+        instance._capacity_factor = ArrayedFifo.DEFAULT_CAPACITY_FACTOR
+        instance._to_S()
+
+    @property
+    def current_item(self) -> T:
+        # State I
+        return self._list[self._physical_index]
+
+    @property
+    def has_current_item(self) -> bool:
+        # State S, I, E, SE, or EE
+        return self._index is not None
+
+    @property
+    def is_at_start(self) -> bool:
+        # State S, I, E, SE, or EE
+        return not (self.has_current_item or self.is_at_end)
+
+    @property
+    def is_at_end(self) -> bool:
+        # State S, I, E, SE, or EE
+        return self._is_at_end
+
+    def move_to_next(self) -> None:
+        if not self.is_empty:
+            if self.is_at_start: # State S
+                # S -> I
+                self._index = 0
+                self._to_I()
+            else: # State I
+                if self._index + 1 != self.count:
+                    # I -> I
+                    self._index = self._index + 1
+                else:
+                    # I -> E
+                    self._to_E()
+        else: # State SE
+            # SE -> EE
+            self._to_E()
+
+    def move_to_end(self) -> None:
+        # State S, I, E, SE, or EE
+        # S -> E
+        # I -> E
+        # E -> E
+        # SE -> EE
+        # EE -> EE
+        self._to_E()
+
+    @property
+    def count(self) -> int:
+        # State S, I, E, SE, or EE
+        if not self._inverted:
+            return self._physical_index_end - self._physical_index_start
+        else:
+            return self._physical_index_end + self.capacity - self._physical_index_start
+
+    @property
+    def current_index(self) -> int:
+        # State I
+        return self._index
+
+    @property
+    def is_empty(self) -> bool:
+        # State S, I, E, SE, or EE
+        return self.count == 0
+
+    def move_to_start(self) -> None:
+        # State S, I, E, SE, or EE
+        # S -> S
+        # I -> S
+        # E -> S
+        # SE -> SE
+        # EE -> SE
+        self._to_S()
+
+    def move_to_index(self, index: int) -> None:
+        # State S, I, or E
+        # S -> I
+        # I -> I
+        # E -> I
+        self._index = index
+        self._to_I()
+
+    def push(self, item: T) -> None:
+        # State S, I, E, SE, or EE
+        if self.count != self.capacity:
+            self._list[self._physical_index_end] = item
+            self._increment_physical_index_end()
+        else: # State S, I, or E
+            self._increase_capacity()
+            self.push(item)
+
+    def _increment_physical_index_end(self) -> None:
+        # State S, I, E, SE, or EE
+        if self._physical_index_end + 1 != self.capacity:
+            self._physical_index_end = self._physical_index_end + 1
+        else:
+            self._physical_index_end = 0
+            self._inverted = not self._inverted
+
+    def shift(self) -> None:
+        if self.is_at_start: # State S
+            # S -> S
+            # S -> SE
+            self._increment_physical_index_start()
+        elif self.has_current_item: # State I
+            if self._physical_index != self._physical_index_start:
+                # I -> I
+                self._index = self._index - 1
+                self._increment_physical_index_start()
+            else:
+                # I -> S
+                # I -> SE
+                self._increment_physical_index_start()
+                self._to_S()
+        else: # State E
+            # E -> E
+            # E -> EE
+            self._increment_physical_index_start()
+
+    def _increment_physical_index_start(self) -> None:
+        # State S, I, or E
+        self._list[self._physical_index_start] = None
+        if self._physical_index_start + 1 != self.capacity:
+            self._physical_index_start = self._physical_index_start + 1
+        else:
+            self._physical_index_start = 0
+            self._inverted = not self._inverted
+
+    @property
+    def _physical_index(self) -> int:
+        # State I
+        if not self._inverted:
+            return self._index + self._physical_index_start
+        else:
+            return self._index + self._physical_index_start - self.capacity
+
+    def _increase_capacity(self) -> None:
+        # State S, I, E
+        added_capacity = int(self.capacity * self.capacity_factor)
+        if added_capacity == 0:
+            added_capacity = 1
+        self._reallocate(self.capacity + added_capacity)
+
+    def _reallocate(self, new_capacity: int) -> None:
+        """
+        ## Specification Domain
+
+        - 0 < new_capacity
+        - self.count <= new_capacity
+        """
+        # State S, I, E, SE, or EE
+        new_list = [None] * new_capacity
+        self._copy_to_list(new_list)
+        if self.count != new_capacity:
+            count = self.count
+            self._list = new_list
+            self._physical_index_start = 0
+            self._physical_index_end = count
+            self._inverted = False
+        else:
+            self._list = new_list
+            self._physical_index_start = 0
+            self._physical_index_end = 0
+            self._inverted = True
+
+    def _copy_to_list(self, list_: typing.List[T]) -> None:
+        # State S, I, E, SE, or EE
+        if not self._inverted:
+            list_[0:self.count] = self._list[self._physical_index_start:self._physical_index_end]
+        else:
+            list_[0:(self.capacity - self._physical_index_start)] = self._list[self._physical_index_start:self.capacity]
+            list_[(self.capacity - self._physical_index_start):self.count] = self._list[0:self._physical_index_end]
+
+    @property
+    def capacity(self) -> int:
+        # State S, I, E, SE, or EE
+        return len(self._list)
+
+    @property
+    def capacity_factor(self) -> float:
+        # State S, I, E, SE, or EE
+        return self._capacity_factor
+
+    @capacity_factor.setter
+    def capacity_factor(self, value: float) -> None:
+        """
+        ## Specification Domain
+
+        - 0 < value
+        """
+        # State S, I, E, SE, or EE
+        self._capacity_factor = value
+
+    def trim_capacity(self) -> None:
+        # State S, I, E, SE, or EE
+        if self.count != 0:
+            self._reallocate(self.count)
+        else:
+            self._reallocate(1)
+
+    def _to_S(self) -> None:
+        self._index = None
+        self._is_at_end = False
+
+    def _to_I(self) -> None:
+        self._is_at_end = False
+
+    def _to_E(self) -> None:
+        self._index = None
+        self._is_at_end = True
+
+
 class FifoWrapper(Fifo[T]):
 
     @property
