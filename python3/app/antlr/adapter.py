@@ -365,6 +365,13 @@ class IteratorToCharStreamAdapter(IteratorToIntStreamAdapter[str], CharStream):
         IteratorToIntStreamAdapter._setup(instance, iterator)
         return instance
 
+    def LA(self, offset: int) -> int:
+        # Optimization section
+        if offset == 1:
+            return self._LA_result
+        # End optimization section
+        return super().LA(offset)
+
     def _item_to_int(self, item: str) -> int:
         return ord(item)
 
