@@ -1,3 +1,4 @@
+import re
 from abc import ABCMeta, abstractmethod
 import io
 from typing import TypeVar, Generic
@@ -1592,6 +1593,60 @@ class EmptyLineFilter(StreamCondition[Line]):
         return self._printing
 
 del EmptyLineFilter._set_current_item
+
+
+class InformationalCommentFilter(StreamCondition[Line]):
+    """
+    Skips informational comments, when used with a
+    ConditionalSkipIterator.
+
+    ## Transition System Definition
+
+    ### States
+
+    - Y = Printing <- INITIAL
+    - N = No printing
+
+    ### Transition Labels
+
+    - Informational = Recieve Line matching _INFORMATIONAL_RE
+    - Line = Recieve Line not matching _INFORMATIONAL_RE
+
+    ### Transitions Grouped by Label
+
+    - Informational
+      - Y -> N
+      - N -> N
+    - Line
+      - Y -> Y
+      - N -> Y
+    """
+
+    _INFORMATIONAL_RE = re.compile(r'^#  ')
+
+    @staticmethod
+    def make() -> 'InformationalCommentFilter':
+        instance = InformationalCommentFilter()
+        InformationalCommentFilter._setup(instance)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'InformationalCommentFilter') -> None:
+        instance._printing = True
+
+    def _set_current_item(self, value: Line) -> None:
+        if InformationalCommentFilter._INFORMATIONAL_RE.match(value.content) is not None:
+            self._printing = False
+        else:
+            self._printing = True
+
+    current_item = property(None, _set_current_item)
+
+    @property
+    def condition(self) -> bool:
+        return self._printing
+
+del InformationalCommentFilter._set_current_item
 
 
 class FileSectionFilter(StreamCondition[Line]):
