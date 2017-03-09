@@ -137,11 +137,11 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
 
     @property
     def current_item(self) -> T:
-        return self._buffer.current_item
+        return self._inner_buffer.current_item # (optimized)
 
     @property
     def has_current_item(self) -> bool:
-        return self._inner_buffer.has_current_item
+        return self._inner_buffer.has_current_item # (optimized)
 
     @property
     def is_at_start(self) -> bool:
