@@ -29,7 +29,6 @@ a b c: d | e"""
         lexer = MakefileRuleLexer(input_)
         token_stream = CommonTokenStream(lexer)
         parser = MakefileRuleParser(token_stream)
-        parser._errHandler = BailErrorStrategy()
 
         ctx = parser.makefileRule()
         self.assertIsNone(ctx.exception)

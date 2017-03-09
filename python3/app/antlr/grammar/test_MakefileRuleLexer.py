@@ -1,7 +1,6 @@
 from lib.generics import StringBuffer
 from app.antlr.grammar import *
-from app.antlr.adapter import IteratorToCharStreamAdapter
-from antlr4 import Token
+from antlr4 import *
 import unittest
 
 
@@ -33,8 +32,7 @@ clean:;
 dist:;
 \t
 """
-        char_iterator = StringBuffer.make(string)
-        input_ = IteratorToCharStreamAdapter.make(char_iterator)
+        input_ = InputStream(string)
         lexer = MakefileRuleLexer(input_)
         #token = lexer.nextToken()
         #self.assertEqual(token.text, '# A comment')

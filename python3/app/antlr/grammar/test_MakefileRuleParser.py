@@ -1,7 +1,6 @@
 from lib.generics import StringBuffer
 from app.antlr.grammar import *
-from app.antlr.adapter import IteratorToCharStreamAdapter, TokenSourceToIteratorAdapter, IteratorToTokenStreamAdapter
-from antlr4 import Token
+from antlr4 import *
 from antlr4.error.Errors import ParseCancellationException
 import unittest
 
@@ -41,11 +40,9 @@ a b c: d
 
 \t# The recipe!
 a:"""
-        char_iterator = StringBuffer.make(string)
-        input_ = IteratorToCharStreamAdapter.make(char_iterator)
+        input_ = InputStream(string)
         lexer = MakefileRuleLexer(input_)
-        token_iterator = TokenSourceToIteratorAdapter.make(lexer)
-        token_stream = IteratorToTokenStreamAdapter.make(token_iterator)
+        token_stream = CommonTokenStream(lexer)
         parser = MakefileRuleParser(token_stream)
         with self.assertRaises(ParseCancellationException):
             parser.makefileRule() # Because the first token is EOL
