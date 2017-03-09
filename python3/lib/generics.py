@@ -1479,13 +1479,13 @@ class FifoToManagedFifoAdapter(ManagedFifo[T]):
     @property
     def _can_shift(self) -> bool:
         result = None
-        if not self.is_empty:
-            if self.is_at_start: # State S
-                # S -> S
-                result = False
-            elif self.has_current_item: # State I
+        if len(self._refcounters) != 0: # not self.is_empty (optimized)
+            if self.has_current_item: # State I
                 # I -> I
                 result = (self._refcounters[0].is_at_zero) and (self.current_index != 0)
+            elif self.is_at_start: # State S (out of order) (optimized)
+                # S -> S
+                result = False
             else: # State E
                 # E -> E
                 # E -> EE
