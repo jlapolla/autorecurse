@@ -2,20 +2,27 @@ import sys
 
 
 _sys_int_wrap_increment = sys.maxsize + sys.maxsize + 2
+_sys_max_int = sys.maxsize
+_sys_min_int = 0 - sys.maxsize - 1
 
 
 def _wrap_to_sys_int(value: int) -> int:
-    while True:
-        if 0 <= value: # Positive
-            if value <= sys.maxsize: # In range
-                return int(value)
-            else: # Out of range
-                value = value - _sys_int_wrap_increment
-        else: # Negative
-            if (0 - sys.maxsize - 1) <= value: # In range
-                return int(value)
-            else: # Out of range
-                value = value + _sys_int_wrap_increment
+    if 0 <= value: # Positive
+        if value <= _sys_max_int: # In range
+            return int(value)
+        else: # Out of range
+            num = (value - _sys_max_int) // _sys_int_wrap_increment
+            if num <= 0:
+                num = 1
+            return _wrap_to_sys_int(value - (_sys_int_wrap_increment * num))
+    else: # Negative
+        if _sys_min_int <= value: # In range
+            return int(value)
+        else: # Out of range
+            num = (_sys_min_int - value) // _sys_int_wrap_increment
+            if num <= 0:
+                num = 1
+            return _wrap_to_sys_int(value + (_sys_int_wrap_increment * num))
 
 
 class ValueFactorHashCodeCombiner:
