@@ -101,9 +101,6 @@ class Parser (Recognizer):
         self._syntaxErrors = 0
         self.setInputStream(input)
 
-    def __setattr__(self, key, value):
-        object.__setattr__(self, key, value)
-
     # reset the parser's state#
     def reset(self):
         if self._input is not None:
@@ -162,7 +159,7 @@ class Parser (Recognizer):
     # @throws RecognitionException if the current input symbol did not match
     # a wildcard and the error strategy could not recover from the mismatched
     # symbol
-    
+
     def matchWildcard(self):
         t = self.getCurrentToken()
         if t.type > 0:
@@ -170,7 +167,7 @@ class Parser (Recognizer):
             self.consume()
         else:
             t = self._errHandler.recoverInline(self)
-            if self._buildParseTrees and t.tokenIndex == -1:
+            if self.buildParseTrees and t.tokenIndex == -1:
                 # we must have conjured up a new token during single token insertion
                 # if it's not the current symbol
                 self._ctx.addErrorNode(t)
@@ -290,7 +287,7 @@ class Parser (Recognizer):
     def compileParseTreePattern(self, pattern:str, patternRuleIndex:int, lexer:Lexer = None):
         if lexer is None:
             if self.getTokenStream() is not None:
-                tokenSource = self.getTokenStream().getTokenSource()
+                tokenSource = self.getTokenStream().tokenSource
                 if isinstance( tokenSource, Lexer ):
                     lexer = tokenSource
         if lexer is None:
@@ -392,6 +389,7 @@ class Parser (Recognizer):
         self._ctx = self._ctx.parentCtx
 
     def enterOuterAlt(self, localctx:ParserRuleContext, altNum:int):
+        localctx.setAltNumber(altNum)
         # if we have new localctx, make sure we replace existing ctx
         # that is previous child of parse tree
         if self.buildParseTrees and self._ctx != localctx:
