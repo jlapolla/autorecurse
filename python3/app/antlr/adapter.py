@@ -118,7 +118,8 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
 
     @staticmethod
     def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[T]):
-        instance._buffer_global = FifoGlobalIndexWrapper.make(ArrayedFifo.make())
+        instance._inner_buffer = ArrayedFifo.make()
+        instance._buffer_global = FifoGlobalIndexWrapper.make(instance._inner_buffer)
         instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToIntStreamAdapter._initialize_buffer(instance)
@@ -140,7 +141,7 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
 
     @property
     def has_current_item(self) -> bool:
-        return self._buffer.has_current_item
+        return self._inner_buffer.has_current_item
 
     @property
     def is_at_start(self) -> bool:
@@ -504,7 +505,8 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
           iterator.has_current_item True.
         - iterator.has_current_item is True.
         """
-        instance._buffer_global = FifoGlobalIndexWrapper.make(ArrayedFifo.make())
+        instance._inner_buffer = ArrayedFifo.make()
+        instance._buffer_global = FifoGlobalIndexWrapper.make(instance._inner_buffer)
         instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToTokenStreamAdapter._initialize_buffer(instance)
