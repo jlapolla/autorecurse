@@ -1,3 +1,4 @@
+import app.antlr.optimization
 import unittest
 
 def suite():
