@@ -1,3 +1,4 @@
+import sys
 import re
 from abc import ABCMeta, abstractmethod
 import io
@@ -1207,6 +1208,177 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
         self.inner_object.move_to_index(local_index)
 
 
+class FifoStateCacheWrapper(Fifo[T]):
+    """
+    Memoizes Fifo state queries.
+    """
+
+    @staticmethod
+    def make(fifo: Fifo[T]) -> 'FifoStateCacheWrapper[T]':
+        instance = FifoStateCacheWrapper()
+        FifoStateCacheWrapper._setup(instance, fifo)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'FifoStateCacheWrapper[T]', fifo: Fifo[T]) -> None:
+        instance._fifo = fifo
+        instance._current_item_valid = False
+        instance._current_item = None
+        instance._has_current_item_valid = False
+        instance._has_current_item = None
+        instance._is_at_start_valid = False
+        instance._is_at_start = None
+        instance._is_at_end_valid = False
+        instance._is_at_end = None
+        instance._count_valid = False
+        instance._count = None
+        instance._current_index_valid = False
+        instance._current_index = None
+        instance._is_empty_valid = False
+        instance._is_empty = None
+
+    @property
+    def current_item(self) -> T:
+        if self._current_item_valid:
+            return self._current_item
+        else:
+            self._current_item = self.inner_object.current_item
+            self._current_item_valid = True
+            return self._current_item
+
+    @property
+    def has_current_item(self) -> bool:
+        if self._has_current_item_valid:
+            return self._has_current_item
+        else:
+            self._has_current_item = self.inner_object.has_current_item
+            self._has_current_item_valid = True
+            return self._has_current_item
+
+    @property
+    def is_at_start(self) -> bool:
+        if self._is_at_start_valid:
+            return self._is_at_start
+        else:
+            self._is_at_start = self.inner_object.is_at_start
+            self._is_at_start_valid = True
+            return self._is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        if self._is_at_end_valid:
+            return self._is_at_end
+        else:
+            self._is_at_end = self.inner_object.is_at_end
+            self._is_at_end_valid = True
+            return self._is_at_end
+
+    def move_to_next(self) -> None:
+        self.inner_object.move_to_next()
+        self._current_item_valid = False
+        self._current_item = None
+        self._has_current_item_valid = False
+        self._has_current_item = None
+        self._is_at_start_valid = True
+        self._is_at_start = False
+        self._is_at_end_valid = False
+        self._is_at_end = None
+        self._current_index_valid = False
+        self._current_index = None
+
+    def move_to_end(self) -> None:
+        self.inner_object.move_to_end()
+        self._current_item_valid = False
+        self._current_item = None
+        self._has_current_item_valid = True
+        self._has_current_item = False
+        self._is_at_start_valid = True
+        self._is_at_start = False
+        self._is_at_end_valid = True
+        self._is_at_end = True
+        self._current_index_valid = False
+        self._current_index = None
+
+    @property
+    def count(self) -> int:
+        if self._count_valid:
+            return self._count
+        else:
+            self._count = self.inner_object.count
+            self._count_valid = True
+            return self._count
+
+    @property
+    def current_index(self) -> int:
+        if self._current_index_valid:
+            return self._current_index
+        else:
+            self._current_index = self.inner_object.current_index
+            self._current_index_valid = True
+            return self._current_index
+
+    @property
+    def is_empty(self) -> bool:
+        if self._is_empty_valid:
+            return self._is_empty
+        else:
+            self._is_empty = self.inner_object.is_empty
+            self._is_empty_valid = True
+            return self._is_empty
+
+    def move_to_start(self) -> None:
+        self.inner_object.move_to_start()
+        self._current_item_valid = False
+        self._current_item = None
+        self._has_current_item_valid = True
+        self._has_current_item = False
+        self._is_at_start_valid = True
+        self._is_at_start = True
+        self._is_at_end_valid = True
+        self._is_at_end = False
+        self._current_index_valid = False
+        self._current_index = None
+
+    def move_to_index(self, index: int) -> None:
+        self.inner_object.move_to_index(index)
+        self._current_item_valid = False
+        self._current_item = None
+        self._has_current_item_valid = True
+        self._has_current_item = True
+        self._is_at_start_valid = True
+        self._is_at_start = False
+        self._is_at_end_valid = True
+        self._is_at_end = False
+        self._current_index_valid = True
+        self._current_index = index
+
+    def push(self, item: T) -> None:
+        self.inner_object.push(item)
+        self._count_valid = False
+        self._count = None
+        self._current_index_valid = False
+        self._current_index = None
+        self._is_empty_valid = True
+        self._is_empty = False
+
+    def shift(self) -> None:
+        self.inner_object.shift()
+        self._current_item_valid = False
+        self._current_item = None
+        self._has_current_item_valid = False
+        self._has_current_item = None
+        self._count_valid = False
+        self._count = None
+        self._current_index_valid = False
+        self._current_index = None
+        self._is_empty_valid = False
+        self._is_empty = None
+
+    @property
+    def inner_object(self) -> Fifo[T]:
+        return self._fifo
+
+
 class FifoToManagedFifoAdapter(ManagedFifo[T]):
 
     class ReferenceCounter:
@@ -1252,7 +1424,7 @@ class FifoToManagedFifoAdapter(ManagedFifo[T]):
             instance._refcounters.append(FifoToManagedFifoAdapter.ReferenceCounter.make())
             count = count - 1
 
-    MAX_ACTIVE_REFERENCES = 2147483647 # Max signed 32-bit int
+    MAX_ACTIVE_REFERENCES = sys.maxsize
 
     @property
     def current_item(self) -> T:
