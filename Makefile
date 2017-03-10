@@ -38,7 +38,7 @@ antlr: $(ANTLR)
 
 .PHONY: test
 test: $(ANTLR)
-	python3 -m unittest discover -s python3
+	cd python3 && python3 -m unittest discover
 
 profile.prof: $(ANTLR)
 	python3 -m cProfile -o $@ python3/test_main.py

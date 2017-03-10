@@ -6,7 +6,7 @@ class TestGnuMakeTargetReader(unittest.TestCase):
 
     def test_target_iterator(self):
         target_reader = GnuMakeTargetReader.make('make')
-        makefile = Makefile.make('python3/test_sample/gnu/project/Makefile')
+        makefile = Makefile.make('test_sample/gnu/project/Makefile')
         with target_reader.target_iterator(makefile) as target_iterator:
             self.assertIs(target_iterator.is_at_start, True)
 
