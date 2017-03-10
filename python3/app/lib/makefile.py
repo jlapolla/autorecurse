@@ -1,36 +1,66 @@
+from abc import ABCMeta, abstractmethod
 from lib.generics import ListIterator, Iterator
 from antlr4.error.Errors import ParseCancellationException
 from app.antlr.grammar import MakefileRuleParser
+import os
 
 
 class Makefile:
 
     @staticmethod
-    def make(path: str, exec_path: str) -> 'Makefile':
+    def make(path: str) -> 'Makefile':
         instance = Makefile()
-        Makefile._setup(instance, path, exec_path)
+        Makefile._setup(instance, path)
         return instance
 
     @staticmethod
-    def _setup(instance: 'Makefile', path: str, exec_path: str) -> None:
-        instance._path = path
-        instance._exec_path = exec_path
+    def _setup(instance: 'Makefile', path: str) -> None:
+        instance._exec_path = os.path.split(path)[0]
+        instance._file_path = os.path.split(path)[1]
 
     @property
     def path(self) -> str:
-        return self._path
-
-    @path.setter
-    def path(self, value: str) -> None:
-        self._path = value
+        """
+        Path to the Makefile.
+        """
+        if not os.path.isabs(self.file_path): # file_path is relative
+            if len(self.exec_path) == 0: # exec_path is empty
+                return self.file_path
+            elif not os.path.isabs(self.exec_path): # exec_path is relative
+                return os.path.join(self.exec_path, self.file_path)
+            else: # exec_path is absolute
+                return os.path.join(self.exec_path, self.file_path)
+        else: # file_path is absolute
+            # exec_path is empty
+            # exec_path is relative
+            # exec_path is absolute
+            return self.file_path
 
     @property
     def exec_path(self) -> str:
+        """
+        Path that make should be run from (-C option).
+
+        ## Notes
+
+        - Empty exec_path will not generate a -C option.
+        """
         return self._exec_path
 
     @exec_path.setter
     def exec_path(self, value: str) -> None:
         self._exec_path = value
+
+    @property
+    def file_path(self) -> str:
+        """
+        Path to file that make should be run on (-f option).
+        """
+        return self._file_path
+
+    @file_path.setter
+    def file_path(self, value: str) -> None:
+        self._file_path = value
 
 
 class MakefileTarget:
@@ -178,5 +208,23 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
         self._target = None
         self._context = None
         self._is_at_end = True
+
+
+class MakefileTargetReaderContext(metaclass=ABCMeta):
+
+    @abstractmethod
+    def __enter__(self) -> Iterator[MakefileTarget]:
+        pass
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        pass
+
+
+class MakefileTargetReader(metaclass=ABCMeta):
+
+    @abstractmethod
+    def target_iterator(self, makefile: Makefile) -> MakefileTargetReaderContext:
+        pass
 
 

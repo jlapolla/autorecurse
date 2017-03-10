@@ -4,6 +4,8 @@ from app.antlr.grammar import *
 from app.antlr.adapter import *
 from antlr4 import *
 from io import StringIO
+import sys
+import subprocess
 
 
 class GnuMake:
@@ -56,5 +58,68 @@ class GnuMake:
         makefile_rule_parser = MakefileRuleParser(token_stream_1)
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
         return makefile_target_iterator
+
+
+class GnuMakeTargetReader(MakefileTargetReader):
+
+    class GnuMakeTargetReaderContext(MakefileTargetReaderContext):
+
+        @staticmethod
+        def make(parent: 'GnuMakeTargetReader', makefile: Makefile) -> MakefileTargetReaderContext:
+            instance = GnuMakeTargetReader.GnuMakeTargetReaderContext()
+            GnuMakeTargetReader.GnuMakeTargetReaderContext._setup(instance, parent, makefile)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'GnuMakeTargetReader.GnuMakeTargetReaderContext', parent: 'GnuMakeTargetReader', makefile: Makefile) -> None:
+            instance._parent = parent
+            instance._makefile = makefile
+            instance._stringio = None
+
+        def __enter__(self) -> Iterator[MakefileTarget]:
+            """
+            ## Suggestions
+
+            - Use subprocess.Popen and feed stdout directly to the
+              parsing pipeline. This will require a TextIOWrapper, and
+              additional code in __exit__.
+            """
+            args = []
+            args.append(self._parent.executable_name)
+            args.append('-qp')
+            if len(self._makefile.exec_path) != 0:
+                args.append('-C')
+                args.append(self._makefile.exec_path)
+            args.append('-f')
+            args.append(self._makefile.file_path)
+            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if not ((result.returncode == 0) or (result.returncode == 1)):
+                # Return code == 1 is okay, since the -q option returns
+                # 1 when the default target is out of date.
+                sys.stderr.write(result.stderr.decode())
+                raise subprocess.CalledProcessError(result.returncode, ' '.join(result.args), result.stdout, result.stderr)
+            self._stringio = StringIO(result.stdout.decode())
+            return GnuMake.make_target_iterator_for_file(self._stringio)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            self._stringio.close()
+            return False
+
+    @staticmethod
+    def make(executable_name: str) -> MakefileTargetReader:
+        instance = GnuMakeTargetReader()
+        GnuMakeTargetReader._setup(instance, executable_name)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'GnuMakeTargetReader', executable_name: str) -> None:
+        instance._executable_name = executable_name
+
+    @property
+    def executable_name(self) -> str:
+        return self._executable_name
+
+    def target_iterator(self, makefile: Makefile) -> MakefileTargetReaderContext:
+        return GnuMakeTargetReader.GnuMakeTargetReaderContext.make(self, makefile)
 
 
