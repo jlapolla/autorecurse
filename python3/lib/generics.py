@@ -1546,6 +1546,87 @@ class FifoToManagedFifoAdapter(ManagedFifo[T]):
     def inner_object(self) -> Fifo[T]:
         return self._fifo
 
+
+class IteratorConcatenator(Iterator[T]):
+
+    @staticmethod
+    def make(source: Iterator[Iterator[T]]) -> 'IteratorConcatenator[T]':
+        instance = IteratorConcatenator()
+        IteratorConcatenator._setup(instance, source)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'IteratorConcatenator[T]', source: Iterator[Iterator[T]]) -> None:
+        instance._source = source
+        IteratorConcatenator._init_current_iterator(instance)
+
+    @staticmethod
+    def _init_current_iterator(instance: 'IteratorConcatenator[T]') -> None:
+        if instance._source.is_at_start: # State S (instance._source)
+            instance._to_S()
+        elif instance._source.has_current_item: # State I (instance._source)
+            instance._current_iterator = instance._source.current_item
+            if instance._current_iterator.is_at_start: # State S (instance._current_iterator)
+                instance._current_iterator.move_to_next()
+                IteratorConcatenator._init_current_iterator(instance)
+            elif instance._current_iterator.has_current_item: # State I (instance._current_iterator)
+                instance._to_I()
+            else: # State E (instance._current_iterator)
+                instance._move_to_next_non_empty_iterator()
+        else: # State E (instance._source)
+            instance._to_E()
+
+    @property
+    def current_item(self) -> T:
+        return self._current_iterator.current_item
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._source.has_current_item
+
+    @property
+    def is_at_start(self) -> bool:
+        return self._source.is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._source.is_at_end
+
+    def move_to_next(self) -> None:
+        if self.is_at_start: # State S
+            # S -> I
+            # S -> E
+            self._move_to_next_non_empty_iterator()
+        else: # State I
+            self._current_iterator.move_to_next()
+            if self._current_iterator.is_at_end:
+                # I -> I
+                # I -> E
+                self._move_to_next_non_empty_iterator()
+
+    def _move_to_next_non_empty_iterator(self) -> None:
+        # State S or I
+        while True:
+            self._current_iterator = None
+            self._source.move_to_next()
+            if self._source.is_at_end:
+                self._to_E()
+                break
+            self._current_iterator = self._source.current_item
+            self._current_iterator.move_to_next()
+            if self._current_iterator.has_current_item:
+                self._to_I()
+                break
+
+    def _to_S(self) -> None:
+        self._current_iterator = None
+
+    def _to_I(self) -> None:
+        pass
+
+    def _to_E(self) -> None:
+        self._current_iterator = None
+
 del T
 
 
