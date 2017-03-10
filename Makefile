@@ -47,11 +47,11 @@ cachegrind.out.0: profile.prof
 	pyprof2calltree -o $@ -i $<
 
 .PHONY: profile
-profile: cachegrind.out.0
+profile: clean-profile cachegrind.out.0
 	kcachegrind cachegrind.out.0
 
-.PHONY: profile-clean
-profile-clean:
+.PHONY: clean-profile
+clean-profile:
 	rm -f profile.prof cachegrind.out.0
 
 .DEFAULT_GOAL := antlr
