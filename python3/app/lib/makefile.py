@@ -3,6 +3,7 @@ from lib.generics import ListIterator, Iterator, IteratorContext
 from antlr4.error.Errors import ParseCancellationException
 from app.antlr.grammar import MakefileRuleParser
 import os
+import typing
 
 
 class Makefile:
@@ -17,6 +18,17 @@ class Makefile:
     def _setup(instance: 'Makefile', path: str) -> None:
         instance._exec_path = os.path.split(path)[0]
         instance._file_path = os.path.split(path)[1]
+
+    @staticmethod
+    def make_with_exec_path(exec_path: str, file_path: str) -> 'Makefile':
+        instance = Makefile()
+        Makefile._setup_with_exec_path(instance, exec_path, file_path)
+        return instance
+
+    @staticmethod
+    def _setup_with_exec_path(instance: 'Makefile', exec_path: str, file_path: str) -> None:
+        instance._exec_path = exec_path
+        instance._file_path = file_path
 
     @property
     def path(self) -> str:
@@ -215,5 +227,91 @@ class MakefileTargetReader(metaclass=ABCMeta):
     @abstractmethod
     def target_iterator(self, makefile: Makefile) -> IteratorContext[MakefileTarget]:
         pass
+
+
+class SubMakefileLocator(metaclass=ABCMeta):
+
+    @abstractmethod
+    def makefile_iterator(self, makefile: Makefile) -> IteratorContext[Makefile]:
+        pass
+
+
+class DirectoryMakefileLocator(metaclass=ABCMeta):
+
+    @abstractmethod
+    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
+        pass
+
+
+class PriorityListDirectoryMakefileLocator(DirectoryMakefileLocator):
+    """
+    Picks one Makefile in a directory based on a priority list of
+    potential Makefile file names. The file with the highest priority
+    name is picked.
+    """
+
+    class Context(IteratorContext[Makefile]):
+
+        @staticmethod
+        def make(parent: 'PriorityListDirectoryMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = PriorityListDirectoryMakefileLocator.Context()
+            PriorityListDirectoryMakefileLocator.Context._setup(instance, parent, directory_path)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'PriorityListDirectoryMakefileLocator.Context', parent: 'PriorityListDirectoryMakefileLocator', directory_path: str) -> None:
+            instance._parent = parent
+            instance._directory_path = directory_path
+
+        def __enter__(self) -> Iterator[Makefile]:
+            list_ = []
+            file_path = self._get_best_name()
+            if file_path is not None:
+                list_.append(Makefile.make_with_exec_path(self._directory_path, file_path))
+            return ListIterator.make(list_)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            return False
+
+        def _get_best_name(self) -> str:
+            best_name = None
+            best_priority = 0
+            for name in self._get_file_names():
+                if name in self._parent._priorities:
+                    priority = self._parent._priorities[name]
+                    if best_priority < priority:
+                        best_name = name
+                        best_priority = priority
+            return best_name
+
+        def _get_file_names(self) -> typing.List[str]:
+            """
+            ## Suggestions
+
+            - Use os.scandir directly (used internally by os.walk).
+            """
+            it = os.walk(self._directory_path)
+            return it.__next__()[2]
+
+    @staticmethod
+    def make(priorities: typing.List[str]) -> MakefileTargetReader:
+        instance = PriorityListDirectoryMakefileLocator()
+        PriorityListDirectoryMakefileLocator._setup(instance, priorities)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'PriorityListDirectoryMakefileLocator', priorities: typing.List[str]) -> None:
+        instance._priorities = {}
+        PriorityListDirectoryMakefileLocator._init_priorities(instance, priorities)
+
+    @staticmethod
+    def _init_priorities(instance: 'PriorityListDirectoryMakefileLocator', priorities: typing.List[str]) -> None:
+        index = len(priorities)
+        for name in priorities:
+            instance._priorities[name] = index
+            index = index - 1
+
+    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
+        return PriorityListDirectoryMakefileLocator.Context.make(self, directory_path)
 
 

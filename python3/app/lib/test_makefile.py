@@ -104,3 +104,42 @@ a b c: d | e"""
         self.assertIs(it.is_at_end, True)
 
 
+class TestPriorityListDirectoryMakefileLocator(unittest.TestCase):
+
+    def test_with_result_1(self):
+        locator = PriorityListDirectoryMakefileLocator.make(['does_not_exist.py', 'gnumake.py', 'makefile.py'])
+        with locator.makefile_iterator('app/lib') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'app/lib')
+            self.assertEqual(makefile.file_path, 'gnumake.py')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+    def test_with_result_2(self):
+        locator = PriorityListDirectoryMakefileLocator.make(['does_not_exist.py', 'makefile.py', 'gnumake.py'])
+        with locator.makefile_iterator('app/lib') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'app/lib')
+            self.assertEqual(makefile.file_path, 'makefile.py')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+    def test_without_result_1(self):
+        locator = PriorityListDirectoryMakefileLocator.make(['does_not_exist.py'])
+        with locator.makefile_iterator('app/lib') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+    def test_without_result_2(self):
+        locator = PriorityListDirectoryMakefileLocator.make([])
+        with locator.makefile_iterator('app/lib') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+
