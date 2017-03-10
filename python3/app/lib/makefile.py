@@ -130,6 +130,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
     @staticmethod
     def _setup(instance: 'MakefileRuleParserToIteratorAdapter', parser: MakefileRuleParser) -> None:
         instance._parser = parser
+        instance._makefile = None
         instance._to_S()
 
     @property
@@ -189,6 +190,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
 
     def _generate_target(self) -> None:
         self._target = MakefileTarget.make_from_parse_context(self._context, self._index)
+        self._target.file = self.makefile
 
     def _get_next_non_empty_context(self) -> None:
         # State S or I
@@ -220,6 +222,14 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
         self._target = None
         self._context = None
         self._is_at_end = True
+
+    @property
+    def makefile(self) -> Makefile:
+        return self._makefile
+
+    @makefile.setter
+    def makefile(self, value: Makefile) -> None:
+        self._makefile = value
 
 
 class MakefileTargetReader(metaclass=ABCMeta):

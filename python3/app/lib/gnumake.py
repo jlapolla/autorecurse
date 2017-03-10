@@ -11,7 +11,7 @@ import subprocess
 class GnuMake:
 
     @staticmethod
-    def make_target_iterator_for_file(fp: io.TextIOBase) -> Iterator[MakefileTarget]:
+    def make_target_iterator_for_file(fp: io.TextIOBase, makefile: Makefile) -> Iterator[MakefileTarget]:
         file_lines = FileLineIterator.make(fp)
         file_section = ConditionalSkipIterator.make(file_lines, FileSectionFilter.make())
         file_section_no_comments = ConditionalSkipIterator.make(file_section, InformationalCommentFilter.make())
@@ -39,10 +39,11 @@ class GnuMake:
         token_stream_1 = CommonTokenStream(makefile_rule_lexer)
         makefile_rule_parser = MakefileRuleParser(token_stream_1)
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
+        makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
 
     @staticmethod
-    def make_target_iterator_for_file_streaming(fp: io.TextIOBase) -> Iterator[MakefileTarget]:
+    def make_target_iterator_for_file_streaming(fp: io.TextIOBase, makefile: Makefile) -> Iterator[MakefileTarget]:
         file_lines = FileLineIterator.make(fp)
         file_section = ConditionalSkipIterator.make(file_lines, FileSectionFilter.make())
         file_section_no_comments = ConditionalSkipIterator.make(file_section, InformationalCommentFilter.make())
@@ -57,6 +58,7 @@ class GnuMake:
         token_stream_1 = IteratorToTokenStreamAdapter.make(makefile_rule_tokens)
         makefile_rule_parser = MakefileRuleParser(token_stream_1)
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
+        makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
 
 
@@ -99,7 +101,7 @@ class GnuMakeTargetReader(MakefileTargetReader):
                 sys.stderr.write(result.stderr.decode())
                 raise subprocess.CalledProcessError(result.returncode, ' '.join(result.args), result.stdout, result.stderr)
             self._stringio = StringIO(result.stdout.decode())
-            return GnuMake.make_target_iterator_for_file(self._stringio)
+            return GnuMake.make_target_iterator_for_file(self._stringio, self._makefile)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             self._stringio.close()

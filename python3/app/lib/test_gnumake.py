@@ -21,6 +21,7 @@ class TestGnuMakeTargetReader(unittest.TestCase):
             self.assertEqual(it.current_item, 'objdir')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
+            self.assertIs(target.file, makefile)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -37,6 +38,7 @@ class TestGnuMakeTargetReader(unittest.TestCase):
             it = target.order_only_prerequisites
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
+            self.assertIs(target.file, makefile)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -51,6 +53,7 @@ class TestGnuMakeTargetReader(unittest.TestCase):
             self.assertEqual(it.current_item, 'objdir')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
+            self.assertIs(target.file, makefile)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -63,6 +66,7 @@ class TestGnuMakeTargetReader(unittest.TestCase):
             self.assertEqual(it.current_item, 'objdir')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
+            self.assertIs(target.file, makefile)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -73,6 +77,7 @@ class TestGnuMakeTargetReader(unittest.TestCase):
             it = target.order_only_prerequisites
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
+            self.assertIs(target.file, makefile)
 
             target_iterator.move_to_next()
             self.assertIs(target_iterator.is_at_end, True)
