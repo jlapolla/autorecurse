@@ -62,10 +62,10 @@ class GnuMake:
 
 class GnuMakeTargetReader(MakefileTargetReader):
 
-    class GnuMakeTargetReaderContext(MakefileTargetReaderContext):
+    class GnuMakeTargetReaderContext(IteratorContext[MakefileTarget]):
 
         @staticmethod
-        def make(parent: 'GnuMakeTargetReader', makefile: Makefile) -> MakefileTargetReaderContext:
+        def make(parent: 'GnuMakeTargetReader', makefile: Makefile) -> IteratorContext[MakefileTarget]:
             instance = GnuMakeTargetReader.GnuMakeTargetReaderContext()
             GnuMakeTargetReader.GnuMakeTargetReaderContext._setup(instance, parent, makefile)
             return instance
@@ -119,7 +119,7 @@ class GnuMakeTargetReader(MakefileTargetReader):
     def executable_name(self) -> str:
         return self._executable_name
 
-    def target_iterator(self, makefile: Makefile) -> MakefileTargetReaderContext:
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[MakefileTarget]:
         return GnuMakeTargetReader.GnuMakeTargetReaderContext.make(self, makefile)
 
 

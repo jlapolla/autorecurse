@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from lib.generics import ListIterator, Iterator
+from lib.generics import ListIterator, Iterator, IteratorContext
 from antlr4.error.Errors import ParseCancellationException
 from app.antlr.grammar import MakefileRuleParser
 import os
@@ -210,21 +210,10 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
         self._is_at_end = True
 
 
-class MakefileTargetReaderContext(metaclass=ABCMeta):
-
-    @abstractmethod
-    def __enter__(self) -> Iterator[MakefileTarget]:
-        pass
-
-    @abstractmethod
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-        pass
-
-
 class MakefileTargetReader(metaclass=ABCMeta):
 
     @abstractmethod
-    def target_iterator(self, makefile: Makefile) -> MakefileTargetReaderContext:
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[MakefileTarget]:
         pass
 
 

@@ -96,6 +96,17 @@ class Iterator(Generic[T_co], metaclass=ABCMeta):
             self.move_to_next()
 
 
+class IteratorContext(Generic[T_co], metaclass=ABCMeta):
+
+    @abstractmethod
+    def __enter__(self) -> Iterator[T_co]:
+        pass
+
+    @abstractmethod
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        pass
+
+
 class BufferedIterator(Iterator[T_co]):
     """
     A buffered stream of items.
