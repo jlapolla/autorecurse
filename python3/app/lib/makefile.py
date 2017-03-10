@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from lib.generics import ListIterator, Iterator, IteratorContext
+from lib.generics import *
 from antlr4.error.Errors import ParseCancellationException
 from app.antlr.grammar import MakefileRuleParser
 import os
@@ -16,8 +16,8 @@ class Makefile:
 
     @staticmethod
     def _setup(instance: 'Makefile', path: str) -> None:
-        instance._exec_path = os.path.split(path)[0]
-        instance._file_path = os.path.split(path)[1]
+        instance._exec_path = os.path.dirname(path)
+        instance._file_path = os.path.basename(path)
 
     @staticmethod
     def make_with_exec_path(exec_path: str, file_path: str) -> 'Makefile':
@@ -323,5 +323,164 @@ class PriorityListDirectoryMakefileLocator(DirectoryMakefileLocator):
 
     def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
         return PriorityListDirectoryMakefileLocator.Context.make(self, directory_path)
+
+
+class RecursiveDirectoryMakefileLocator(DirectoryMakefileLocator):
+    """
+    Returns Makefiles found by another DirectoryMakefileLocator in a
+    directory and all its subdirectories.
+    """
+
+    class Iterator(Iterator[Iterator[Makefile]]):
+
+        @staticmethod
+        def make(parent: 'RecursiveDirectoryMakefileLocator', walker_iterator) -> 'RecursiveDirectoryMakefileLocator.Iterator':
+            """
+            ## Specification Domain
+
+            - walker_iterator is an iterator returned from os.walk.
+            """
+            instance = RecursiveDirectoryMakefileLocator.Iterator()
+            RecursiveDirectoryMakefileLocator.Iterator._setup(instance, parent, walker_iterator)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'RecursiveDirectoryMakefileLocator.Iterator', parent: 'RecursiveDirectoryMakefileLocator', walker_iterator) -> None:
+            instance._directory_walker = walker_iterator
+            instance._parent = parent
+            instance._to_S()
+
+        @property
+        def current_item(self) -> Makefile:
+            return self._current_item
+
+        @property
+        def has_current_item(self) -> bool:
+            return self._current_item is not None
+
+        @property
+        def is_at_start(self) -> bool:
+            return not (self.has_current_item or self.is_at_end)
+
+        @property
+        def is_at_end(self) -> bool:
+            return self._is_at_end
+
+        def move_to_next(self) -> None:
+            if self.is_at_start: # State S
+                # S -> I
+                # S -> E
+                self._move_to_next_directory()
+            else: # State I
+                # I -> I
+                # I -> E
+                self._close_current_context()
+                self._move_to_next_directory()
+
+        def move_to_end(self) -> None:
+            if self.is_at_start: # State S
+                # S -> E
+                self._to_E()
+            elif self.has_current_item: # State I
+                # I -> E
+                self._close_current_context()
+                self._to_E()
+            else: # State E
+                # E -> E
+                self._to_E()
+
+        def _close_current_context(self) -> None:
+            # State I
+            # self._current_context != None
+            # self._current_item != None
+            context = self._current_context
+            self._current_context = None
+            self._current_item = None
+            context.__exit__(None, None, None)
+
+        def _move_to_next_directory(self) -> None:
+            # State S or I
+            # self._current_context == None
+            # self._current_item == None
+            try:
+                self._current_tuple = self._directory_walker.__next__()
+            except StopIteration:
+                self._to_E()
+            else:
+                context = self._parent._locator.makefile_iterator(self._current_tuple[0])
+                item = context.__enter__()
+                self._current_context = context
+                self._current_item = item
+                self._trim_excluded_directory_names()
+                self._to_I()
+
+        def _trim_excluded_directory_names(self) -> None:
+            directories = self._current_tuple[1]
+            index = 0
+            length = len(directories)
+            while index != length:
+                if directories[index] in self._parent._excluded_directory_names:
+                    del directories[index]
+                    length = length - 1
+                else:
+                    index = index + 1
+
+        def _to_S(self) -> None:
+            self._current_context = None
+            self._current_item = None
+            self._current_tuple = None
+            self._is_at_end = False
+
+        def _to_I(self) -> None:
+            self._is_at_end = False
+
+        def _to_E(self) -> None:
+            self._current_context = None
+            self._current_item = None
+            self._current_tuple = None
+            self._is_at_end = True
+
+    class Context(IteratorContext[Makefile], Iterator):
+
+        @staticmethod
+        def make(parent: 'RecursiveDirectoryMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = RecursiveDirectoryMakefileLocator.Context()
+            RecursiveDirectoryMakefileLocator.Context._setup(instance, parent, directory_path)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'RecursiveDirectoryMakefileLocator.Context', parent: 'RecursiveDirectoryMakefileLocator', directory_path: str) -> None:
+            instance._parent = parent
+            instance._directory_path = directory_path
+
+        def __enter__(self) -> Iterator[Makefile]:
+            RecursiveDirectoryMakefileLocator.Iterator._setup(self, self._parent, os.walk(self._directory_path))
+            return IteratorConcatenator.make(self)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            if self._current_context is None:
+                return False
+            else:
+                return self._current_context.__exit__(exc_type, exc_val, exc_tb)
+
+    @staticmethod
+    def make(locator: DirectoryMakefileLocator) -> MakefileTargetReader:
+        instance = RecursiveDirectoryMakefileLocator()
+        RecursiveDirectoryMakefileLocator._setup(instance, locator)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'RecursiveDirectoryMakefileLocator', locator: DirectoryMakefileLocator) -> None:
+        instance._locator = locator
+        instance._excluded_directory_names = set()
+
+    def exclude_directory_name(self, directory_name: str) -> None:
+        self._excluded_directory_names.add(directory_name)
+
+    def include_directory_name(self, directory_name: str) -> None:
+        self._excluded_directory_names.discard(directory_name)
+
+    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
+        return RecursiveDirectoryMakefileLocator.Context.make(self, directory_path)
 
 

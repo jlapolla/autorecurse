@@ -143,3 +143,35 @@ class TestPriorityListDirectoryMakefileLocator(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
 
 
+class TestRecursiveDirectoryMakefileLocator(unittest.TestCase):
+
+    def test_without_excluded_directories(self):
+        sub_locator = PriorityListDirectoryMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
+        locator = RecursiveDirectoryMakefileLocator.make(sub_locator)
+        with locator.makefile_iterator('test_sample/gnu') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/project')
+            self.assertEqual(makefile.file_path, 'Makefile')
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/project/src')
+            self.assertEqual(makefile.file_path, 'bar.c')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+    def test_with_excluded_directories(self):
+        sub_locator = PriorityListDirectoryMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
+        locator = RecursiveDirectoryMakefileLocator.make(sub_locator)
+        locator.exclude_directory_name('src')
+        with locator.makefile_iterator('test_sample/gnu') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/project')
+            self.assertEqual(makefile.file_path, 'Makefile')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+
