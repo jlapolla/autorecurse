@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-07, 14:11:03 -->
+<!-- Saved: 2017-03-10, 12:12:37 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -55,7 +55,6 @@
     <Source>antlr4/PredictionContext.py</Source>
     <Source>antlr4/Recognizer.py</Source>
     <Source>antlr4/RuleContext.py</Source>
-    <Source>antlr4/setup.py</Source>
     <Source>antlr4/Token.py</Source>
     <Source>antlr4/tree/Chunk.py</Source>
     <Source>antlr4/tree/__init__.py</Source>
