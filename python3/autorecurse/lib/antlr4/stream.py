@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
 from antlr4 import Token
-from autorecurse.lib.generics import Iterator, ArrayedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
+from autorecurse.lib.generics import Iterator, ArrayedFifo, FifoGlobalIndexWrapper, FifoManager
 from autorecurse.lib.antlr4.abstract import IntStream, CharStream, TokenStream, TokenSource
 from typing import TypeVar
 
@@ -120,7 +120,7 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[T]):
         instance._inner_buffer = ArrayedFifo.make()
         instance._buffer_global = FifoGlobalIndexWrapper.make(instance._inner_buffer)
-        instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
+        instance._buffer = FifoManager.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToIntStreamAdapter._initialize_buffer(instance)
 
@@ -507,7 +507,7 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
         """
         instance._inner_buffer = ArrayedFifo.make()
         instance._buffer_global = FifoGlobalIndexWrapper.make(instance._inner_buffer)
-        instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
+        instance._buffer = FifoManager.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToTokenStreamAdapter._initialize_buffer(instance)
 

@@ -1390,18 +1390,18 @@ class FifoStateCacheWrapper(Fifo[T]):
         return self._fifo
 
 
-class FifoToManagedFifoAdapter(ManagedFifo[T]):
+class FifoManager(ManagedFifo[T]):
 
     class ReferenceCounter:
 
         @staticmethod
-        def make() -> 'FifoToManagedFifoAdapter.ReferenceCounter':
-            instance = FifoToManagedFifoAdapter.ReferenceCounter()
-            FifoToManagedFifoAdapter.ReferenceCounter._setup(instance)
+        def make() -> 'FifoManager.ReferenceCounter':
+            instance = FifoManager.ReferenceCounter()
+            FifoManager.ReferenceCounter._setup(instance)
             return instance
 
         @staticmethod
-        def _setup(instance: 'FifoToManagedFifoAdapter.ReferenceCounter') -> None:
+        def _setup(instance: 'FifoManager.ReferenceCounter') -> None:
             instance._count = 0
 
         @property
@@ -1416,23 +1416,23 @@ class FifoToManagedFifoAdapter(ManagedFifo[T]):
 
     @staticmethod
     def make(fifo: Fifo[T]) -> 'FifoToManagdFifoAdapter':
-        instance = FifoToManagedFifoAdapter()
-        FifoToManagedFifoAdapter._setup(instance, fifo)
+        instance = FifoManager()
+        FifoManager._setup(instance, fifo)
         return instance
 
     @staticmethod
-    def _setup(instance: 'FifoToManagedFifoAdapter', fifo: Fifo[T]) -> None:
+    def _setup(instance: 'FifoManager', fifo: Fifo[T]) -> None:
         instance._refcounters = []
         instance._ref_token_dict = {}
         instance._current_reference_token = 0
         instance._fifo = fifo
-        FifoToManagedFifoAdapter._initialize_ref_counters(instance)
+        FifoManager._initialize_ref_counters(instance)
 
     @staticmethod
-    def _initialize_ref_counters(instance: 'FifoToManagedFifoAdapter') -> None:
+    def _initialize_ref_counters(instance: 'FifoManager') -> None:
         count = instance._fifo.count
         while (count != 0):
-            instance._refcounters.append(FifoToManagedFifoAdapter.ReferenceCounter.make())
+            instance._refcounters.append(FifoManager.ReferenceCounter.make())
             count = count - 1
 
     MAX_ACTIVE_REFERENCES = sys.maxsize
@@ -1479,7 +1479,7 @@ class FifoToManagedFifoAdapter(ManagedFifo[T]):
 
     def push(self, item: T) -> None:
         self.inner_object.push(item)
-        self._refcounters.append(FifoToManagedFifoAdapter.ReferenceCounter.make())
+        self._refcounters.append(FifoManager.ReferenceCounter.make())
         self.collect_garbage()
 
     def collect_garbage(self) -> None:
@@ -1521,18 +1521,18 @@ class FifoToManagedFifoAdapter(ManagedFifo[T]):
         while (ref_token in self._ref_token_dict) and (ref_token != self._current_reference_token):
             ref_token = self._next_reference_token(self._current_reference_token)
         if ref_token == self._current_reference_token:
-            raise RuntimeError('Reached maximum number of active strong references: ' + FifoToManagedFifoAdapter.MAX_ACTIVE_REFERENCES + '. You must release some references to continue.')
+            raise RuntimeError('Reached maximum number of active strong references: ' + FifoManager.MAX_ACTIVE_REFERENCES + '. You must release some references to continue.')
         return ref_token
 
     def _next_reference_token(self, ref_token: int) -> int:
         result = None
-        if ref_token != FifoToManagedFifoAdapter.MAX_ACTIVE_REFERENCES:
+        if ref_token != FifoManager.MAX_ACTIVE_REFERENCES:
             result = ref_token + 1
         else:
             result = 0
         return result
 
-    def _current_reference_counter(self) -> 'FifoToManagedFifoAdapter.ReferenceCounter[T]':
+    def _current_reference_counter(self) -> 'FifoManager.ReferenceCounter[T]':
         # State I
         return self._refcounters[self.current_index]
 
