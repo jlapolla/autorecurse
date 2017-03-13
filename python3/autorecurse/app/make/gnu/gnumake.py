@@ -62,7 +62,7 @@ class GnuMake:
         return makefile_target_iterator
 
 
-class TargetReader(MakefileTargetReader):
+class TargetReader:
 
     class Context(IteratorContext[Target]):
 
@@ -108,7 +108,7 @@ class TargetReader(MakefileTargetReader):
             return False
 
     @staticmethod
-    def make(executable_name: str) -> MakefileTargetReader:
+    def make(executable_name: str) -> 'TargetReader':
         instance = TargetReader()
         TargetReader._setup(instance, executable_name)
         return instance

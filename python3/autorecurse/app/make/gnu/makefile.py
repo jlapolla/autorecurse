@@ -232,13 +232,6 @@ class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
         self._makefile = value
 
 
-class MakefileTargetReader(metaclass=ABCMeta):
-
-    @abstractmethod
-    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
-        pass
-
-
 class DirectoryMakefileLocator(metaclass=ABCMeta):
 
     @abstractmethod
@@ -297,7 +290,7 @@ class PriorityMakefileIterator(DirectoryMakefileLocator):
             return it.__next__()[2]
 
     @staticmethod
-    def make(priorities: typing.List[str]) -> MakefileTargetReader:
+    def make(priorities: typing.List[str]) -> DirectoryMakefileLocator:
         instance = PriorityMakefileIterator()
         PriorityMakefileIterator._setup(instance, priorities)
         return instance
@@ -457,7 +450,7 @@ class RecursiveMakefileIterator(DirectoryMakefileLocator):
                 return self._current_context.__exit__(exc_type, exc_val, exc_tb)
 
     @staticmethod
-    def make(locator: DirectoryMakefileLocator) -> MakefileTargetReader:
+    def make(locator: DirectoryMakefileLocator) -> DirectoryMakefileLocator:
         instance = RecursiveMakefileIterator()
         RecursiveMakefileIterator._setup(instance, locator)
         return instance
