@@ -124,7 +124,7 @@ class Target:
         return ListIterator.make(self._order_only_prerequisites)
 
 
-class GnuMake:
+class Factory:
 
     @staticmethod
     def make_target_iterator_for_file(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
@@ -217,7 +217,7 @@ class TargetReader:
                 sys.stderr.write(result.stderr.decode())
                 raise subprocess.CalledProcessError(result.returncode, ' '.join(result.args), result.stdout, result.stderr)
             self._stringio = StringIO(result.stdout.decode())
-            return GnuMake.make_target_iterator_for_file(self._stringio, self._makefile)
+            return Factory.make_target_iterator_for_file(self._stringio, self._makefile)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             self._stringio.close()
