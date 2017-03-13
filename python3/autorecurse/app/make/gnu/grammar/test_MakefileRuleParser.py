@@ -1,4 +1,4 @@
-from autorecurse.lib.generics import StringBuffer
+from autorecurse.lib.buffer import StringBuffer
 from autorecurse.app.make.gnu.grammar import *
 from antlr4 import *
 from antlr4.error.Errors import ParseCancellationException

@@ -1,4 +1,4 @@
-from autorecurse.lib.generics import Buffer
+from autorecurse.lib.buffer import Buffer
 from abc import abstractmethod
 from typing import TypeVar, Generic, List
 import sys
