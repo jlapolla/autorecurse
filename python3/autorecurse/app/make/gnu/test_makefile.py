@@ -143,11 +143,11 @@ class TestPriorityMakefileLocator(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
 
 
-class TestRecursiveMakefileIterator(unittest.TestCase):
+class TestRecursiveMakefileLocator(unittest.TestCase):
 
     def test_without_excluded_directories(self):
         sub_locator = PriorityMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
-        locator = RecursiveMakefileIterator.make(sub_locator)
+        locator = RecursiveMakefileLocator.make(sub_locator)
         with locator.makefile_iterator('test_sample/gnu') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
@@ -163,7 +163,7 @@ class TestRecursiveMakefileIterator(unittest.TestCase):
 
     def test_with_excluded_directories(self):
         sub_locator = PriorityMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
-        locator = RecursiveMakefileIterator.make(sub_locator)
+        locator = RecursiveMakefileLocator.make(sub_locator)
         locator.exclude_directory_name('src')
         with locator.makefile_iterator('test_sample/gnu') as it:
             self.assertIs(it.is_at_start, True)

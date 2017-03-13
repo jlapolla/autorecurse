@@ -311,7 +311,7 @@ class PriorityMakefileLocator(DirectoryMakefileLocator):
         return PriorityMakefileLocator.Context.make(self, directory_path)
 
 
-class RecursiveMakefileIterator(DirectoryMakefileLocator):
+class RecursiveMakefileLocator(DirectoryMakefileLocator):
     """
     Returns Makefiles found by another DirectoryMakefileLocator in a
     directory and all its subdirectories.
@@ -320,18 +320,18 @@ class RecursiveMakefileIterator(DirectoryMakefileLocator):
     class Iterator(Iterator[Iterator[Makefile]]):
 
         @staticmethod
-        def make(parent: 'RecursiveMakefileIterator', walker_iterator) -> 'RecursiveMakefileIterator.Iterator':
+        def make(parent: 'RecursiveMakefileLocator', walker_iterator) -> 'RecursiveMakefileLocator.Iterator':
             """
             ## Specification Domain
 
             - walker_iterator is an iterator returned from os.walk.
             """
-            instance = RecursiveMakefileIterator.Iterator()
-            RecursiveMakefileIterator.Iterator._setup(instance, parent, walker_iterator)
+            instance = RecursiveMakefileLocator.Iterator()
+            RecursiveMakefileLocator.Iterator._setup(instance, parent, walker_iterator)
             return instance
 
         @staticmethod
-        def _setup(instance: 'RecursiveMakefileIterator.Iterator', parent: 'RecursiveMakefileIterator', walker_iterator) -> None:
+        def _setup(instance: 'RecursiveMakefileLocator.Iterator', parent: 'RecursiveMakefileLocator', walker_iterator) -> None:
             instance._directory_walker = walker_iterator
             instance._parent = parent
             instance._to_S()
@@ -429,18 +429,18 @@ class RecursiveMakefileIterator(DirectoryMakefileLocator):
     class Context(IteratorContext[Makefile], Iterator):
 
         @staticmethod
-        def make(parent: 'RecursiveMakefileIterator', directory_path: str) -> IteratorContext[Makefile]:
-            instance = RecursiveMakefileIterator.Context()
-            RecursiveMakefileIterator.Context._setup(instance, parent, directory_path)
+        def make(parent: 'RecursiveMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = RecursiveMakefileLocator.Context()
+            RecursiveMakefileLocator.Context._setup(instance, parent, directory_path)
             return instance
 
         @staticmethod
-        def _setup(instance: 'RecursiveMakefileIterator.Context', parent: 'RecursiveMakefileIterator', directory_path: str) -> None:
+        def _setup(instance: 'RecursiveMakefileLocator.Context', parent: 'RecursiveMakefileLocator', directory_path: str) -> None:
             instance._parent = parent
             instance._directory_path = directory_path
 
         def __enter__(self) -> Iterator[Makefile]:
-            RecursiveMakefileIterator.Iterator._setup(self, self._parent, os.walk(self._directory_path))
+            RecursiveMakefileLocator.Iterator._setup(self, self._parent, os.walk(self._directory_path))
             return IteratorConcatenator.make(self)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
@@ -451,12 +451,12 @@ class RecursiveMakefileIterator(DirectoryMakefileLocator):
 
     @staticmethod
     def make(locator: DirectoryMakefileLocator) -> DirectoryMakefileLocator:
-        instance = RecursiveMakefileIterator()
-        RecursiveMakefileIterator._setup(instance, locator)
+        instance = RecursiveMakefileLocator()
+        RecursiveMakefileLocator._setup(instance, locator)
         return instance
 
     @staticmethod
-    def _setup(instance: 'RecursiveMakefileIterator', locator: DirectoryMakefileLocator) -> None:
+    def _setup(instance: 'RecursiveMakefileLocator', locator: DirectoryMakefileLocator) -> None:
         instance._locator = locator
         instance._excluded_directory_names = set()
 
@@ -467,6 +467,6 @@ class RecursiveMakefileIterator(DirectoryMakefileLocator):
         self._excluded_directory_names.discard(directory_name)
 
     def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
-        return RecursiveMakefileIterator.Context.make(self, directory_path)
+        return RecursiveMakefileLocator.Context.make(self, directory_path)
 
 
