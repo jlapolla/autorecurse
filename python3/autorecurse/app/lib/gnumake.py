@@ -1,5 +1,5 @@
 from autorecurse.lib.generics import *
-from autorecurse.app.lib.makefile import *
+from autorecurse.app.make.gnu.makefile import *
 from autorecurse.app.make.gnu.grammar import *
 from autorecurse.lib.antlr4.adapter import *
 from antlr4 import *
