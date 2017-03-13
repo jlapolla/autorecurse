@@ -342,7 +342,7 @@ del T_co
 
 
 T_contra = TypeVar('T_contra', contravariant=True)
-class StreamCondition(Generic[T_contra], metaclass=ABCMeta):
+class Condition(Generic[T_contra], metaclass=ABCMeta):
     """
     Stateful stream evaluator.
 
@@ -398,7 +398,7 @@ class StreamCondition(Generic[T_contra], metaclass=ABCMeta):
     def condition(self) -> bool:
         pass
 
-del StreamCondition._set_current_item
+del Condition._set_current_item
 del T_contra
 
 
@@ -1997,13 +1997,13 @@ T = TypeVar('T')
 class ConditionFilter(Iterator[T]):
 
     @staticmethod
-    def make(iterator: Iterator[T], condition: StreamCondition[T]) -> 'ConditionFilter':
+    def make(iterator: Iterator[T], condition: Condition[T]) -> 'ConditionFilter':
         instance = ConditionFilter()
         ConditionFilter._setup(instance, iterator, condition)
         return instance
 
     @staticmethod
-    def _setup(instance: 'ConditionFilter', iterator: Iterator[T], condition: StreamCondition[T]) -> None:
+    def _setup(instance: 'ConditionFilter', iterator: Iterator[T], condition: Condition[T]) -> None:
         instance._iterator = iterator
         instance._condition = condition
 
@@ -2036,7 +2036,7 @@ class ConditionFilter(Iterator[T]):
 del T
 
 
-class EmptyLineFilter(StreamCondition[Line]):
+class EmptyLineFilter(Condition[Line]):
     """
     Skips empty lines, when used with a ConditionFilter.
 

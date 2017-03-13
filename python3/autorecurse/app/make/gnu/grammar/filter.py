@@ -1,7 +1,7 @@
 from autorecurse.lib.generics import *
 
 
-class FileSectionFilter(StreamCondition[Line]):
+class FileSectionFilter(Condition[Line]):
     """
     Outputs the lines between _START_LINE and _END_LINE, when used with
     a ConditionFilter.
@@ -92,7 +92,7 @@ class FileSectionFilter(StreamCondition[Line]):
 del FileSectionFilter._set_current_item
 
 
-class InformationalCommentFilter(StreamCondition[Line]):
+class InformationalCommentFilter(Condition[Line]):
     """
     Skips informational comments, when used with a
     ConditionFilter.
