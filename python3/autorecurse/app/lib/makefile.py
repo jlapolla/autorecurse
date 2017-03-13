@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from lib.generics import *
+from autorecurse.lib.generics import *
 from antlr4.error.Errors import ParseCancellationException
 from autorecurse.app.antlr.grammar import MakefileRuleParser
 import os

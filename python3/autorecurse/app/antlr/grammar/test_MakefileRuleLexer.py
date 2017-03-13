@@ -1,4 +1,4 @@
-from lib.generics import StringBuffer
+from autorecurse.lib.generics import StringBuffer
 from autorecurse.app.antlr.grammar import *
 from antlr4 import *
 import unittest
