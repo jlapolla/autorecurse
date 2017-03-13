@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-10, 12:12:37 -->
+<!-- Saved: 2017-03-13, 08:21:49 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -94,6 +94,7 @@
     <Source>app/antlr/grammar/test_MakefileRuleParser.py</Source>
     <Source>app/antlr/grammar/TargetParagraphLexer.py</Source>
     <Source>app/antlr/grammar/test_ParagraphLexer.py</Source>
+    <Source>lib/hash.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
