@@ -1,6 +1,5 @@
-from autorecurse.lib.buffer import StringBuffer
-from autorecurse.app.make.gnu.grammar import *
-from antlr4 import *
+from autorecurse.app.make.gnu.grammar import MakefileRuleLexer
+from antlr4 import InputStream, Token
 import unittest
 
 

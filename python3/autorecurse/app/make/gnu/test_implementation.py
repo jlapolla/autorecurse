@@ -1,11 +1,9 @@
 from autorecurse.app.make.gnu.implementation import *
-from autorecurse.app.make.gnu.grammar import *
-from antlr4 import *
-from antlr4.error.Errors import ParseCancellationException
+from antlr4 import CommonTokenStream, InputStream
 import unittest
 
 
-class TestMakefileTarget(unittest.TestCase):
+class TestTarget(unittest.TestCase):
 
     def test_basic_operation(self):
         string = """\\backslash\\target\\:: source\\ |\t\\back\tslash\\ 
