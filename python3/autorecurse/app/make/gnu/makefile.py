@@ -239,13 +239,6 @@ class MakefileTargetReader(metaclass=ABCMeta):
         pass
 
 
-class SubMakefileLocator(metaclass=ABCMeta):
-
-    @abstractmethod
-    def makefile_iterator(self, makefile: Makefile) -> IteratorContext[Makefile]:
-        pass
-
-
 class DirectoryMakefileLocator(metaclass=ABCMeta):
 
     @abstractmethod
