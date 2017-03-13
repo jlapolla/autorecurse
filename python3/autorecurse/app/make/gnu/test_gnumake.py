@@ -2,10 +2,10 @@ from autorecurse.app.make.gnu.gnumake import *
 import unittest
 
 
-class TestGnuMakeTargetReader(unittest.TestCase):
+class TestTargetReader(unittest.TestCase):
 
     def test_target_iterator(self):
-        target_reader = GnuMakeTargetReader.make('make')
+        target_reader = TargetReader.make('make')
         makefile = Makefile.make('test_sample/gnu/project/Makefile')
         with target_reader.target_iterator(makefile) as target_iterator:
             self.assertIs(target_iterator.is_at_start, True)
