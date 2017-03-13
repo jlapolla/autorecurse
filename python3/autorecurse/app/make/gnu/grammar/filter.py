@@ -1,6 +1,6 @@
 from autorecurse.lib.line import Line
 from autorecurse.lib.stream import Condition
-from autorecurse.lib.generics import *
+from autorecurse.lib.iterator import *
 import re
 
 

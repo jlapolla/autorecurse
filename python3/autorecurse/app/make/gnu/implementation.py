@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from autorecurse.lib.generics import *
+from autorecurse.lib.iterator import *
 from autorecurse.lib.line import FileLineIterator, LineToCharIterator
 from autorecurse.lib.stream import ConditionFilter
 from antlr4.error.Errors import ParseCancellationException

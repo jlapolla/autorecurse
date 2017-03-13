@@ -1,4 +1,4 @@
-from autorecurse.lib.generics import *
+from autorecurse.lib.iterator import *
 from autorecurse.lib.line import Line, LineBreakError, FileLineIterator, EmptyLineFilter
 from autorecurse.lib.stream import ConditionFilter
 from abc import ABCMeta, abstractmethod

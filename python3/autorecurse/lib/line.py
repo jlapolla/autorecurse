@@ -1,4 +1,4 @@
-from autorecurse.lib.generics import Iterator
+from autorecurse.lib.iterator import Iterator
 from autorecurse.lib.stream import Condition
 from io import TextIOBase
 

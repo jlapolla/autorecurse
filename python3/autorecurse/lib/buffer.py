@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import TypeVar
-from autorecurse.lib.generics import Iterator
+from autorecurse.lib.iterator import Iterator
 
 
 T = TypeVar('T')

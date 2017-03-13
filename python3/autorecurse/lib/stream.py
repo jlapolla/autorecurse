@@ -1,4 +1,4 @@
-from autorecurse.lib.generics import Iterator
+from autorecurse.lib.iterator import Iterator
 from abc import ABCMeta, abstractmethod
 from typing import TypeVar, Generic
 
