@@ -3249,13 +3249,13 @@ HashCodeCombiner#</dia:string>
       </dia:object>
       <dia:object type="Flowchart - Box" version="0" id="O83">
         <dia:attribute name="obj_pos">
-          <dia:point val="86.1772,21.5809"/>
+          <dia:point val="86.1772,21.691"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="86.1272,21.5309;89.9897,23.5309"/>
+          <dia:rectangle val="86.1272,21.641;89.9897,23.641"/>
         </dia:attribute>
         <dia:attribute name="elem_corner">
-          <dia:point val="86.1772,21.5809"/>
+          <dia:point val="86.1772,21.691"/>
         </dia:attribute>
         <dia:attribute name="elem_width">
           <dia:real val="3.7625000000000002"/>
@@ -3281,7 +3281,7 @@ HashCodeCombiner#</dia:string>
               <dia:real val="0.80000000000000004"/>
             </dia:attribute>
             <dia:attribute name="pos">
-              <dia:point val="88.0585,22.7259"/>
+              <dia:point val="88.0585,22.836"/>
             </dia:attribute>
             <dia:attribute name="color">
               <dia:color val="#000000"/>
@@ -3294,13 +3294,13 @@ HashCodeCombiner#</dia:string>
       </dia:object>
       <dia:object type="Flowchart - Box" version="0" id="O84">
         <dia:attribute name="obj_pos">
-          <dia:point val="86.1772,31.2159"/>
+          <dia:point val="86.1772,31.6565"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="86.1272,31.1659;98.9997,33.1659"/>
+          <dia:rectangle val="86.1272,31.6065;98.9997,33.6065"/>
         </dia:attribute>
         <dia:attribute name="elem_corner">
-          <dia:point val="86.1772,31.2159"/>
+          <dia:point val="86.1772,31.6565"/>
         </dia:attribute>
         <dia:attribute name="elem_width">
           <dia:real val="12.772499999999999"/>
@@ -3326,7 +3326,7 @@ HashCodeCombiner#</dia:string>
               <dia:real val="0.80000000000000004"/>
             </dia:attribute>
             <dia:attribute name="pos">
-              <dia:point val="92.5635,32.3609"/>
+              <dia:point val="92.5635,32.8015"/>
             </dia:attribute>
             <dia:attribute name="color">
               <dia:color val="#000000"/>
@@ -3339,13 +3339,13 @@ HashCodeCombiner#</dia:string>
       </dia:object>
       <dia:object type="Flowchart - Box" version="0" id="O85">
         <dia:attribute name="obj_pos">
-          <dia:point val="86.1772,24.2592"/>
+          <dia:point val="86.1772,24.4795"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="86.1272,24.2092;91.9722,27.0092"/>
+          <dia:rectangle val="86.1272,24.4295;91.9722,27.2295"/>
         </dia:attribute>
         <dia:attribute name="elem_corner">
-          <dia:point val="86.1772,24.2592"/>
+          <dia:point val="86.1772,24.4795"/>
         </dia:attribute>
         <dia:attribute name="elem_width">
           <dia:real val="5.7450000014901166"/>
@@ -3378,7 +3378,7 @@ Target#</dia:string>
               <dia:real val="0.80000000000000004"/>
             </dia:attribute>
             <dia:attribute name="pos">
-              <dia:point val="89.0497,25.4042"/>
+              <dia:point val="89.0497,25.6245"/>
             </dia:attribute>
             <dia:attribute name="color">
               <dia:color val="#000000"/>
@@ -3391,13 +3391,13 @@ Target#</dia:string>
       </dia:object>
       <dia:object type="Flowchart - Box" version="0" id="O86">
         <dia:attribute name="obj_pos">
-          <dia:point val="86.1772,33.8943"/>
+          <dia:point val="86.1772,34.445"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="86.1272,33.8443;94.6622,35.8443"/>
+          <dia:rectangle val="86.1272,34.395;94.6622,36.395"/>
         </dia:attribute>
         <dia:attribute name="elem_corner">
-          <dia:point val="86.1772,33.8943"/>
+          <dia:point val="86.1772,34.445"/>
         </dia:attribute>
         <dia:attribute name="elem_width">
           <dia:real val="8.4350000014901152"/>
@@ -3426,7 +3426,7 @@ Target#</dia:string>
               <dia:real val="0.80000000000000004"/>
             </dia:attribute>
             <dia:attribute name="pos">
-              <dia:point val="90.3947,35.0393"/>
+              <dia:point val="90.3947,35.59"/>
             </dia:attribute>
             <dia:attribute name="color">
               <dia:color val="#000000"/>
@@ -3439,25 +3439,22 @@ Target#</dia:string>
       </dia:object>
       <dia:object type="Flowchart - Box" version="0" id="O87">
         <dia:attribute name="obj_pos">
-          <dia:point val="86.1772,36.5726"/>
+          <dia:point val="86.1772,37.2335"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="86.1272,36.5226;98.4472,39.3226"/>
+          <dia:rectangle val="86.1272,37.1835;95.5022,39.1835"/>
         </dia:attribute>
         <dia:attribute name="elem_corner">
-          <dia:point val="86.1772,36.5726"/>
+          <dia:point val="86.1772,37.2335"/>
         </dia:attribute>
         <dia:attribute name="elem_width">
-          <dia:real val="12.220000001490117"/>
+          <dia:real val="9.2750000014901168"/>
         </dia:attribute>
         <dia:attribute name="elem_height">
-          <dia:real val="2.7000000014901162"/>
+          <dia:real val="1.9000000014901162"/>
         </dia:attribute>
         <dia:attribute name="border_width">
           <dia:real val="0.10000000149011612"/>
-        </dia:attribute>
-        <dia:attribute name="inner_color">
-          <dia:color val="#f5cb49"/>
         </dia:attribute>
         <dia:attribute name="show_background">
           <dia:boolean val="true"/>
@@ -3468,8 +3465,7 @@ Target#</dia:string>
         <dia:attribute name="text">
           <dia:composite type="text">
             <dia:attribute name="string">
-              <dia:string>#RecursiveDirectoryMakefileLocator
-RecursiveMakefileIterator#</dia:string>
+              <dia:string>#RecursiveMakefileIterator#</dia:string>
             </dia:attribute>
             <dia:attribute name="font">
               <dia:font family="sans" style="0" name="Helvetica"/>
@@ -3478,7 +3474,7 @@ RecursiveMakefileIterator#</dia:string>
               <dia:real val="0.80000000000000004"/>
             </dia:attribute>
             <dia:attribute name="pos">
-              <dia:point val="92.2872,37.7176"/>
+              <dia:point val="90.8147,38.3785"/>
             </dia:attribute>
             <dia:attribute name="color">
               <dia:color val="#000000"/>
@@ -3491,13 +3487,13 @@ RecursiveMakefileIterator#</dia:string>
       </dia:object>
       <dia:object type="Flowchart - Box" version="0" id="O88">
         <dia:attribute name="obj_pos">
-          <dia:point val="86.1772,27.7376"/>
+          <dia:point val="86.1772,28.068"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="86.1272,27.6876;94.5722,30.4876"/>
+          <dia:rectangle val="86.1272,28.018;94.5722,30.818"/>
         </dia:attribute>
         <dia:attribute name="elem_corner">
-          <dia:point val="86.1772,27.7376"/>
+          <dia:point val="86.1772,28.068"/>
         </dia:attribute>
         <dia:attribute name="elem_width">
           <dia:real val="8.3450000014901171"/>
@@ -3530,7 +3526,7 @@ TargetReader#</dia:string>
               <dia:real val="0.80000000000000004"/>
             </dia:attribute>
             <dia:attribute name="pos">
-              <dia:point val="90.3497,28.8826"/>
+              <dia:point val="90.3497,29.213"/>
             </dia:attribute>
             <dia:attribute name="color">
               <dia:color val="#000000"/>
