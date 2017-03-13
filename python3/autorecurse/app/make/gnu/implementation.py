@@ -129,8 +129,8 @@ class Factory:
     @staticmethod
     def make_target_iterator_for_file(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
-        file_section = ConditionalSkipIterator.make(file_lines, FileSectionFilter.make())
-        file_section_no_comments = ConditionalSkipIterator.make(file_section, InformationalCommentFilter.make())
+        file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
+        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
         file_section_chars = LineToCharIterator.make(file_section_no_comments)
         char_stream_1 = None
         with StringIO() as strbuff:
@@ -161,8 +161,8 @@ class Factory:
     @staticmethod
     def make_target_iterator_for_file_streaming(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
-        file_section = ConditionalSkipIterator.make(file_lines, FileSectionFilter.make())
-        file_section_no_comments = ConditionalSkipIterator.make(file_section, InformationalCommentFilter.make())
+        file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
+        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
         file_section_chars = LineToCharIterator.make(file_section_no_comments)
         char_stream_1 = IteratorToCharStreamAdapter.make(file_section_chars)
         paragraph_lexer = TargetParagraphLexer(char_stream_1)

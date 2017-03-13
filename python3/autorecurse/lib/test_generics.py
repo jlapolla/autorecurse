@@ -239,7 +239,7 @@ class TestFileLineIterator(unittest.TestCase):
         IteratorTests.run_all(TestFileLineIterator.make_iterator_wrapper_empty)
 
 
-class TestConditionalSkipIterator(unittest.TestCase):
+class TestConditionFilter(unittest.TestCase):
 
     @staticmethod
     def make_iterator_wrapper_content() -> IteratorTestWrapper[Line]:
@@ -249,7 +249,7 @@ class TestConditionalSkipIterator(unittest.TestCase):
         line3 = Line.make('Goodbye again')
         condition = EmptyLineFilter.make()
         iterator = ListIterator.make([blank_line, line1, line2, blank_line, line3, blank_line])
-        actual = ConditionalSkipIterator.make(iterator, condition)
+        actual = ConditionFilter.make(iterator, condition)
         expected = [line1, line2, line3]
         return IteratorTestWrapper.make(actual, expected)
 
@@ -261,7 +261,7 @@ class TestConditionalSkipIterator(unittest.TestCase):
         line3 = Line.make('Goodbye again')
         condition = EmptyLineFilter.make()
         iterator = ListIterator.make([line1, line2, blank_line, line3])
-        actual = ConditionalSkipIterator.make(iterator, condition)
+        actual = ConditionFilter.make(iterator, condition)
         expected = [line1, line2, line3]
         return IteratorTestWrapper.make(actual, expected)
 
@@ -270,7 +270,7 @@ class TestConditionalSkipIterator(unittest.TestCase):
         blank_line = Line.make('')
         condition = EmptyLineFilter.make()
         iterator = ListIterator.make([blank_line, blank_line, blank_line])
-        actual = ConditionalSkipIterator.make(iterator, condition)
+        actual = ConditionFilter.make(iterator, condition)
         expected = []
         return IteratorTestWrapper.make(actual, expected)
 
@@ -278,15 +278,15 @@ class TestConditionalSkipIterator(unittest.TestCase):
     def make_iterator_wrapper_empty() -> IteratorTestWrapper[Line]:
         condition = EmptyLineFilter.make()
         iterator = ListIterator.make([])
-        actual = ConditionalSkipIterator.make(iterator, condition)
+        actual = ConditionFilter.make(iterator, condition)
         expected = []
         return IteratorTestWrapper.make(actual, expected)
 
     def test_iterator_tests(self):
-        IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_content)
-        IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_content_no_padding)
-        IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_content_blank)
-        IteratorTests.run_all(TestConditionalSkipIterator.make_iterator_wrapper_empty)
+        IteratorTests.run_all(TestConditionFilter.make_iterator_wrapper_content)
+        IteratorTests.run_all(TestConditionFilter.make_iterator_wrapper_content_no_padding)
+        IteratorTests.run_all(TestConditionFilter.make_iterator_wrapper_content_blank)
+        IteratorTests.run_all(TestConditionFilter.make_iterator_wrapper_empty)
 
 
 class TestEmptyLineFilter(unittest.TestCase):

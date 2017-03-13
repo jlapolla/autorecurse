@@ -1994,16 +1994,16 @@ class FileLineIterator(Iterator[Line]):
 
 
 T = TypeVar('T')
-class ConditionalSkipIterator(Iterator[T]):
+class ConditionFilter(Iterator[T]):
 
     @staticmethod
-    def make(iterator: Iterator[T], condition: StreamCondition[T]) -> 'ConditionalSkipIterator':
-        instance = ConditionalSkipIterator()
-        ConditionalSkipIterator._setup(instance, iterator, condition)
+    def make(iterator: Iterator[T], condition: StreamCondition[T]) -> 'ConditionFilter':
+        instance = ConditionFilter()
+        ConditionFilter._setup(instance, iterator, condition)
         return instance
 
     @staticmethod
-    def _setup(instance: 'ConditionalSkipIterator', iterator: Iterator[T], condition: StreamCondition[T]) -> None:
+    def _setup(instance: 'ConditionFilter', iterator: Iterator[T], condition: StreamCondition[T]) -> None:
         instance._iterator = iterator
         instance._condition = condition
 
@@ -2038,7 +2038,7 @@ del T
 
 class EmptyLineFilter(StreamCondition[Line]):
     """
-    Skips empty lines, when used with a ConditionalSkipIterator.
+    Skips empty lines, when used with a ConditionFilter.
 
     ## Transition System Definition
 

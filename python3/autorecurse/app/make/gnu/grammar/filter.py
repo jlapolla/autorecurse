@@ -4,7 +4,7 @@ from autorecurse.lib.generics import *
 class FileSectionFilter(StreamCondition[Line]):
     """
     Outputs the lines between _START_LINE and _END_LINE, when used with
-    a ConditionalSkipIterator.
+    a ConditionFilter.
 
     ## Transition System Definition
 
@@ -95,7 +95,7 @@ del FileSectionFilter._set_current_item
 class InformationalCommentFilter(StreamCondition[Line]):
     """
     Skips informational comments, when used with a
-    ConditionalSkipIterator.
+    ConditionFilter.
 
     ## Transition System Definition
 
