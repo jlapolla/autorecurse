@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from io import StringIO, TextIOBase
 from antlr4 import Token
 from autorecurse.lib.iterator import Iterator
@@ -8,6 +8,8 @@ from typing import TypeVar
 
 
 T = TypeVar('T')
+
+
 class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     """
     ## Transition System Definition
@@ -669,8 +671,6 @@ class TokenSourceToIteratorAdapter(Iterator[Token]):
         self._current_item = None
         self._is_at_end = True
 
-del T
-
 
 class TokenToCharIterator(Iterator[str]):
     """
@@ -766,5 +766,8 @@ class TokenToCharIterator(Iterator[str]):
 
     def _to_E(self) -> None:
         self._text = None
+
+
+del T
 
 
