@@ -104,10 +104,10 @@ a b c: d | e"""
         self.assertIs(it.is_at_end, True)
 
 
-class TestPriorityMakefileIterator(unittest.TestCase):
+class TestPriorityMakefileLocator(unittest.TestCase):
 
     def test_with_result_1(self):
-        locator = PriorityMakefileIterator.make(['does_not_exist.py', 'gnumake.py', 'makefile.py'])
+        locator = PriorityMakefileLocator.make(['does_not_exist.py', 'gnumake.py', 'makefile.py'])
         with locator.makefile_iterator('autorecurse/app/make/gnu') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
@@ -118,7 +118,7 @@ class TestPriorityMakefileIterator(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
 
     def test_with_result_2(self):
-        locator = PriorityMakefileIterator.make(['does_not_exist.py', 'makefile.py', 'gnumake.py'])
+        locator = PriorityMakefileLocator.make(['does_not_exist.py', 'makefile.py', 'gnumake.py'])
         with locator.makefile_iterator('autorecurse/app/make/gnu') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
@@ -129,14 +129,14 @@ class TestPriorityMakefileIterator(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
 
     def test_without_result_1(self):
-        locator = PriorityMakefileIterator.make(['does_not_exist.py'])
+        locator = PriorityMakefileLocator.make(['does_not_exist.py'])
         with locator.makefile_iterator('autorecurse/app/make/gnu') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
 
     def test_without_result_2(self):
-        locator = PriorityMakefileIterator.make([])
+        locator = PriorityMakefileLocator.make([])
         with locator.makefile_iterator('autorecurse/app/make/gnu') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
@@ -146,7 +146,7 @@ class TestPriorityMakefileIterator(unittest.TestCase):
 class TestRecursiveMakefileIterator(unittest.TestCase):
 
     def test_without_excluded_directories(self):
-        sub_locator = PriorityMakefileIterator.make(['Makefile', 'bar.c', 'baz.c'])
+        sub_locator = PriorityMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
         locator = RecursiveMakefileIterator.make(sub_locator)
         with locator.makefile_iterator('test_sample/gnu') as it:
             self.assertIs(it.is_at_start, True)
@@ -162,7 +162,7 @@ class TestRecursiveMakefileIterator(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
 
     def test_with_excluded_directories(self):
-        sub_locator = PriorityMakefileIterator.make(['Makefile', 'bar.c', 'baz.c'])
+        sub_locator = PriorityMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
         locator = RecursiveMakefileIterator.make(sub_locator)
         locator.exclude_directory_name('src')
         with locator.makefile_iterator('test_sample/gnu') as it:

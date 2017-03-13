@@ -239,7 +239,7 @@ class DirectoryMakefileLocator(metaclass=ABCMeta):
         pass
 
 
-class PriorityMakefileIterator(DirectoryMakefileLocator):
+class PriorityMakefileLocator(DirectoryMakefileLocator):
     """
     Picks one Makefile in a directory based on a priority list of
     potential Makefile file names. The file with the highest priority
@@ -249,13 +249,13 @@ class PriorityMakefileIterator(DirectoryMakefileLocator):
     class Context(IteratorContext[Makefile]):
 
         @staticmethod
-        def make(parent: 'PriorityMakefileIterator', directory_path: str) -> IteratorContext[Makefile]:
-            instance = PriorityMakefileIterator.Context()
-            PriorityMakefileIterator.Context._setup(instance, parent, directory_path)
+        def make(parent: 'PriorityMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = PriorityMakefileLocator.Context()
+            PriorityMakefileLocator.Context._setup(instance, parent, directory_path)
             return instance
 
         @staticmethod
-        def _setup(instance: 'PriorityMakefileIterator.Context', parent: 'PriorityMakefileIterator', directory_path: str) -> None:
+        def _setup(instance: 'PriorityMakefileLocator.Context', parent: 'PriorityMakefileLocator', directory_path: str) -> None:
             instance._parent = parent
             instance._directory_path = directory_path
 
@@ -291,24 +291,24 @@ class PriorityMakefileIterator(DirectoryMakefileLocator):
 
     @staticmethod
     def make(priorities: typing.List[str]) -> DirectoryMakefileLocator:
-        instance = PriorityMakefileIterator()
-        PriorityMakefileIterator._setup(instance, priorities)
+        instance = PriorityMakefileLocator()
+        PriorityMakefileLocator._setup(instance, priorities)
         return instance
 
     @staticmethod
-    def _setup(instance: 'PriorityMakefileIterator', priorities: typing.List[str]) -> None:
+    def _setup(instance: 'PriorityMakefileLocator', priorities: typing.List[str]) -> None:
         instance._priorities = {}
-        PriorityMakefileIterator._init_priorities(instance, priorities)
+        PriorityMakefileLocator._init_priorities(instance, priorities)
 
     @staticmethod
-    def _init_priorities(instance: 'PriorityMakefileIterator', priorities: typing.List[str]) -> None:
+    def _init_priorities(instance: 'PriorityMakefileLocator', priorities: typing.List[str]) -> None:
         index = len(priorities)
         for name in priorities:
             instance._priorities[name] = index
             index = index - 1
 
     def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
-        return PriorityMakefileIterator.Context.make(self, directory_path)
+        return PriorityMakefileLocator.Context.make(self, directory_path)
 
 
 class RecursiveMakefileIterator(DirectoryMakefileLocator):
