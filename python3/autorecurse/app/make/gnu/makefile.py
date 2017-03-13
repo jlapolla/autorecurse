@@ -75,16 +75,16 @@ class Makefile:
         self._file_path = value
 
 
-class MakefileTarget:
+class Target:
 
     @staticmethod
-    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'MakefileTarget':
-        instance = MakefileTarget()
-        MakefileTarget._setup_from_parse_context(instance, context, target_index)
+    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'Target':
+        instance = Target()
+        Target._setup_from_parse_context(instance, context, target_index)
         return instance
 
     @staticmethod
-    def _setup_from_parse_context(instance: 'MakefileTarget', context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
+    def _setup_from_parse_context(instance: 'Target', context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
         instance._file = None
         instance._path = context.target(target_index).IDENTIFIER().symbol.text
         instance._prerequisites = []
@@ -119,10 +119,10 @@ class MakefileTarget:
         return ListIterator.make(self._order_only_prerequisites)
 
 
-class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
+class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
 
     @staticmethod
-    def make(parser: MakefileRuleParser) -> Iterator[MakefileTarget]:
+    def make(parser: MakefileRuleParser) -> Iterator[Target]:
         instance = MakefileRuleParserToIteratorAdapter()
         MakefileRuleParserToIteratorAdapter._setup(instance, parser)
         return instance
@@ -134,7 +134,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
         instance._to_S()
 
     @property
-    def current_item(self) -> MakefileTarget:
+    def current_item(self) -> Target:
         return self._target
 
     @property
@@ -189,7 +189,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
             pass
 
     def _generate_target(self) -> None:
-        self._target = MakefileTarget.make_from_parse_context(self._context, self._index)
+        self._target = Target.make_from_parse_context(self._context, self._index)
         self._target.file = self.makefile
 
     def _get_next_non_empty_context(self) -> None:
@@ -235,7 +235,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
 class MakefileTargetReader(metaclass=ABCMeta):
 
     @abstractmethod
-    def target_iterator(self, makefile: Makefile) -> IteratorContext[MakefileTarget]:
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
         pass
 
 

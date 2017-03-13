@@ -11,7 +11,7 @@ import subprocess
 class GnuMake:
 
     @staticmethod
-    def make_target_iterator_for_file(fp: io.TextIOBase, makefile: Makefile) -> Iterator[MakefileTarget]:
+    def make_target_iterator_for_file(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
         file_section = ConditionalSkipIterator.make(file_lines, FileSectionFilter.make())
         file_section_no_comments = ConditionalSkipIterator.make(file_section, InformationalCommentFilter.make())
@@ -43,7 +43,7 @@ class GnuMake:
         return makefile_target_iterator
 
     @staticmethod
-    def make_target_iterator_for_file_streaming(fp: io.TextIOBase, makefile: Makefile) -> Iterator[MakefileTarget]:
+    def make_target_iterator_for_file_streaming(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
         file_section = ConditionalSkipIterator.make(file_lines, FileSectionFilter.make())
         file_section_no_comments = ConditionalSkipIterator.make(file_section, InformationalCommentFilter.make())
@@ -64,10 +64,10 @@ class GnuMake:
 
 class TargetReader(MakefileTargetReader):
 
-    class Context(IteratorContext[MakefileTarget]):
+    class Context(IteratorContext[Target]):
 
         @staticmethod
-        def make(parent: 'TargetReader', makefile: Makefile) -> IteratorContext[MakefileTarget]:
+        def make(parent: 'TargetReader', makefile: Makefile) -> IteratorContext[Target]:
             instance = TargetReader.Context()
             TargetReader.Context._setup(instance, parent, makefile)
             return instance
@@ -78,7 +78,7 @@ class TargetReader(MakefileTargetReader):
             instance._makefile = makefile
             instance._stringio = None
 
-        def __enter__(self) -> Iterator[MakefileTarget]:
+        def __enter__(self) -> Iterator[Target]:
             """
             ## Suggestions
 
@@ -121,7 +121,7 @@ class TargetReader(MakefileTargetReader):
     def executable_name(self) -> str:
         return self._executable_name
 
-    def target_iterator(self, makefile: Makefile) -> IteratorContext[MakefileTarget]:
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
         return TargetReader.Context.make(self, makefile)
 
 
