@@ -1,11 +1,11 @@
-import sys
-import re
 from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Generic
-import typing
+from typing import  Generic, Iterable, TypeVar
 
 
+T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
+
+
 class Iterator(Generic[T_co], metaclass=ABCMeta):
     """
     A stream of items.
@@ -105,10 +105,7 @@ class IteratorContext(Generic[T_co], metaclass=ABCMeta):
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         pass
 
-del T_co
 
-
-T = TypeVar('T')
 class IteratorConcatenator(Iterator[T]):
 
     @staticmethod
@@ -189,20 +186,17 @@ class IteratorConcatenator(Iterator[T]):
     def _to_E(self) -> None:
         self._current_iterator = None
 
-del T
 
-
-T = TypeVar('T')
 class ListIterator(Iterator[T]):
 
     @staticmethod
-    def make(it: typing.Iterable[T]) -> 'ListIterator':
+    def make(it: Iterable[T]) -> 'ListIterator':
         instance = ListIterator()
         ListIterator._setup(instance, it)
         return instance
 
     @staticmethod
-    def _setup(instance: 'ListIterator', it: typing.Iterable[T]) -> None:
+    def _setup(instance: 'ListIterator', it: Iterable[T]) -> None:
         instance._list = list(it)
         instance._is_at_start = True
 
@@ -232,6 +226,8 @@ class ListIterator(Iterator[T]):
         self._is_at_start = False
         self._list.clear()
 
+
+del T_co
 del T
 
 

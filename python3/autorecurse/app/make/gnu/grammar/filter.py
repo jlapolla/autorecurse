@@ -1,6 +1,7 @@
 from autorecurse.lib.line import Line
 from autorecurse.lib.stream import Condition
 from autorecurse.lib.generics import *
+import re
 
 
 class FileSectionFilter(Condition[Line]):
