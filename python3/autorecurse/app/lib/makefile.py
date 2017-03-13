@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from autorecurse.lib.generics import *
 from antlr4.error.Errors import ParseCancellationException
-from autorecurse.lib.antlr4.grammar import MakefileRuleParser
+from autorecurse.app.make.gnu.grammar import MakefileRuleParser
 import os
 import typing
 

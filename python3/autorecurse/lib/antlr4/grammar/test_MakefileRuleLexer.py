@@ -1,5 +1,5 @@
 from autorecurse.lib.generics import StringBuffer
-from autorecurse.lib.antlr4.grammar import *
+from autorecurse.app.make.gnu.grammar import *
 from antlr4 import *
 import unittest
 

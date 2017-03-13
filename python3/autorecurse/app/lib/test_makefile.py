@@ -1,5 +1,5 @@
 from autorecurse.app.lib.makefile import *
-from autorecurse.lib.antlr4.grammar import *
+from autorecurse.app.make.gnu.grammar import *
 from antlr4 import *
 from antlr4.error.Errors import ParseCancellationException
 import unittest

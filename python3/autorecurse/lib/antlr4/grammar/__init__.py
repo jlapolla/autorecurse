@@ -1,4 +1,4 @@
-from autorecurse.lib.antlr4.grammar.MakefileRuleLexer import MakefileRuleLexer
-from autorecurse.lib.antlr4.grammar.MakefileRuleParser import MakefileRuleParser
-from autorecurse.lib.antlr4.grammar.TargetParagraphLexer import TargetParagraphLexer
+from autorecurse.app.make.gnu.grammar.MakefileRuleLexer import MakefileRuleLexer
+from autorecurse.app.make.gnu.grammar.MakefileRuleParser import MakefileRuleParser
+from autorecurse.app.make.gnu.grammar.TargetParagraphLexer import TargetParagraphLexer
 
