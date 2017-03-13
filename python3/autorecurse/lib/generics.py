@@ -3,7 +3,6 @@ import re
 from abc import ABCMeta, abstractmethod
 from typing import TypeVar, Generic
 import typing
-from autorecurse.lib.stream import Condition
 
 
 T_co = TypeVar('T_co', covariant=True)
@@ -1719,48 +1718,5 @@ class StringBuffer(Buffer[str]):
 
     def _to_EE(self) -> None:
         self._to_E()
-
-
-T = TypeVar('T')
-class ConditionFilter(Iterator[T]):
-
-    @staticmethod
-    def make(iterator: Iterator[T], condition: Condition[T]) -> 'ConditionFilter':
-        instance = ConditionFilter()
-        ConditionFilter._setup(instance, iterator, condition)
-        return instance
-
-    @staticmethod
-    def _setup(instance: 'ConditionFilter', iterator: Iterator[T], condition: Condition[T]) -> None:
-        instance._iterator = iterator
-        instance._condition = condition
-
-    @property
-    def current_item(self) -> T:
-        return self._iterator.current_item
-
-    @property
-    def has_current_item(self) -> bool:
-        return self._iterator.has_current_item
-
-    @property
-    def is_at_start(self) -> bool:
-        return self._iterator.is_at_start
-
-    @property
-    def is_at_end(self) -> bool:
-        return self._iterator.is_at_end
-
-    def move_to_next(self) -> None:
-        found_item = False
-        self._iterator.move_to_next()
-        while (found_item is False) and (not self.is_at_end):
-            self._condition.current_item = self.current_item
-            if self._condition.condition:
-                found_item = True
-            else:
-                self._iterator.move_to_next()
-
-del T
 
 
