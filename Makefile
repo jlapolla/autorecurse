@@ -1,6 +1,3 @@
-antlr4/LineLexer.py antlr4/LineLexer.tokens: antlr4/LineLexer.g4
-	antlr4 -Dlanguage=Python3 $<
-
 antlr4/MakefileRuleLexer.py antlr4/MakefileRuleLexer.tokens: antlr4/MakefileRuleLexer.g4
 	antlr4 -Dlanguage=Python3 $<
 
@@ -12,10 +9,6 @@ antlr4/ParagraphLexer.py antlr4/ParagraphLexer.tokens: antlr4/ParagraphLexer.g4
 
 antlr4/TargetParagraphLexer.py antlr4/TargetParagraphLexer.tokens: antlr4/TargetParagraphLexer.g4
 	antlr4 -Dlanguage=Python3 $<
-
-ANTLR += python3/app/antlr/grammar/LineLexer.py
-python3/app/antlr/grammar/LineLexer.py: antlr4/LineLexer.py
-	printf '%s\n' 'import app.antlr.custom' | cat - $< 1>$@
 
 ANTLR += python3/app/antlr/grammar/MakefileRuleLexer.py
 python3/app/antlr/grammar/MakefileRuleLexer.py: antlr4/MakefileRuleLexer.py
