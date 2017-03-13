@@ -1,13 +1,13 @@
 from autorecurse.lib.line import Line
 from autorecurse.lib.stream import Condition
-from autorecurse.lib.iterator import *
 import re
 
 
 class FileSectionFilter(Condition[Line]):
     """
     Outputs the lines between _START_LINE and _END_LINE, when used with
-    a ConditionFilter.
+    a ConditionFilter. _START_LINE and _END_LINE denote the target
+    definition section in the output of `make -qp`
 
     ## Transition System Definition
 
@@ -97,7 +97,7 @@ del FileSectionFilter._set_current_item
 
 class InformationalCommentFilter(Condition[Line]):
     """
-    Skips informational comments, when used with a
+    Skips informational comments output by `make -qp`, when used with a
     ConditionFilter.
 
     ## Transition System Definition

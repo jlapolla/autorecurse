@@ -1,16 +1,16 @@
 from abc import ABCMeta, abstractmethod
-from autorecurse.lib.iterator import *
-from autorecurse.lib.line import FileLineIterator, LineToCharIterator
-from autorecurse.lib.stream import ConditionFilter
-from antlr4.error.Errors import ParseCancellationException
-import os
-import typing
-from autorecurse.app.make.gnu.grammar import *
-from autorecurse.lib.antlr4.stream import *
-from antlr4 import *
 from io import StringIO, TextIOBase
+from typing import List
+import os
 import sys
 import subprocess
+from antlr4 import CommonTokenStream, InputStream
+from antlr4.error.Errors import ParseCancellationException
+from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
+from autorecurse.lib.line import FileLineIterator, LineToCharIterator
+from autorecurse.lib.stream import ConditionFilter
+from autorecurse.app.make.gnu.grammar import FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
+from autorecurse.lib.antlr4.stream import TokenSourceToIteratorAdapter, TokenToCharIterator
 
 
 class Makefile:
@@ -404,7 +404,7 @@ class PriorityMakefileLocator(DirectoryMakefileLocator):
                         best_priority = priority
             return best_name
 
-        def _get_file_names(self) -> typing.List[str]:
+        def _get_file_names(self) -> List[str]:
             """
             ## Suggestions
 
@@ -414,18 +414,18 @@ class PriorityMakefileLocator(DirectoryMakefileLocator):
             return it.__next__()[2]
 
     @staticmethod
-    def make(priorities: typing.List[str]) -> DirectoryMakefileLocator:
+    def make(priorities: List[str]) -> DirectoryMakefileLocator:
         instance = PriorityMakefileLocator()
         PriorityMakefileLocator._setup(instance, priorities)
         return instance
 
     @staticmethod
-    def _setup(instance: 'PriorityMakefileLocator', priorities: typing.List[str]) -> None:
+    def _setup(instance: 'PriorityMakefileLocator', priorities: List[str]) -> None:
         instance._priorities = {}
         PriorityMakefileLocator._init_priorities(instance, priorities)
 
     @staticmethod
-    def _init_priorities(instance: 'PriorityMakefileLocator', priorities: typing.List[str]) -> None:
+    def _init_priorities(instance: 'PriorityMakefileLocator', priorities: List[str]) -> None:
         index = len(priorities)
         for name in priorities:
             instance._priorities[name] = index
