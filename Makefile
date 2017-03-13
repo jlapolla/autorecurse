@@ -7,16 +7,16 @@ antlr4/MakefileRuleParser.py antlr4/MakefileRuleParser.tokens: antlr4/MakefileRu
 antlr4/TargetParagraphLexer.py antlr4/TargetParagraphLexer.tokens: antlr4/TargetParagraphLexer.g4
 	antlr4 -Dlanguage=Python3 $<
 
-ANTLR += python3/autorecurse/lib/antlr4/grammar/MakefileRuleLexer.py
-python3/autorecurse/lib/antlr4/grammar/MakefileRuleLexer.py: antlr4/MakefileRuleLexer.py
+ANTLR += python3/autorecurse/app/make/gnu/grammar/MakefileRuleLexer.py
+python3/autorecurse/app/make/gnu/grammar/MakefileRuleLexer.py: antlr4/MakefileRuleLexer.py
 	printf '%s\n' 'import autorecurse.lib.antlr4.custom' | cat - $< 1>$@
 
-ANTLR += python3/autorecurse/lib/antlr4/grammar/MakefileRuleParser.py
-python3/autorecurse/lib/antlr4/grammar/MakefileRuleParser.py: antlr4/MakefileRuleParser.py
+ANTLR += python3/autorecurse/app/make/gnu/grammar/MakefileRuleParser.py
+python3/autorecurse/app/make/gnu/grammar/MakefileRuleParser.py: antlr4/MakefileRuleParser.py
 	printf '%s\n' 'import autorecurse.lib.antlr4.custom' | cat - $< | sed '7d;8d' 1>$@
 
-ANTLR += python3/autorecurse/lib/antlr4/grammar/TargetParagraphLexer.py
-python3/autorecurse/lib/antlr4/grammar/TargetParagraphLexer.py: antlr4/TargetParagraphLexer.py
+ANTLR += python3/autorecurse/app/make/gnu/grammar/TargetParagraphLexer.py
+python3/autorecurse/app/make/gnu/grammar/TargetParagraphLexer.py: antlr4/TargetParagraphLexer.py
 	printf '%s\n' 'import autorecurse.lib.antlr4.custom' | cat - $< 1>$@
 
 .PHONY: antlr
