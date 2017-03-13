@@ -1,5 +1,5 @@
 lexer grammar TargetParagraphLexer;
-options { superClass=app.antlr.custom.CustomLexer; }
+options { superClass=autorecurse.app.antlr.custom.CustomLexer; }
 
 NOT_A_TARGET_PARAGRAPH : NOT_A_TARGET_LINE LINE* -> skip ;
 PHONY_PARAGRAPH : PHONY_LINE LINE* -> skip ;

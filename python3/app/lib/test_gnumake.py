@@ -1,4 +1,4 @@
-from app.lib.gnumake import *
+from autorecurse.app.lib.gnumake import *
 import unittest
 
 

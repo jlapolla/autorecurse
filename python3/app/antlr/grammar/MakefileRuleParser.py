@@ -1,4 +1,4 @@
-import app.antlr.custom
+import autorecurse.app.antlr.custom
 # Generated from antlr4/MakefileRuleParser.g4 by ANTLR 4.5.1
 # encoding: utf-8
 from antlr4 import *
@@ -29,7 +29,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class MakefileRuleParser ( app.antlr.custom.CustomParser ):
+class MakefileRuleParser ( autorecurse.app.antlr.custom.CustomParser ):
 
     grammarFileName = "MakefileRuleParser.g4"
 

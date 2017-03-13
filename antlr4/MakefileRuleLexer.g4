@@ -1,5 +1,5 @@
 lexer grammar MakefileRuleLexer;
-options { superClass=app.antlr.custom.CustomLexer; }
+options { superClass=autorecurse.app.antlr.custom.CustomLexer; }
 
 EOL : '\n';
 PIPE : '|' ;
