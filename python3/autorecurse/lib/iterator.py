@@ -106,6 +106,46 @@ class IteratorContext(Generic[T_co], metaclass=ABCMeta):
         pass
 
 
+class ListIterator(Iterator[T]):
+
+    @staticmethod
+    def make(it: Iterable[T]) -> 'ListIterator':
+        instance = ListIterator()
+        ListIterator._setup(instance, it)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'ListIterator', it: Iterable[T]) -> None:
+        instance._list = list(it)
+        instance._is_at_start = True
+
+    @property
+    def current_item(self) -> T:
+        return self._list[0]
+
+    @property
+    def has_current_item(self) -> bool:
+        return not (self.is_at_start or (len(self._list) == 0))
+
+    @property
+    def is_at_start(self) -> bool:
+        return self._is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return (not self.is_at_start) and (len(self._list) == 0)
+
+    def move_to_next(self) -> None:
+        if self.is_at_start:
+            self._is_at_start = False
+        else:
+            self._list.pop(0)
+
+    def move_to_end(self) -> None:
+        self._is_at_start = False
+        self._list.clear()
+
+
 class IteratorConcatenator(Iterator[T]):
 
     @staticmethod
@@ -185,46 +225,6 @@ class IteratorConcatenator(Iterator[T]):
 
     def _to_E(self) -> None:
         self._current_iterator = None
-
-
-class ListIterator(Iterator[T]):
-
-    @staticmethod
-    def make(it: Iterable[T]) -> 'ListIterator':
-        instance = ListIterator()
-        ListIterator._setup(instance, it)
-        return instance
-
-    @staticmethod
-    def _setup(instance: 'ListIterator', it: Iterable[T]) -> None:
-        instance._list = list(it)
-        instance._is_at_start = True
-
-    @property
-    def current_item(self) -> T:
-        return self._list[0]
-
-    @property
-    def has_current_item(self) -> bool:
-        return not (self.is_at_start or (len(self._list) == 0))
-
-    @property
-    def is_at_start(self) -> bool:
-        return self._is_at_start
-
-    @property
-    def is_at_end(self) -> bool:
-        return (not self.is_at_start) and (len(self._list) == 0)
-
-    def move_to_next(self) -> None:
-        if self.is_at_start:
-            self._is_at_start = False
-        else:
-            self._list.pop(0)
-
-    def move_to_end(self) -> None:
-        self._is_at_start = False
-        self._list.clear()
 
 
 del T_co

@@ -3,7 +3,10 @@ from abc import ABCMeta, abstractmethod
 from typing import TypeVar, Generic
 
 
+T = TypeVar('T')
 T_contra = TypeVar('T_contra', contravariant=True)
+
+
 class Condition(Generic[T_contra], metaclass=ABCMeta):
     """
     Stateful stream evaluator.
@@ -61,10 +64,8 @@ class Condition(Generic[T_contra], metaclass=ABCMeta):
         pass
 
 del Condition._set_current_item
-del T_contra
 
 
-T = TypeVar('T')
 class ConditionFilter(Iterator[T]):
 
     @staticmethod
@@ -104,6 +105,8 @@ class ConditionFilter(Iterator[T]):
             else:
                 self._iterator.move_to_next()
 
+
+del T_contra
 del T
 
 

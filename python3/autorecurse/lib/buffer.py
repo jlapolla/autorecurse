@@ -4,6 +4,8 @@ from autorecurse.lib.iterator import Iterator
 
 
 T = TypeVar('T')
+
+
 class Buffer(Iterator[T]):
     """
     A stream of items that can return to its start.
@@ -254,6 +256,7 @@ class StringBuffer(Buffer[str]):
 
     def _to_EE(self) -> None:
         self._to_E()
+
 
 del T
 

@@ -5,6 +5,8 @@ import sys
 
 
 T = TypeVar('T')
+
+
 class FifoBase(Buffer[T]):
 
     @abstractmethod
@@ -726,6 +728,163 @@ class ArrayedFifo(Fifo[T]):
         self._is_at_end = True
 
 
+class FifoManager(ManagedFifo[T]):
+
+    class ReferenceCounter:
+
+        @staticmethod
+        def make() -> 'FifoManager.ReferenceCounter':
+            instance = FifoManager.ReferenceCounter()
+            FifoManager.ReferenceCounter._setup(instance)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'FifoManager.ReferenceCounter') -> None:
+            instance._count = 0
+
+        @property
+        def is_at_zero(self) -> bool:
+            return self._count == 0
+
+        def increment(self) -> None:
+            self._count = self._count + 1
+
+        def decrement(self) -> None:
+            self._count = self._count - 1
+
+    @staticmethod
+    def make(fifo: Fifo[T]) -> 'FifoToManagdFifoAdapter':
+        instance = FifoManager()
+        FifoManager._setup(instance, fifo)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'FifoManager', fifo: Fifo[T]) -> None:
+        instance._refcounters = []
+        instance._ref_token_dict = {}
+        instance._current_reference_token = 0
+        instance._fifo = fifo
+        FifoManager._initialize_ref_counters(instance)
+
+    @staticmethod
+    def _initialize_ref_counters(instance: 'FifoManager') -> None:
+        count = instance._fifo.count
+        while (count != 0):
+            instance._refcounters.append(FifoManager.ReferenceCounter.make())
+            count = count - 1
+
+    MAX_ACTIVE_REFERENCES = sys.maxsize
+
+    @property
+    def current_item(self) -> T:
+        return self.inner_object.current_item
+
+    @property
+    def has_current_item(self) -> bool:
+        return self.inner_object.has_current_item
+
+    @property
+    def is_at_start(self) -> bool:
+        return self.inner_object.is_at_start
+
+    @property
+    def is_at_end(self) -> bool:
+        return self.inner_object.is_at_end
+
+    def move_to_next(self) -> None:
+        self.inner_object.move_to_next()
+
+    def move_to_end(self) -> None:
+        self.inner_object.move_to_end()
+
+    @property
+    def count(self) -> int:
+        return self.inner_object.count
+
+    @property
+    def current_index(self) -> int:
+        return self.inner_object.current_index
+
+    @property
+    def is_empty(self) -> bool:
+        return self.inner_object.is_empty
+
+    def move_to_start(self) -> None:
+        self.inner_object.move_to_start()
+
+    def move_to_index(self, index: int) -> None:
+        self.inner_object.move_to_index(index)
+
+    def push(self, item: T) -> None:
+        self.inner_object.push(item)
+        self._refcounters.append(FifoManager.ReferenceCounter.make())
+        self.collect_garbage()
+
+    def collect_garbage(self) -> None:
+        while self._can_shift:
+            self.inner_object.shift()
+            self._refcounters.pop(0)
+
+    @property
+    def _can_shift(self) -> bool:
+        result = None
+        if len(self._refcounters) != 0: # not self.is_empty (optimized)
+            if self.has_current_item: # State I
+                # I -> I
+                result = (self._refcounters[0].is_at_zero) and (self.current_index != 0)
+            elif self.is_at_start: # State S (out of order) (optimized)
+                # S -> S
+                result = False
+            else: # State E
+                # E -> E
+                # E -> EE
+                result = self._refcounters[0].is_at_zero
+        else: # State SE or EE
+            # SE -> SE
+            # EE -> EE
+            result = False
+        return result
+
+    def new_strong_reference(self) -> int:
+        # State I
+        ref_token = self._next_available_reference_token()
+        refcounter = self._current_reference_counter()
+        self._ref_token_dict[ref_token] = refcounter
+        refcounter.increment()
+        self._current_reference_token = ref_token
+        return ref_token
+
+    def _next_available_reference_token(self) -> int:
+        ref_token = self._next_reference_token(self._current_reference_token)
+        while (ref_token in self._ref_token_dict) and (ref_token != self._current_reference_token):
+            ref_token = self._next_reference_token(self._current_reference_token)
+        if ref_token == self._current_reference_token:
+            raise RuntimeError('Reached maximum number of active strong references: ' + FifoManager.MAX_ACTIVE_REFERENCES + '. You must release some references to continue.')
+        return ref_token
+
+    def _next_reference_token(self, ref_token: int) -> int:
+        result = None
+        if ref_token != FifoManager.MAX_ACTIVE_REFERENCES:
+            result = ref_token + 1
+        else:
+            result = 0
+        return result
+
+    def _current_reference_counter(self) -> 'FifoManager.ReferenceCounter[T]':
+        # State I
+        return self._refcounters[self.current_index]
+
+    def release_strong_reference(self, ref_token: int) -> None:
+        if ref_token in self._ref_token_dict:
+            refcounter = self._ref_token_dict[ref_token]
+            refcounter.decrement()
+            del self._ref_token_dict[ref_token]
+
+    @property
+    def inner_object(self) -> Fifo[T]:
+        return self._fifo
+
+
 class FifoWrapper(Fifo[T]):
 
     @property
@@ -778,47 +937,6 @@ class FifoWrapper(Fifo[T]):
     @abstractmethod
     def inner_object(self) -> Fifo[T]:
         pass
-
-
-class FifoGlobalIndexWrapper(FifoWrapper[T]):
-    """
-    ## Call State Validity
-
-    - global_count (getter): S I E SE EE
-    - current_global_index (getter): I
-    - move_to_global_index: S I E
-    """
-
-    @staticmethod
-    def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper':
-        instance = FifoGlobalIndexWrapper()
-        FifoGlobalIndexWrapper._setup(instance, fifo)
-        return instance
-
-    @staticmethod
-    def _setup(instance: 'FifoGlobalIndexWrapper', fifo: Fifo[T]) -> None:
-        instance._fifo = fifo
-        instance._start_index = 0
-
-    def shift(self) -> None:
-        self._start_index = self._start_index + 1
-        super().shift()
-
-    @property
-    def inner_object(self) -> Fifo[T]:
-        return self._fifo
-
-    @property
-    def global_count(self) -> int:
-        return self._start_index + self.count
-
-    @property
-    def current_global_index(self) -> int:
-        return self._start_index + self.inner_object.current_index
-
-    def move_to_global_index(self, index: int) -> None:
-        local_index = index - self._start_index
-        self.inner_object.move_to_index(local_index)
 
 
 class FifoStateCacheWrapper(Fifo[T]):
@@ -992,161 +1110,46 @@ class FifoStateCacheWrapper(Fifo[T]):
         return self._fifo
 
 
-class FifoManager(ManagedFifo[T]):
+class FifoGlobalIndexWrapper(FifoWrapper[T]):
+    """
+    ## Call State Validity
 
-    class ReferenceCounter:
-
-        @staticmethod
-        def make() -> 'FifoManager.ReferenceCounter':
-            instance = FifoManager.ReferenceCounter()
-            FifoManager.ReferenceCounter._setup(instance)
-            return instance
-
-        @staticmethod
-        def _setup(instance: 'FifoManager.ReferenceCounter') -> None:
-            instance._count = 0
-
-        @property
-        def is_at_zero(self) -> bool:
-            return self._count == 0
-
-        def increment(self) -> None:
-            self._count = self._count + 1
-
-        def decrement(self) -> None:
-            self._count = self._count - 1
+    - global_count (getter): S I E SE EE
+    - current_global_index (getter): I
+    - move_to_global_index: S I E
+    """
 
     @staticmethod
-    def make(fifo: Fifo[T]) -> 'FifoToManagdFifoAdapter':
-        instance = FifoManager()
-        FifoManager._setup(instance, fifo)
+    def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper':
+        instance = FifoGlobalIndexWrapper()
+        FifoGlobalIndexWrapper._setup(instance, fifo)
         return instance
 
     @staticmethod
-    def _setup(instance: 'FifoManager', fifo: Fifo[T]) -> None:
-        instance._refcounters = []
-        instance._ref_token_dict = {}
-        instance._current_reference_token = 0
+    def _setup(instance: 'FifoGlobalIndexWrapper', fifo: Fifo[T]) -> None:
         instance._fifo = fifo
-        FifoManager._initialize_ref_counters(instance)
+        instance._start_index = 0
 
-    @staticmethod
-    def _initialize_ref_counters(instance: 'FifoManager') -> None:
-        count = instance._fifo.count
-        while (count != 0):
-            instance._refcounters.append(FifoManager.ReferenceCounter.make())
-            count = count - 1
-
-    MAX_ACTIVE_REFERENCES = sys.maxsize
-
-    @property
-    def current_item(self) -> T:
-        return self.inner_object.current_item
-
-    @property
-    def has_current_item(self) -> bool:
-        return self.inner_object.has_current_item
-
-    @property
-    def is_at_start(self) -> bool:
-        return self.inner_object.is_at_start
-
-    @property
-    def is_at_end(self) -> bool:
-        return self.inner_object.is_at_end
-
-    def move_to_next(self) -> None:
-        self.inner_object.move_to_next()
-
-    def move_to_end(self) -> None:
-        self.inner_object.move_to_end()
-
-    @property
-    def count(self) -> int:
-        return self.inner_object.count
-
-    @property
-    def current_index(self) -> int:
-        return self.inner_object.current_index
-
-    @property
-    def is_empty(self) -> bool:
-        return self.inner_object.is_empty
-
-    def move_to_start(self) -> None:
-        self.inner_object.move_to_start()
-
-    def move_to_index(self, index: int) -> None:
-        self.inner_object.move_to_index(index)
-
-    def push(self, item: T) -> None:
-        self.inner_object.push(item)
-        self._refcounters.append(FifoManager.ReferenceCounter.make())
-        self.collect_garbage()
-
-    def collect_garbage(self) -> None:
-        while self._can_shift:
-            self.inner_object.shift()
-            self._refcounters.pop(0)
-
-    @property
-    def _can_shift(self) -> bool:
-        result = None
-        if len(self._refcounters) != 0: # not self.is_empty (optimized)
-            if self.has_current_item: # State I
-                # I -> I
-                result = (self._refcounters[0].is_at_zero) and (self.current_index != 0)
-            elif self.is_at_start: # State S (out of order) (optimized)
-                # S -> S
-                result = False
-            else: # State E
-                # E -> E
-                # E -> EE
-                result = self._refcounters[0].is_at_zero
-        else: # State SE or EE
-            # SE -> SE
-            # EE -> EE
-            result = False
-        return result
-
-    def new_strong_reference(self) -> int:
-        # State I
-        ref_token = self._next_available_reference_token()
-        refcounter = self._current_reference_counter()
-        self._ref_token_dict[ref_token] = refcounter
-        refcounter.increment()
-        self._current_reference_token = ref_token
-        return ref_token
-
-    def _next_available_reference_token(self) -> int:
-        ref_token = self._next_reference_token(self._current_reference_token)
-        while (ref_token in self._ref_token_dict) and (ref_token != self._current_reference_token):
-            ref_token = self._next_reference_token(self._current_reference_token)
-        if ref_token == self._current_reference_token:
-            raise RuntimeError('Reached maximum number of active strong references: ' + FifoManager.MAX_ACTIVE_REFERENCES + '. You must release some references to continue.')
-        return ref_token
-
-    def _next_reference_token(self, ref_token: int) -> int:
-        result = None
-        if ref_token != FifoManager.MAX_ACTIVE_REFERENCES:
-            result = ref_token + 1
-        else:
-            result = 0
-        return result
-
-    def _current_reference_counter(self) -> 'FifoManager.ReferenceCounter[T]':
-        # State I
-        return self._refcounters[self.current_index]
-
-    def release_strong_reference(self, ref_token: int) -> None:
-        if ref_token in self._ref_token_dict:
-            refcounter = self._ref_token_dict[ref_token]
-            refcounter.decrement()
-            del self._ref_token_dict[ref_token]
+    def shift(self) -> None:
+        self._start_index = self._start_index + 1
+        super().shift()
 
     @property
     def inner_object(self) -> Fifo[T]:
         return self._fifo
+
+    @property
+    def global_count(self) -> int:
+        return self._start_index + self.count
+
+    @property
+    def current_global_index(self) -> int:
+        return self._start_index + self.inner_object.current_index
+
+    def move_to_global_index(self, index: int) -> None:
+        local_index = index - self._start_index
+        self.inner_object.move_to_index(local_index)
+
 
 del T
 

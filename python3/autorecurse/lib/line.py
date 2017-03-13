@@ -78,6 +78,67 @@ class Line:
             return hash(self.content)
 
 
+class FileLineIterator(Iterator[Line]):
+
+    @staticmethod
+    def make(fp: TextIOBase) -> 'FileLineIterator':
+        instance = FileLineIterator()
+        FileLineIterator._setup(instance, fp)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'FileLineIterator', fp: TextIOBase) -> None:
+        instance._file = fp
+        instance._to_S()
+
+    @property
+    def current_item(self) -> Line:
+        return self._line
+
+    @property
+    def has_current_item(self) -> bool:
+        return self._line is not None
+
+    @property
+    def is_at_start(self) -> bool:
+        return not (self.has_current_item or self.is_at_end)
+
+    @property
+    def is_at_end(self) -> bool:
+        return self._is_at_end
+
+    def move_to_next(self) -> None:
+        if self.is_at_start: # State S
+            line = self._file.readline()
+            if len(line) != 0:
+                # S -> I
+                self._line = Line.make_with_line_number(line, 1)
+                self._to_I()
+            else: # End of file
+                # S -> E
+                self._to_E()
+        else: # State I
+            line = self._file.readline()
+            if len(line) != 0:
+                # I -> I
+                self._line = Line.make_with_line_number(line, self._line.line_number + 1)
+                self._to_I()
+            else: # End of file
+                # I -> E
+                self._to_E()
+
+    def _to_S(self) -> None:
+        self._line = None
+        self._is_at_end = False
+
+    def _to_I(self) -> None:
+        self._is_at_end = False
+
+    def _to_E(self) -> None:
+        self._line = None
+        self._is_at_end = True
+
+
 class LineToCharIterator(Iterator[str]):
 
     EOL_LF = '\n'
@@ -151,67 +212,6 @@ class LineToCharIterator(Iterator[str]):
 
     def move_to_end(self) -> None:
         self._source.move_to_end()
-
-
-class FileLineIterator(Iterator[Line]):
-
-    @staticmethod
-    def make(fp: TextIOBase) -> 'FileLineIterator':
-        instance = FileLineIterator()
-        FileLineIterator._setup(instance, fp)
-        return instance
-
-    @staticmethod
-    def _setup(instance: 'FileLineIterator', fp: TextIOBase) -> None:
-        instance._file = fp
-        instance._to_S()
-
-    @property
-    def current_item(self) -> Line:
-        return self._line
-
-    @property
-    def has_current_item(self) -> bool:
-        return self._line is not None
-
-    @property
-    def is_at_start(self) -> bool:
-        return not (self.has_current_item or self.is_at_end)
-
-    @property
-    def is_at_end(self) -> bool:
-        return self._is_at_end
-
-    def move_to_next(self) -> None:
-        if self.is_at_start: # State S
-            line = self._file.readline()
-            if len(line) != 0:
-                # S -> I
-                self._line = Line.make_with_line_number(line, 1)
-                self._to_I()
-            else: # End of file
-                # S -> E
-                self._to_E()
-        else: # State I
-            line = self._file.readline()
-            if len(line) != 0:
-                # I -> I
-                self._line = Line.make_with_line_number(line, self._line.line_number + 1)
-                self._to_I()
-            else: # End of file
-                # I -> E
-                self._to_E()
-
-    def _to_S(self) -> None:
-        self._line = None
-        self._is_at_end = False
-
-    def _to_I(self) -> None:
-        self._is_at_end = False
-
-    def _to_E(self) -> None:
-        self._line = None
-        self._is_at_end = True
 
 
 class EmptyLineFilter(Condition[Line]):
