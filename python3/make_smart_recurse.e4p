@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-13, 12:25:01 -->
+<!-- Saved: 2017-03-13, 14:00:20 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -73,8 +73,6 @@
     <Source>autorecurse/__init__.py</Source>
     <Source>autorecurse/lib/__init__.py</Source>
     <Source>autorecurse/lib/hash.py</Source>
-    <Source>autorecurse/lib/generics.py</Source>
-    <Source>autorecurse/lib/test_generics.py</Source>
     <Source>autorecurse/lib/antlr4/__init__.py</Source>
     <Source>autorecurse/lib/antlr4/custom.py</Source>
     <Source>autorecurse/lib/antlr4/abstract.py</Source>
@@ -93,6 +91,12 @@
     <Source>autorecurse/app/make/gnu/grammar/filter.py</Source>
     <Source>autorecurse/app/make/gnu/grammar/test_filter.py</Source>
     <Source>autorecurse/lib/antlr4/stream.py</Source>
+    <Source>autorecurse/lib/fifo.py</Source>
+    <Source>autorecurse/lib/stream.py</Source>
+    <Source>autorecurse/lib/buffer.py</Source>
+    <Source>autorecurse/lib/line.py</Source>
+    <Source>autorecurse/lib/iterator.py</Source>
+    <Source>autorecurse/lib/test_iterator.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
