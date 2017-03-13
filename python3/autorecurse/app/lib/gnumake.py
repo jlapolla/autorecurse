@@ -1,5 +1,5 @@
 from autorecurse.lib.generics import *
-from autorecurse.app.autorecurse.lib.makefile import *
+from autorecurse.app.lib.makefile import *
 from autorecurse.app.antlr.grammar import *
 from autorecurse.app.antlr.adapter import *
 from antlr4 import *
