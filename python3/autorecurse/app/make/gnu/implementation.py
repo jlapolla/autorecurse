@@ -4,7 +4,7 @@ from antlr4.error.Errors import ParseCancellationException
 import os
 import typing
 from autorecurse.app.make.gnu.grammar import *
-from autorecurse.lib.antlr4.adapter import *
+from autorecurse.lib.antlr4.stream import *
 from antlr4 import *
 from io import StringIO
 import sys
