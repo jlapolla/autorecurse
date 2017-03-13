@@ -1,7 +1,7 @@
 from autorecurse.lib.generics import *
 from autorecurse.app.lib.makefile import *
-from autorecurse.app.antlr.grammar import *
-from autorecurse.app.antlr.adapter import *
+from autorecurse.lib.antlr4.grammar import *
+from autorecurse.lib.antlr4.adapter import *
 from antlr4 import *
 from io import StringIO
 import sys

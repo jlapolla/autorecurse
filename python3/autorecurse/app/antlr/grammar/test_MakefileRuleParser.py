@@ -1,5 +1,5 @@
 from autorecurse.lib.generics import StringBuffer
-from autorecurse.app.antlr.grammar import *
+from autorecurse.lib.antlr4.grammar import *
 from antlr4 import *
 from antlr4.error.Errors import ParseCancellationException
 import unittest

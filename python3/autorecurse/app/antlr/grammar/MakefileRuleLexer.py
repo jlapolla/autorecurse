@@ -1,4 +1,4 @@
-import autorecurse.app.antlr.custom
+import autorecurse.lib.antlr4.custom
 # Generated from antlr4/MakefileRuleLexer.g4 by ANTLR 4.5.1
 from antlr4 import *
 from io import StringIO
@@ -44,7 +44,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class MakefileRuleLexer(autorecurse.app.antlr.custom.CustomLexer):
+class MakefileRuleLexer(autorecurse.lib.antlr4.custom.CustomLexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 

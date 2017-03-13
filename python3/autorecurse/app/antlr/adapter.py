@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
 from antlr4 import Token
 from autorecurse.lib.generics import Iterator, ArrayedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
-from autorecurse.app.antlr.abstract import IntStream, CharStream, TokenStream, TokenSource
+from autorecurse.lib.antlr4.abstract import IntStream, CharStream, TokenStream, TokenSource
 from typing import TypeVar
 
 
