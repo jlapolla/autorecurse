@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-13, 12:18:07 -->
+<!-- Saved: 2017-03-13, 12:25:01 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -76,7 +76,6 @@
     <Source>autorecurse/lib/generics.py</Source>
     <Source>autorecurse/lib/test_generics.py</Source>
     <Source>autorecurse/lib/antlr4/__init__.py</Source>
-    <Source>autorecurse/lib/antlr4/adapter.py</Source>
     <Source>autorecurse/lib/antlr4/custom.py</Source>
     <Source>autorecurse/lib/antlr4/abstract.py</Source>
     <Source>autorecurse/app/__init__.py</Source>
@@ -93,6 +92,7 @@
     <Source>autorecurse/app/make/gnu/grammar/TargetParagraphLexer.py</Source>
     <Source>autorecurse/app/make/gnu/grammar/filter.py</Source>
     <Source>autorecurse/app/make/gnu/grammar/test_filter.py</Source>
+    <Source>autorecurse/lib/antlr4/stream.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
