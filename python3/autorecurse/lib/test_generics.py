@@ -1,4 +1,5 @@
 from autorecurse.lib.generics import *
+from autorecurse.lib.line import Line, LineBreakError, FileLineIterator, EmptyLineFilter
 from abc import ABCMeta, abstractmethod
 from typing import TypeVar, Generic, Callable
 import typing

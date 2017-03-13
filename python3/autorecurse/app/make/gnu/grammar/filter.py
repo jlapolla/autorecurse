@@ -1,3 +1,4 @@
+from autorecurse.lib.line import Line
 from autorecurse.lib.generics import *
 
 

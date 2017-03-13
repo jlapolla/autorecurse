@@ -1,12 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from autorecurse.lib.generics import *
+from autorecurse.lib.line import FileLineIterator, LineToCharIterator
 from antlr4.error.Errors import ParseCancellationException
 import os
 import typing
 from autorecurse.app.make.gnu.grammar import *
 from autorecurse.lib.antlr4.stream import *
 from antlr4 import *
-from io import StringIO
+from io import StringIO, TextIOBase
 import sys
 import subprocess
 
@@ -127,7 +128,7 @@ class Target:
 class Factory:
 
     @staticmethod
-    def make_target_iterator_for_file(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
+    def make_target_iterator_for_file(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
         file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
         file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
@@ -159,7 +160,7 @@ class Factory:
         return makefile_target_iterator
 
     @staticmethod
-    def make_target_iterator_for_file_streaming(fp: io.TextIOBase, makefile: Makefile) -> Iterator[Target]:
+    def make_target_iterator_for_file_streaming(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
         file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
         file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
