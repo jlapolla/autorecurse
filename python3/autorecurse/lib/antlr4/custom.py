@@ -10,7 +10,13 @@ from autorecurse.lib.antlr4.abstract import CharStream, TokenStream
 
 class CustomTokenFactory(CommonTokenFactory):
 
-    DEFAULT_INSTANCE = None
+    _INSTANCE = None
+
+    @staticmethod
+    def get_instance() -> 'CustomTokenFactory':
+        if CustomTokenFactory._INSTANCE is None:
+            CustomTokenFactory._INSTANCE = CustomTokenFactory()
+        return CustomTokenFactory._INSTANCE
 
     def __init__(self):
         super().__init__(True)
@@ -21,15 +27,13 @@ class CustomTokenFactory(CommonTokenFactory):
             token.text = '<EOF>'
         return token
 
-CustomTokenFactory.DEFAULT_INSTANCE = CustomTokenFactory()
-
 
 class CustomLexer(Lexer):
 
     def __init__(self, input: CharStream) -> None:
         super().__init__(input)
         self.addErrorListener(DiagnosticErrorListener())
-        self._factory = CustomTokenFactory.DEFAULT_INSTANCE
+        self._factory = CustomTokenFactory.get_instance()
 
     def recover(self, ex: RecognitionException) -> None:
         raise ex
