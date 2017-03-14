@@ -1,12 +1,15 @@
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from io import StringIO, TextIOBase
 from antlr4 import Token
-from lib.generics import Iterator, ArrayedFifo, FifoGlobalIndexWrapper, FifoToManagedFifoAdapter
-from app.antlr.abstract import IntStream, CharStream, TokenStream, TokenSource
+from autorecurse.lib.iterator import Iterator
+from autorecurse.lib.fifo import ArrayedFifo, FifoGlobalIndexWrapper, FifoManager
+from autorecurse.lib.antlr4.abstract import IntStream, CharStream, TokenStream, TokenSource
 from typing import TypeVar
 
 
 T = TypeVar('T')
+
+
 class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     """
     ## Transition System Definition
@@ -120,7 +123,7 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
     def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[T]):
         instance._inner_buffer = ArrayedFifo.make()
         instance._buffer_global = FifoGlobalIndexWrapper.make(instance._inner_buffer)
-        instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
+        instance._buffer = FifoManager.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToIntStreamAdapter._initialize_buffer(instance)
 
@@ -507,7 +510,7 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
         """
         instance._inner_buffer = ArrayedFifo.make()
         instance._buffer_global = FifoGlobalIndexWrapper.make(instance._inner_buffer)
-        instance._buffer = FifoToManagedFifoAdapter.make(instance._buffer_global)
+        instance._buffer = FifoManager.make(instance._buffer_global)
         instance._iterator = iterator
         IteratorToTokenStreamAdapter._initialize_buffer(instance)
 
@@ -668,8 +671,6 @@ class TokenSourceToIteratorAdapter(Iterator[Token]):
         self._current_item = None
         self._is_at_end = True
 
-del T
-
 
 class TokenToCharIterator(Iterator[str]):
     """
@@ -765,5 +766,8 @@ class TokenToCharIterator(Iterator[str]):
 
     def _to_E(self) -> None:
         self._text = None
+
+
+del T
 
 

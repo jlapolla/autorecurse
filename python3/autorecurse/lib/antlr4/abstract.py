@@ -1,8 +1,7 @@
 from antlr4 import Token
 from abc import ABCMeta, abstractmethod
 from io import StringIO
-from typing import TypeVar, Generic, Tuple
-import typing
+from typing import Tuple
 
 
 """

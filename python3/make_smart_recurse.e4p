@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-13, 08:21:49 -->
+<!-- Saved: 2017-03-14, 08:13:45 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -68,32 +68,36 @@
     <Source>antlr4/Utils.py</Source>
     <Source>antlr4/xpath/__init__.py</Source>
     <Source>antlr4/xpath/XPath.py</Source>
-    <Source>app/antlr/abstract.py</Source>
-    <Source>app/antlr/adapter.py</Source>
-    <Source>app/antlr/custom.py</Source>
-    <Source>app/antlr/grammar/__init__.py</Source>
-    <Source>app/antlr/grammar/LineLexer.py</Source>
-    <Source>app/antlr/grammar/MakefileRuleLexer.py</Source>
-    <Source>app/antlr/grammar/MakefileRuleParser.py</Source>
-    <Source>app/antlr/grammar/ParagraphLexer.py</Source>
-    <Source>app/antlr/grammar/TargetParagraphLexer.py</Source>
-    <Source>app/antlr/grammar/test_LineLexer.py</Source>
-    <Source>app/antlr/grammar/test_MakefileRuleLexer.py</Source>
-    <Source>app/antlr/grammar/test_MakefileRuleParser.py</Source>
-    <Source>app/antlr/grammar/test_ParagraphLexer.py</Source>
-    <Source>app/antlr/grammar/test_TargetParagraphLexer.py</Source>
-    <Source>app/antlr/__init__.py</Source>
-    <Source>app/__init__.py</Source>
-    <Source>app/lib/gnumake.py</Source>
-    <Source>app/lib/__init__.py</Source>
-    <Source>app/lib/makefile.py</Source>
-    <Source>app/lib/test_gnumake.py</Source>
-    <Source>app/lib/test_makefile.py</Source>
+    <Source>autorecurse/gnumake/api.py</Source>
+    <Source>autorecurse/gnumake/grammar/filter.py</Source>
+    <Source>autorecurse/gnumake/grammar/__init__.py</Source>
+    <Source>autorecurse/gnumake/grammar/MakefileRuleLexer.py</Source>
+    <Source>autorecurse/gnumake/grammar/MakefileRuleParser.py</Source>
+    <Source>autorecurse/gnumake/grammar/TargetParagraphLexer.py</Source>
+    <Source>autorecurse/gnumake/grammar/test_filter.py</Source>
+    <Source>autorecurse/gnumake/grammar/test_MakefileRuleLexer.py</Source>
+    <Source>autorecurse/gnumake/grammar/test_MakefileRuleParser.py</Source>
+    <Source>autorecurse/gnumake/grammar/test_TargetParagraphLexer.py</Source>
+    <Source>autorecurse/gnumake/implementation.py</Source>
+    <Source>autorecurse/gnumake/__init__.py</Source>
+    <Source>autorecurse/gnumake/test_api.py</Source>
+    <Source>autorecurse/gnumake/test_implementation.py</Source>
+    <Source>autorecurse/__init__.py</Source>
+    <Source>autorecurse/lib/antlr4/abstract.py</Source>
+    <Source>autorecurse/lib/antlr4/custom.py</Source>
+    <Source>autorecurse/lib/antlr4/__init__.py</Source>
+    <Source>autorecurse/lib/antlr4/stream.py</Source>
+    <Source>autorecurse/lib/buffer.py</Source>
+    <Source>autorecurse/lib/fifo.py</Source>
+    <Source>autorecurse/lib/hash.py</Source>
+    <Source>autorecurse/lib/__init__.py</Source>
+    <Source>autorecurse/lib/iterator.py</Source>
+    <Source>autorecurse/lib/line.py</Source>
+    <Source>autorecurse/lib/stream.py</Source>
+    <Source>autorecurse/lib/test_iterator.py</Source>
+    <Source>autorecurse/lib/test_line.py</Source>
+    <Source>autorecurse/lib/test_stream.py</Source>
     <Source>__init__.py</Source>
-    <Source>lib/generics.py</Source>
-    <Source>lib/hash.py</Source>
-    <Source>lib/__init__.py</Source>
-    <Source>lib/test_generics.py</Source>
     <Source>test_main.py</Source>
   </Sources>
   <Forms/>

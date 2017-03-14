@@ -5,8 +5,7 @@ from antlr4.CommonTokenFactory import CommonTokenFactory
 from antlr4.Lexer import Lexer
 from antlr4.Parser import Parser
 from antlr4.Token import CommonToken, Token
-from app.antlr.abstract import CharStream, TokenStream
-from typing import Tuple
+from autorecurse.lib.antlr4.abstract import CharStream, TokenStream
 
 
 class CustomTokenFactory(CommonTokenFactory):

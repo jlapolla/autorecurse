@@ -1,5 +1,5 @@
 parser grammar MakefileRuleParser;
-options { tokenVocab=MakefileRuleLexer; superClass=app.antlr.custom.CustomParser; }
+options { tokenVocab=MakefileRuleLexer; superClass=autorecurse.lib.antlr4.custom.CustomParser; }
 
 declaration : makefileRule | EOL ;
 makefileRule : target+ COLON prerequisite* (PIPE orderOnlyPrerequisite*)? recipe ;

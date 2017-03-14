@@ -25,24 +25,24 @@ def _wrap_to_sys_int(value: int) -> int:
             return _wrap_to_sys_int(value + (_sys_int_wrap_increment * num))
 
 
-class ValueFactorHashCodeCombiner:
+class HashCombiner:
 
     @staticmethod
-    def make() -> 'ValueFactorHashCodeCombiner':
+    def make() -> 'HashCombiner':
         # The constants 1009 and 9176 provide low hash collision rates
         # for common use cases.
         #
         # http://stackoverflow.com/a/34006336
-        return ValueFactorHashCodeCombiner.make_with_seed_and_factor(1009, 9176)
+        return HashCombiner.make_with_seed_and_factor(1009, 9176)
 
     @staticmethod
-    def make_with_seed_and_factor(seed: int, factor: int) -> 'ValueFactorHashCodeCombiner':
-        instance = ValueFactorHashCodeCombiner()
-        ValueFactorHashCodeCombiner._setup_with_seed_and_factor(instance, seed, factor)
+    def make_with_seed_and_factor(seed: int, factor: int) -> 'HashCombiner':
+        instance = HashCombiner()
+        HashCombiner._setup_with_seed_and_factor(instance, seed, factor)
         return instance
 
     @staticmethod
-    def _setup_with_seed_and_factor(instance: 'ValueFactorHashCodeCombiner', seed: int, factor: int):
+    def _setup_with_seed_and_factor(instance: 'HashCombiner', seed: int, factor: int):
         instance._value = seed
         instance._factor = factor
 

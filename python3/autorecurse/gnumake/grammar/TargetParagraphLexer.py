@@ -1,4 +1,4 @@
-import app.antlr.custom
+import autorecurse.lib.antlr4.custom
 # Generated from antlr4/TargetParagraphLexer.g4 by ANTLR 4.5.1
 from antlr4 import *
 from io import StringIO
@@ -40,7 +40,7 @@ def serializedATN():
         return buf.getvalue()
 
 
-class TargetParagraphLexer(app.antlr.custom.CustomLexer):
+class TargetParagraphLexer(autorecurse.lib.antlr4.custom.CustomLexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 

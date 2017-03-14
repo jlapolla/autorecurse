@@ -1,9 +1,16 @@
 from abc import ABCMeta, abstractmethod
-from lib.generics import *
-from antlr4.error.Errors import ParseCancellationException
-from app.antlr.grammar import MakefileRuleParser
+from io import StringIO, TextIOBase
+from typing import List
 import os
-import typing
+import sys
+import subprocess
+from antlr4 import CommonTokenStream, InputStream
+from antlr4.error.Errors import ParseCancellationException
+from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
+from autorecurse.lib.line import FileLineIterator, LineToCharIterator
+from autorecurse.lib.stream import ConditionFilter
+from autorecurse.gnumake.grammar import FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
+from autorecurse.lib.antlr4.stream import TokenSourceToIteratorAdapter, TokenToCharIterator
 
 
 class Makefile:
@@ -75,16 +82,16 @@ class Makefile:
         self._file_path = value
 
 
-class MakefileTarget:
+class Target:
 
     @staticmethod
-    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'MakefileTarget':
-        instance = MakefileTarget()
-        MakefileTarget._setup_from_parse_context(instance, context, target_index)
+    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'Target':
+        instance = Target()
+        Target._setup_from_parse_context(instance, context, target_index)
         return instance
 
     @staticmethod
-    def _setup_from_parse_context(instance: 'MakefileTarget', context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
+    def _setup_from_parse_context(instance: 'Target', context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
         instance._file = None
         instance._path = context.target(target_index).IDENTIFIER().symbol.text
         instance._prerequisites = []
@@ -119,10 +126,127 @@ class MakefileTarget:
         return ListIterator.make(self._order_only_prerequisites)
 
 
-class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
+class Factory:
 
     @staticmethod
-    def make(parser: MakefileRuleParser) -> Iterator[MakefileTarget]:
+    def make_target_iterator_for_file(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
+        file_lines = FileLineIterator.make(fp)
+        file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
+        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
+        file_section_chars = LineToCharIterator.make(file_section_no_comments)
+        char_stream_1 = None
+        with StringIO() as strbuff:
+            if file_section_chars.is_at_start:
+                file_section_chars.move_to_next()
+            while file_section_chars.has_current_item:
+                strbuff.write(file_section_chars.current_item)
+                file_section_chars.move_to_next()
+            char_stream_1 = InputStream(strbuff.getvalue())
+        paragraph_lexer = TargetParagraphLexer(char_stream_1)
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
+        paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
+        char_stream_2 = None
+        with StringIO() as strbuff:
+            if paragraph_chars.is_at_start:
+                paragraph_chars.move_to_next()
+            while paragraph_chars.has_current_item:
+                strbuff.write(paragraph_chars.current_item)
+                paragraph_chars.move_to_next()
+            char_stream_2 = InputStream(strbuff.getvalue())
+        makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
+        token_stream_1 = CommonTokenStream(makefile_rule_lexer)
+        makefile_rule_parser = MakefileRuleParser(token_stream_1)
+        makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
+        makefile_target_iterator.makefile = makefile
+        return makefile_target_iterator
+
+    @staticmethod
+    def make_target_iterator_for_file_streaming(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
+        file_lines = FileLineIterator.make(fp)
+        file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
+        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
+        file_section_chars = LineToCharIterator.make(file_section_no_comments)
+        char_stream_1 = IteratorToCharStreamAdapter.make(file_section_chars)
+        paragraph_lexer = TargetParagraphLexer(char_stream_1)
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
+        paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
+        char_stream_2 = IteratorToCharStreamAdapter.make(paragraph_chars)
+        makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
+        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer)
+        token_stream_1 = IteratorToTokenStreamAdapter.make(makefile_rule_tokens)
+        makefile_rule_parser = MakefileRuleParser(token_stream_1)
+        makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
+        makefile_target_iterator.makefile = makefile
+        return makefile_target_iterator
+
+
+class TargetReader:
+
+    class Context(IteratorContext[Target]):
+
+        @staticmethod
+        def make(parent: 'TargetReader', makefile: Makefile) -> IteratorContext[Target]:
+            instance = TargetReader.Context()
+            TargetReader.Context._setup(instance, parent, makefile)
+            return instance
+
+        @staticmethod
+        def _setup(instance: 'TargetReader.Context', parent: 'TargetReader', makefile: Makefile) -> None:
+            instance._parent = parent
+            instance._makefile = makefile
+            instance._stringio = None
+
+        def __enter__(self) -> Iterator[Target]:
+            """
+            ## Suggestions
+
+            - Use subprocess.Popen and feed stdout directly to the
+              parsing pipeline. This will require a TextIOWrapper, and
+              additional code in __exit__.
+            """
+            args = []
+            args.append(self._parent.executable_name)
+            args.append('-qp')
+            if len(self._makefile.exec_path) != 0:
+                args.append('-C')
+                args.append(self._makefile.exec_path)
+            args.append('-f')
+            args.append(self._makefile.file_path)
+            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if not ((result.returncode == 0) or (result.returncode == 1)):
+                # Return code == 1 is okay, since the -q option returns
+                # 1 when the default target is out of date.
+                sys.stderr.write(result.stderr.decode())
+                raise subprocess.CalledProcessError(result.returncode, ' '.join(result.args), result.stdout, result.stderr)
+            self._stringio = StringIO(result.stdout.decode())
+            return Factory.make_target_iterator_for_file(self._stringio, self._makefile)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            self._stringio.close()
+            return False
+
+    @staticmethod
+    def make(executable_name: str) -> 'TargetReader':
+        instance = TargetReader()
+        TargetReader._setup(instance, executable_name)
+        return instance
+
+    @staticmethod
+    def _setup(instance: 'TargetReader', executable_name: str) -> None:
+        instance._executable_name = executable_name
+
+    @property
+    def executable_name(self) -> str:
+        return self._executable_name
+
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
+        return TargetReader.Context.make(self, makefile)
+
+
+class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
+
+    @staticmethod
+    def make(parser: MakefileRuleParser) -> Iterator[Target]:
         instance = MakefileRuleParserToIteratorAdapter()
         MakefileRuleParserToIteratorAdapter._setup(instance, parser)
         return instance
@@ -134,7 +258,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
         instance._to_S()
 
     @property
-    def current_item(self) -> MakefileTarget:
+    def current_item(self) -> Target:
         return self._target
 
     @property
@@ -189,7 +313,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
             pass
 
     def _generate_target(self) -> None:
-        self._target = MakefileTarget.make_from_parse_context(self._context, self._index)
+        self._target = Target.make_from_parse_context(self._context, self._index)
         self._target.file = self.makefile
 
     def _get_next_non_empty_context(self) -> None:
@@ -232,20 +356,6 @@ class MakefileRuleParserToIteratorAdapter(Iterator[MakefileTarget]):
         self._makefile = value
 
 
-class MakefileTargetReader(metaclass=ABCMeta):
-
-    @abstractmethod
-    def target_iterator(self, makefile: Makefile) -> IteratorContext[MakefileTarget]:
-        pass
-
-
-class SubMakefileLocator(metaclass=ABCMeta):
-
-    @abstractmethod
-    def makefile_iterator(self, makefile: Makefile) -> IteratorContext[Makefile]:
-        pass
-
-
 class DirectoryMakefileLocator(metaclass=ABCMeta):
 
     @abstractmethod
@@ -253,7 +363,7 @@ class DirectoryMakefileLocator(metaclass=ABCMeta):
         pass
 
 
-class PriorityListDirectoryMakefileLocator(DirectoryMakefileLocator):
+class PriorityMakefileLocator(DirectoryMakefileLocator):
     """
     Picks one Makefile in a directory based on a priority list of
     potential Makefile file names. The file with the highest priority
@@ -263,13 +373,13 @@ class PriorityListDirectoryMakefileLocator(DirectoryMakefileLocator):
     class Context(IteratorContext[Makefile]):
 
         @staticmethod
-        def make(parent: 'PriorityListDirectoryMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
-            instance = PriorityListDirectoryMakefileLocator.Context()
-            PriorityListDirectoryMakefileLocator.Context._setup(instance, parent, directory_path)
+        def make(parent: 'PriorityMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = PriorityMakefileLocator.Context()
+            PriorityMakefileLocator.Context._setup(instance, parent, directory_path)
             return instance
 
         @staticmethod
-        def _setup(instance: 'PriorityListDirectoryMakefileLocator.Context', parent: 'PriorityListDirectoryMakefileLocator', directory_path: str) -> None:
+        def _setup(instance: 'PriorityMakefileLocator.Context', parent: 'PriorityMakefileLocator', directory_path: str) -> None:
             instance._parent = parent
             instance._directory_path = directory_path
 
@@ -294,7 +404,7 @@ class PriorityListDirectoryMakefileLocator(DirectoryMakefileLocator):
                         best_priority = priority
             return best_name
 
-        def _get_file_names(self) -> typing.List[str]:
+        def _get_file_names(self) -> List[str]:
             """
             ## Suggestions
 
@@ -304,28 +414,28 @@ class PriorityListDirectoryMakefileLocator(DirectoryMakefileLocator):
             return it.__next__()[2]
 
     @staticmethod
-    def make(priorities: typing.List[str]) -> MakefileTargetReader:
-        instance = PriorityListDirectoryMakefileLocator()
-        PriorityListDirectoryMakefileLocator._setup(instance, priorities)
+    def make(priorities: List[str]) -> DirectoryMakefileLocator:
+        instance = PriorityMakefileLocator()
+        PriorityMakefileLocator._setup(instance, priorities)
         return instance
 
     @staticmethod
-    def _setup(instance: 'PriorityListDirectoryMakefileLocator', priorities: typing.List[str]) -> None:
+    def _setup(instance: 'PriorityMakefileLocator', priorities: List[str]) -> None:
         instance._priorities = {}
-        PriorityListDirectoryMakefileLocator._init_priorities(instance, priorities)
+        PriorityMakefileLocator._init_priorities(instance, priorities)
 
     @staticmethod
-    def _init_priorities(instance: 'PriorityListDirectoryMakefileLocator', priorities: typing.List[str]) -> None:
+    def _init_priorities(instance: 'PriorityMakefileLocator', priorities: List[str]) -> None:
         index = len(priorities)
         for name in priorities:
             instance._priorities[name] = index
             index = index - 1
 
     def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
-        return PriorityListDirectoryMakefileLocator.Context.make(self, directory_path)
+        return PriorityMakefileLocator.Context.make(self, directory_path)
 
 
-class RecursiveDirectoryMakefileLocator(DirectoryMakefileLocator):
+class RecursiveMakefileLocator(DirectoryMakefileLocator):
     """
     Returns Makefiles found by another DirectoryMakefileLocator in a
     directory and all its subdirectories.
@@ -334,18 +444,18 @@ class RecursiveDirectoryMakefileLocator(DirectoryMakefileLocator):
     class Iterator(Iterator[Iterator[Makefile]]):
 
         @staticmethod
-        def make(parent: 'RecursiveDirectoryMakefileLocator', walker_iterator) -> 'RecursiveDirectoryMakefileLocator.Iterator':
+        def make(parent: 'RecursiveMakefileLocator', walker_iterator) -> 'RecursiveMakefileLocator.Iterator':
             """
             ## Specification Domain
 
             - walker_iterator is an iterator returned from os.walk.
             """
-            instance = RecursiveDirectoryMakefileLocator.Iterator()
-            RecursiveDirectoryMakefileLocator.Iterator._setup(instance, parent, walker_iterator)
+            instance = RecursiveMakefileLocator.Iterator()
+            RecursiveMakefileLocator.Iterator._setup(instance, parent, walker_iterator)
             return instance
 
         @staticmethod
-        def _setup(instance: 'RecursiveDirectoryMakefileLocator.Iterator', parent: 'RecursiveDirectoryMakefileLocator', walker_iterator) -> None:
+        def _setup(instance: 'RecursiveMakefileLocator.Iterator', parent: 'RecursiveMakefileLocator', walker_iterator) -> None:
             instance._directory_walker = walker_iterator
             instance._parent = parent
             instance._to_S()
@@ -443,18 +553,18 @@ class RecursiveDirectoryMakefileLocator(DirectoryMakefileLocator):
     class Context(IteratorContext[Makefile], Iterator):
 
         @staticmethod
-        def make(parent: 'RecursiveDirectoryMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
-            instance = RecursiveDirectoryMakefileLocator.Context()
-            RecursiveDirectoryMakefileLocator.Context._setup(instance, parent, directory_path)
+        def make(parent: 'RecursiveMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = RecursiveMakefileLocator.Context()
+            RecursiveMakefileLocator.Context._setup(instance, parent, directory_path)
             return instance
 
         @staticmethod
-        def _setup(instance: 'RecursiveDirectoryMakefileLocator.Context', parent: 'RecursiveDirectoryMakefileLocator', directory_path: str) -> None:
+        def _setup(instance: 'RecursiveMakefileLocator.Context', parent: 'RecursiveMakefileLocator', directory_path: str) -> None:
             instance._parent = parent
             instance._directory_path = directory_path
 
         def __enter__(self) -> Iterator[Makefile]:
-            RecursiveDirectoryMakefileLocator.Iterator._setup(self, self._parent, os.walk(self._directory_path))
+            RecursiveMakefileLocator.Iterator._setup(self, self._parent, os.walk(self._directory_path))
             return IteratorConcatenator.make(self)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
@@ -464,13 +574,13 @@ class RecursiveDirectoryMakefileLocator(DirectoryMakefileLocator):
                 return self._current_context.__exit__(exc_type, exc_val, exc_tb)
 
     @staticmethod
-    def make(locator: DirectoryMakefileLocator) -> MakefileTargetReader:
-        instance = RecursiveDirectoryMakefileLocator()
-        RecursiveDirectoryMakefileLocator._setup(instance, locator)
+    def make(locator: DirectoryMakefileLocator) -> DirectoryMakefileLocator:
+        instance = RecursiveMakefileLocator()
+        RecursiveMakefileLocator._setup(instance, locator)
         return instance
 
     @staticmethod
-    def _setup(instance: 'RecursiveDirectoryMakefileLocator', locator: DirectoryMakefileLocator) -> None:
+    def _setup(instance: 'RecursiveMakefileLocator', locator: DirectoryMakefileLocator) -> None:
         instance._locator = locator
         instance._excluded_directory_names = set()
 
@@ -481,6 +591,6 @@ class RecursiveDirectoryMakefileLocator(DirectoryMakefileLocator):
         self._excluded_directory_names.discard(directory_name)
 
     def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
-        return RecursiveDirectoryMakefileLocator.Context.make(self, directory_path)
+        return RecursiveMakefileLocator.Context.make(self, directory_path)
 
 
