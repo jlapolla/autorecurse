@@ -1,4 +1,4 @@
-from autorecurse.app.make.gnu.implementation import *
+from autorecurse.gnumake.implementation import *
 from antlr4 import CommonTokenStream, InputStream
 import unittest
 

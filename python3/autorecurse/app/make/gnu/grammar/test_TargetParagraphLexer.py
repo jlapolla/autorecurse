@@ -1,4 +1,4 @@
-from autorecurse.app.make.gnu.grammar import TargetParagraphLexer
+from autorecurse.gnumake.grammar import TargetParagraphLexer
 from antlr4 import InputStream, Token
 import unittest
 

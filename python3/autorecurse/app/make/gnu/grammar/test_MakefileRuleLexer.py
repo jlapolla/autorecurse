@@ -1,4 +1,4 @@
-from autorecurse.app.make.gnu.grammar import MakefileRuleLexer
+from autorecurse.gnumake.grammar import MakefileRuleLexer
 from antlr4 import InputStream, Token
 import unittest
 

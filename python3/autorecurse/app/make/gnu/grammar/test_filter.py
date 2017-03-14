@@ -1,4 +1,4 @@
-from autorecurse.app.make.gnu.grammar.filter import *
+from autorecurse.gnumake.grammar.filter import *
 import unittest
 
 

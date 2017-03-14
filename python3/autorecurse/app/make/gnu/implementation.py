@@ -9,7 +9,7 @@ from antlr4.error.Errors import ParseCancellationException
 from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
 from autorecurse.lib.line import FileLineIterator, LineToCharIterator
 from autorecurse.lib.stream import ConditionFilter
-from autorecurse.app.make.gnu.grammar import FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
+from autorecurse.gnumake.grammar import FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
 from autorecurse.lib.antlr4.stream import TokenSourceToIteratorAdapter, TokenToCharIterator
 
 
