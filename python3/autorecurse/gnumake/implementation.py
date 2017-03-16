@@ -594,3 +594,54 @@ class RecursiveMakefileLocator(DirectoryMakefileLocator):
         return RecursiveMakefileLocator.Context.make(self, directory_path)
 
 
+class NestedMakefileLocator(DirectoryMakefileLocator):
+
+    class Context(IteratorContext[Makefile]):
+
+        @staticmethod
+        def make(parent: 'NestedMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = NestedMakefileLocator.Context()
+            instance._parent = parent
+            instance._directory_path = directory_path
+            return instance
+
+        def __enter__(self) -> Iterator[Makefile]:
+            list_ = []
+            for dirpath, dirnames, filenames in os.walk(self._directory_path):
+                name = self._parent._get_best_name(filenames)
+                if name is not None:
+                    list_.append(Makefile.make_with_exec_path(dirpath, name))
+                else:
+                    dirnames.clear()
+            return ListIterator.make(list_)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            return False
+
+    def make() -> 'NestedMakefileLocator':
+        instance = NestedMakefileLocator()
+        instance._priorities = {}
+        return instance
+
+    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
+        return NestedMakefileLocator.Context.make(self, directory_path)
+
+    def set_filename_priorities(self, filenames: List[str]) -> None:
+        self._priorities = {}
+        index = len(filenames)
+        for name in filenames:
+            self._priorities[name] = index
+            index = index - 1
+
+    def _get_best_name(self, filenames: List[str]) -> str:
+        best_name = None
+        best_priority = 0
+        for name in filenames:
+            if name in self._priorities:
+                priority = self._priorities[name]
+                if best_priority < priority:
+                    best_name = name
+                    best_priority = priority
+        return best_name
+
+

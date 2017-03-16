@@ -227,7 +227,7 @@ class TestRecursiveMakefileLocator(unittest.TestCase):
     def test_without_excluded_directories(self):
         sub_locator = PriorityMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
         locator = RecursiveMakefileLocator.make(sub_locator)
-        with locator.makefile_iterator('test_sample/gnu') as it:
+        with locator.makefile_iterator('test_sample/gnu/project') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             makefile = it.current_item
@@ -244,12 +244,46 @@ class TestRecursiveMakefileLocator(unittest.TestCase):
         sub_locator = PriorityMakefileLocator.make(['Makefile', 'bar.c', 'baz.c'])
         locator = RecursiveMakefileLocator.make(sub_locator)
         locator.exclude_directory_name('src')
-        with locator.makefile_iterator('test_sample/gnu') as it:
+        with locator.makefile_iterator('test_sample/gnu/project') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             makefile = it.current_item
             self.assertEqual(makefile.exec_path, 'test_sample/gnu/project')
             self.assertEqual(makefile.file_path, 'Makefile')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+
+class TestNestedMakefileLocator(unittest.TestCase):
+
+    def test_with_results(self):
+        locator = NestedMakefileLocator.make()
+        locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
+        with locator.makefile_iterator('test_sample/gnu/nested-makefiles') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles')
+            self.assertEqual(makefile.file_path, 'GNUmakefile')
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles/make-folder-2')
+            self.assertEqual(makefile.file_path, 'makefile')
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles/make-folder-1')
+            self.assertEqual(makefile.file_path, 'makefile')
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles/make-folder-1/subfolder')
+            self.assertEqual(makefile.file_path, 'Makefile')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
+
+    def test_without_results(self):
+        locator = NestedMakefileLocator.make()
+        with locator.makefile_iterator('test_sample/gnu/nested-makefiles') as it:
+            self.assertIs(it.is_at_start, True)
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
 
