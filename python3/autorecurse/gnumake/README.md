@@ -39,7 +39,7 @@ Consider the following commands:
 - `make -C MusicPlayer/Filters Filters.dll` run from `.`.
 
 To the user, these commands all update the same target: `Filters.dll`.
-We'll call this sense of the word "target" a **logical target**.
+In this sense `Filters.dll` is a  **logical target**.
 
 In `make`, these commands update three different targets:
 `MusicPlayer/Filters/Filters.dll`, `Filters/Filters.dll`, and
@@ -55,7 +55,7 @@ directory that `make` will execute commands in. Only the literal targets
 are passed to `make`.
 
 The working directory that `make` will execute commands in is called the
-**execution directory**. `autorecurse` uses the command directory to
+**execution directory**. `autorecurse` uses the execution directory to
 translate logical targets into literal targets.
 
 When `make` is invoked without `-C`, the execution directory is the
@@ -140,7 +140,7 @@ The following excerpt from the GNU Make manual explains how this works:
 > been checked, if any have actually been changed, `make` starts with a
 > clean slate and reads all the makefiles over again.
 
-*GNU Make manual, [3.5 How Makefiles Are Remade][7]*
+*[GNU Make manual, 3.5 How Makefiles Are Remade][7]*
 
 The nested rule file is deleted after `make` executes, since it is
 re-created on each invocation when `autorecurse` locates nested
@@ -170,6 +170,8 @@ gnumake`:
   - Translate all nested targets into literal targets relative to the
     execution directory.
   - Output rules for nested targets to the nested rule file.
+  - `autorecurse nestedrules . . .` returns.
+  - `make` reads the nested rule file.
 - `make` executes.
 - `autorecurse` deletes the nested update file. The nested rule file is
   kept for future invocations.
@@ -179,8 +181,8 @@ gnumake`:
 `autorecurse` searches for nested makefiles starting in the execution
 directory. For each folder evaluated, `autorecurse` searches for one of
 the following file names, in order: `GNUmakefile`, `makefile`, and
-`Makefile` [\[1\]][9]. The first file name found in the folder is
-selected as that folder's nested makefile. There is only one nested
+`Makefile` [\[ref\]][9]. The first file name found in the folder is
+selected as that folder's nested makefile. There is at most one nested
 makefile per folder.
 
 If a nested makefile is found in a folder, its subfolders are also
@@ -197,66 +199,6 @@ to create nested target rules in the nested rule file. In most cases,
 the rules in the `-f` file override the rules in the nested rule file,
 and `make` issues a warning. Errors may occur if the `-f` file is
 intended to be executed from another execution directory.
-
-### File Locations
-
-The GNU Make flavor of `autorecurse` stores the following files outside
-of the installation directory:
-
-- Nested rule files.
-- Nested update files (temporary).
-
-### Nested Target Validity
-
-A set of nested targets is valid for a particular working directory, not
-for a particular makefile. The working directory for an invocation of
-`make` is determined as follows:
-
-- Without -C argument, use the current working directory.
-- With -C argument, use the -C directory.
-
-*N.B. the -f option does not affect the effective working directory.*
-
-`autorecurse` maintains configuration and cached files in a user
-directory. The location of the `autorecurse` user directory is based on
-the operating system:
-
-- On Linux, use ~/.autorecurse
-- On Windows, use the appropriate Windows special folder:
-  - [LocalFolder][?]
-    - configuration
-  - [LocalCacheFolder][?]
-    - nested target makefiles (nested-target.XXX)
-    - directory hash index files (index)
-  - [TemporaryFolder][?]
-    - nested target creation makefiles (make-nested-target.XXX)
-
-We will cache nested target files in
-~/.autorecurse/gnumake/<directory-hash>/
-
-Need a way to hash directory names (and avoid collisions) for this
-purpose
-
-Each hash directory has:
-
-- make-nested-target-x file which gives the rule for nested-target-x
-- nested-target-x file which records the rules for all nested makefiles
-  in the directory
-- index file which maps canonical directory paths to a suffix in this
-  directory (for hash collision resolution)
-- N.B. the ‘-x’ is actually a suffix which varies (it’s the suffix
-  listed in the index file)
-
-For each invocation of auto-recurse gnumake:
-
-- Search for makefile
-- Search for sub-makefiles (if search for makefile succeeds)
-- Manually update make-nested-target-x and index
-- Invoke make with -f make-nested-target-x -f nested-target-x [the rest
-  of the -f options]
-
-make will read the rule in make-nested-target-x, and automatically
-remake nested-target-x if it is out of date
 
 # Links Index
 
