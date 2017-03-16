@@ -1,35 +1,35 @@
 ### User File Locations
 
-Aside from installation and code files, `autorecurse` reads and writes
-configuration and other files specific to each user on a machine.
+`autorecurse` stores configuration and other data specific to each user
+on a machine. This section describes where that data resides.
 
-#### Symbolic Folders
+#### Symbolic Locations
 
-`autorecurse` puts configuration and other files in different folders
-based on the machine's operating system.
+`autorecurse` stores its data in different locations based on the
+machine's operating system and the specific variant of `autorecurse`.
+For portability, `autorecurse` internally uses symbolic locations.
+Symbolic locations are mapped to real locations based on the current
+operating system.
 
-For compatibility, `autorecurse` internally uses symbolic folders,
-mapping them to real folders as needed. The documentation for
-`autorecurse` only refers to symbolic folders.
+This section describes the symbolic locations. The following sections
+map each symbolic location to a real location for a particular operating
+system. The real location is often a file or folder in the file system,
+but this is not always the case. For instance, some data may be stored
+in the Windows registry or GConf.
 
-This section describes the symbolic folders. The following sections map
-each symbolic folder to a real folder for a particular operating system.
+The symbolic locations are:
 
-The symbolic folders are:
-
-- `AUTORECURSE_USRLOCAL`: Folder for user configuration files. These
-  files are customized by the user, and `autorecurse` cannot generate
-  them automatically. These files should be backed up on operating
-  systems with built-in backup support. Note that these files are not
-  **roaming** (i.e. they are not synced across user devices running the
-  same operating system).
-- `AUTORECURSE_USRLOCALCACHE`: Folder for cached files created by
-  `autorecurse` on the user's behalf. `autorecurse` can automatically
-  generate these files again when it needs them. The files in
-  `AUTORECURSE_USRLOCALCACHE` serve only to help `autorecurse` execute
-  faster on subsequent invocations. The files in this folder may be
-  safely deleted, and need not be backed up on operating systems with
-  built-in backup support.
+- `AUTORECURSE_USRLOCAL`: User and machine configuration values. These
+  values are customized by the user. These values should be backed up on
+  operating systems with built-in backup support. Note that these values
+  are not **roaming** (i.e. they are not synced across user devices
+  running the same operating system).
+- `AUTORECURSE_USRLOCALCACHE`: Cached values created by `autorecurse` on
+  the user's behalf. `autorecurse` can automatically generate these
+  values again when it needs them. The values in
+  `AUTORECURSE_USRLOCALCACHE` help `autorecurse` execute faster on
+  subsequent invocations. These values may be deleted, and need not be
+  backed up on operating systems with built-in backup support.
 - `AUTORECURSE_USRTMP`: Folder for temporary files used by
   `autorecurse`. Files in this folder are deleted before `autorecurse`
   finishes executing. `AUTORECURSE_USRTMP` is typically mapped to a
@@ -54,8 +54,8 @@ The symbolic folders are:
 
 ### System File Locations
 
-`autorecurse` does not read or write any configuration or other files
-meant for use by all users on a machine.
+`autorecurse` does not store any configuration or other data meant for
+use by all users on a machine.
 
 # Links Index
 
@@ -69,6 +69,9 @@ meant for use by all users on a machine.
 - [Windows XP special folders][10]
 - [Windows UWP application data][5]
 - [Windows special folders list on Wikipedia][4]
+- [Windows registry versus files][13]
+
+- [Registry versus files thread][14]
 
 [1]: http://www.linux.org/threads/temporary-files.7099/
 [2]: https://msdn.microsoft.com/en-us/library/windows/desktop/dd378457.aspx
@@ -79,4 +82,6 @@ meant for use by all users on a machine.
 [10]: https://msdn.microsoft.com/en-us/library/s2esdf4x(v=vs.90).aspx
 [11]: https://technet.microsoft.com/en-us/library/cc766489.aspx
 [12]: https://blogs.msdn.microsoft.com/cjacks/2008/02/05/where-should-i-write-program-data-instead-of-program-files/
+[13]: https://blogs.msdn.microsoft.com/oldnewthing/20071126-00/?p=24383/
+[14]: https://arstechnica.com/civis/viewtopic.php?f=14&t=1127464
 
