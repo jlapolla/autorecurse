@@ -1,5 +1,6 @@
 from autorecurse.lib.iterator import IteratorContext
-from autorecurse.gnumake.implementation import Makefile, NestedMakefileLocator
+from autorecurse.gnumake.implementation import ArgumentParserFactory, Makefile, NestedMakefileLocator
+from typing import List
 
 
 class GnuMake:
@@ -26,5 +27,13 @@ class GnuMake:
 
     def nested_makefiles(self, directory_path: str) -> IteratorContext[Makefile]:
         return self._makefile_locator.makefile_iterator(directory_path)
+
+    def execution_directory(self, args: List[str]) -> str:
+        parser = ArgumentParserFactory.create_parser()
+        directory_options = parser.parse_known_args(args)[0].directory
+        if directory_options is None:
+            return None
+        else:
+            return ''.join(directory_options)
 
 

@@ -1,9 +1,10 @@
 from abc import ABCMeta, abstractmethod
+from argparse import ArgumentParser, ArgumentError
 from io import StringIO, TextIOBase
 from typing import List
 import os
-import sys
 import subprocess
+import sys
 from antlr4 import CommonTokenStream, InputStream
 from antlr4.error.Errors import ParseCancellationException
 from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
@@ -643,5 +644,28 @@ class NestedMakefileLocator(DirectoryMakefileLocator):
                     best_name = name
                     best_priority = priority
         return best_name
+
+
+class ThrowingArgumentParser(ArgumentParser):
+
+    def error(self, message: str) -> None:
+        raise ArgumentError(None, message)
+
+
+class ArgumentParserFactory:
+
+    _PARSER = None
+
+    @staticmethod
+    def create_parser() -> ArgumentParser:
+        if ArgumentParserFactory._PARSER is None:
+            ArgumentParserFactory._PARSER = ArgumentParserFactory._create_parser()
+        return ArgumentParserFactory._PARSER
+
+    @staticmethod
+    def _create_parser() -> ArgumentParser:
+        parser = ThrowingArgumentParser(prog='', add_help=False, allow_abbrev=False)
+        parser.add_argument('-C', '--directory', action='append', dest='directory', metavar='dir')
+        return parser
 
 
