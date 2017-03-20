@@ -86,21 +86,19 @@ class Makefile:
 class Target:
 
     @staticmethod
-    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'Target':
+    def make(prerequisites: List[str], order_only_prerequisites: List[str], recipe_lines: List[str]) -> 'Target':
         instance = Target()
-        Target._setup_from_parse_context(instance, context, target_index)
+        instance._file = None
+        instance._path = None
+        instance._prerequisites = list(prerequisites)
+        instance._order_only_prerequisites = list(order_only_prerequisites)
+        instance._recipe_lines = list(recipe_lines)
         return instance
 
     @staticmethod
-    def _setup_from_parse_context(instance: 'Target', context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
-        instance._file = None
-        instance._path = context.target(target_index).IDENTIFIER().symbol.text
-        instance._prerequisites = []
-        for prerequisite in context.prerequisite():
-            instance._prerequisites.append(prerequisite.IDENTIFIER().symbol.text)
-        instance._order_only_prerequisites = []
-        for order_only_prerequisite in context.orderOnlyPrerequisite():
-            instance._order_only_prerequisites.append(order_only_prerequisite.IDENTIFIER().symbol.text)
+    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'Target':
+        builder = ParseContextTargetBuilder.get_instance()
+        return builder.build_target(context, target_index)
 
     @property
     def file(self) -> Makefile:
@@ -125,6 +123,35 @@ class Target:
     @property
     def order_only_prerequisites(self) -> Iterator[str]:
         return ListIterator.make(self._order_only_prerequisites)
+
+
+class ParseContextTargetBuilder:
+
+    _INSTANCE = None
+
+    @staticmethod
+    def get_instance() -> 'ParseContextTargetBuilder':
+        if ParseContextTargetBuilder._INSTANCE is None:
+            ParseContextTargetBuilder._INSTANCE = ParseContextTargetBuilder.make()
+        return ParseContextTargetBuilder._INSTANCE
+
+    @staticmethod
+    def make() -> 'ParseContextTargetBuilder':
+        return ParseContextTargetBuilder()
+
+    def build_target(self, context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
+        prerequisites = []
+        for item in context.prerequisite():
+            prerequisites.append(item.IDENTIFIER().symbol.text)
+        order_only_prerequisites = []
+        for item in context.orderOnlyPrerequisite():
+            order_only_prerequisites.append(item.IDENTIFIER().symbol.text)
+        recipe_lines = []
+        for item in context.recipe().RECIPE_LINE():
+            recipe_lines.append(item.symbol.text)
+        target = Target.make(prerequisites, order_only_prerequisites, recipe_lines)
+        target.path = context.target(target_index).IDENTIFIER().symbol.text
+        return target
 
 
 class Factory:
@@ -314,7 +341,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
             pass
 
     def _generate_target(self) -> None:
-        self._target = Target.make_from_parse_context(self._context, self._index)
+        self._target = ParseContextTargetBuilder.get_instance().build_target(self._context, self._index)
         self._target.file = self.makefile
 
     def _get_next_non_empty_context(self) -> None:
