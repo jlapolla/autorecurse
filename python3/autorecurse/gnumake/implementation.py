@@ -611,7 +611,8 @@ class NestedMakefileLocator(DirectoryMakefileLocator):
             for dirpath, dirnames, filenames in os.walk(self._directory_path):
                 name = self._parent._get_best_name(filenames)
                 if name is not None:
-                    list_.append(Makefile.make_with_exec_path(dirpath, name))
+                    abs_path = os.path.realpath(os.path.join(os.getcwd(), dirpath))
+                    list_.append(Makefile.make_with_exec_path(abs_path, name))
                 else:
                     dirnames.clear()
             return ListIterator.make(list_)

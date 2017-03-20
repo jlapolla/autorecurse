@@ -1,6 +1,7 @@
 from autorecurse.gnumake.implementation import *
 from antlr4 import CommonTokenStream, InputStream
 import unittest
+import os
 
 
 class TestTarget(unittest.TestCase):
@@ -256,6 +257,8 @@ class TestRecursiveMakefileLocator(unittest.TestCase):
 
 class TestNestedMakefileLocator(unittest.TestCase):
 
+    CWD = os.path.realpath(os.getcwd())
+
     def test_with_results(self):
         locator = NestedMakefileLocator.make()
         locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
@@ -263,19 +266,19 @@ class TestNestedMakefileLocator(unittest.TestCase):
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles')
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles'))
             self.assertEqual(makefile.file_path, 'GNUmakefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles/make-folder-2')
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles/make-folder-2'))
             self.assertEqual(makefile.file_path, 'makefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles/make-folder-1')
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1'))
             self.assertEqual(makefile.file_path, 'makefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, 'test_sample/gnu/nested-makefiles/make-folder-1/subfolder')
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1/subfolder'))
             self.assertEqual(makefile.file_path, 'Makefile')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
