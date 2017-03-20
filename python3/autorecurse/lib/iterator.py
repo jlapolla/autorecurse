@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import  Generic, Iterable, TypeVar
+from typing import Generic, Iterable, TypeVar
 
 
 T = TypeVar('T')
