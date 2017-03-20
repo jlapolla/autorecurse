@@ -44,9 +44,9 @@ class GnuMake:
         parser = ArgumentParserFactory.create_parser()
         directory_options = parser.parse_known_args(args)[0].directory
         if directory_options is None:
-            return None
+            return os.path.realpath(os.getcwd())
         else:
-            return ''.join(directory_options)
+            return os.path.realpath(os.path.join(os.getcwd(), *directory_options))
 
     def create_nested_update_file(self) -> FileLifetimeManager:
         return self._storage_engine.create_nested_update_file()
