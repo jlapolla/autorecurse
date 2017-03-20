@@ -1,6 +1,10 @@
 from autorecurse.lib.iterator import IteratorContext
+from autorecurse.lib.file import FileLifetimeManager
 from autorecurse.gnumake.implementation import ArgumentParserFactory, Makefile, NestedMakefileLocator
+from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine
+from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
+import os
 
 
 class GnuMake:
@@ -17,6 +21,7 @@ class GnuMake:
     def _make() -> 'GnuMake':
         instance = GnuMake()
         GnuMake._init_nested_makefile_locator(instance)
+        GnuMake._init_storage_engine(instance)
         return instance
 
     @staticmethod
@@ -24,6 +29,13 @@ class GnuMake:
         locator = NestedMakefileLocator.make()
         locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
         instance._makefile_locator = locator
+
+    @staticmethod
+    def _init_storage_engine(instance: 'GnuMake') -> None:
+        mapping = {}
+        mapping[DirectoryEnum.TMP] = os.path.realpath(os.path.expanduser('~/.autorecurse/tmp'))
+        directory_mapping = DictionaryDirectoryMapping.make(mapping)
+        instance._storage_engine = FileStorageEngine.make(directory_mapping)
 
     def nested_makefiles(self, directory_path: str) -> IteratorContext[Makefile]:
         return self._makefile_locator.makefile_iterator(directory_path)
@@ -35,5 +47,8 @@ class GnuMake:
             return None
         else:
             return ''.join(directory_options)
+
+    def create_nested_update_file(self) -> FileLifetimeManager:
+        return self._storage_engine.create_nested_update_file()
 
 
