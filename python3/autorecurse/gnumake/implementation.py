@@ -10,7 +10,7 @@ from antlr4.error.Errors import ParseCancellationException
 from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
 from autorecurse.lib.line import FileLineIterator, LineToCharIterator
 from autorecurse.lib.stream import ConditionFilter
-from autorecurse.gnumake.grammar import FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
+from autorecurse.gnumake.grammar import DatabaseSectionFilter, FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
 from autorecurse.lib.antlr4.stream import TokenSourceToIteratorAdapter, TokenToCharIterator
 
 
@@ -168,7 +168,8 @@ class Factory:
     @staticmethod
     def make_target_iterator_for_file(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
-        file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
+        database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
+        file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
         file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
         file_section_chars = LineToCharIterator.make(file_section_no_comments)
         char_stream_1 = None
@@ -200,7 +201,8 @@ class Factory:
     @staticmethod
     def make_target_iterator_for_file_streaming(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(fp)
-        file_section = ConditionFilter.make(file_lines, FileSectionFilter.make())
+        database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
+        file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
         file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
         file_section_chars = LineToCharIterator.make(file_section_no_comments)
         char_stream_1 = IteratorToCharStreamAdapter.make(file_section_chars)

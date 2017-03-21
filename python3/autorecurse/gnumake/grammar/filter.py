@@ -95,6 +95,79 @@ class FileSectionFilter(Condition[Line]):
 del FileSectionFilter._set_current_item
 
 
+class DatabaseSectionFilter(Condition[Line]):
+    """
+
+    Outputs the lines after _START_LINE (including _START_LINE) when
+    used with a ConditionFilter. _START_LINE denotes the make database
+    section in the output of `make -np`. Since `make -np` outputs
+    recipes before outputting the make database, _START_LINE was chosen
+    to minimize the chance of collision with possible recipe lines.
+
+    ## Transition System Definition
+
+    ### States
+
+    - N = No printing <- INITIAL
+    - Y = Printing
+
+    ### Transition Labels
+
+    - Start = Recieve Line equal to _START_LINE
+    - Line = Recieve Line not equal to _START_LINE
+
+    ### Transitions Grouped by Label
+
+    - Start
+      - N -> Y
+      - Y -> Y
+    - Line
+      - N -> N
+      - Y -> Y
+    """
+
+    _START_LINE = Line.make('# Pattern-specific Variable Values')
+
+    # States
+    _NO_PRINTING = 0
+    _PRINTING = 1
+
+    # Transition Labels
+    _START = 0
+    _LINE = 1
+
+    # Keys are tuples of (state, transition_label)
+    _TRANSITIONS = {
+            (_NO_PRINTING, _START): _PRINTING,
+            (_PRINTING, _START): _PRINTING,
+            (_NO_PRINTING, _LINE): _NO_PRINTING,
+            (_PRINTING, _LINE): _PRINTING,
+            }
+
+    @staticmethod
+    def make() -> Condition[Line]:
+        instance = DatabaseSectionFilter()
+        instance._state = DatabaseSectionFilter._NO_PRINTING
+        return instance
+
+    def _set_current_item(self, value: Line) -> None:
+        if value.content == DatabaseSectionFilter._START_LINE.content:
+            self._do_transition(DatabaseSectionFilter._START)
+        else:
+            self._do_transition(DatabaseSectionFilter._LINE)
+
+    current_item = property(None, _set_current_item)
+
+    @property
+    def condition(self) -> bool:
+        return self._state == DatabaseSectionFilter._PRINTING
+
+    def _do_transition(self, transition_label: int) -> None:
+        self._state = DatabaseSectionFilter._TRANSITIONS[(self._state, transition_label)]
+
+del DatabaseSectionFilter._set_current_item
+
+
 class InformationalCommentFilter(Condition[Line]):
     """
     Skips informational comments output by `make -qp`, when used with a
