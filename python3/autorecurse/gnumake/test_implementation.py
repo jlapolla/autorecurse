@@ -141,6 +141,8 @@ class TestTargetReader(unittest.TestCase):
             self.assertEqual(target.path, 'objdir/bar.o')
             it = target.prerequisites
             it.move_to_next()
+            self.assertEqual(it.current_item, 'src/bar.c')
+            it.move_to_next()
             self.assertIs(it.is_at_end, True)
             it = target.order_only_prerequisites
             it.move_to_next()
@@ -149,6 +151,8 @@ class TestTargetReader(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
             it = target.recipe_lines
+            it.move_to_next()
+            self.assertEqual(it.current_item, 'touch $@')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
 
@@ -197,6 +201,8 @@ class TestTargetReader(unittest.TestCase):
             self.assertEqual(target.path, 'objdir/baz.o')
             it = target.prerequisites
             it.move_to_next()
+            self.assertEqual(it.current_item, 'src/baz.c')
+            it.move_to_next()
             self.assertIs(it.is_at_end, True)
             it = target.order_only_prerequisites
             it.move_to_next()
@@ -205,6 +211,8 @@ class TestTargetReader(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
             it = target.recipe_lines
+            it.move_to_next()
+            self.assertEqual(it.current_item, 'touch $@')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
 

@@ -7,7 +7,7 @@ class FileSectionFilter(Condition[Line]):
     """
     Outputs the lines between _START_LINE and _END_LINE, when used with
     a ConditionFilter. _START_LINE and _END_LINE denote the target
-    definition section in the output of `make -qp`
+    definition section in the output of `make -np`
 
     ## Transition System Definition
 
@@ -170,7 +170,7 @@ del DatabaseSectionFilter._set_current_item
 
 class InformationalCommentFilter(Condition[Line]):
     """
-    Skips informational comments output by `make -qp`, when used with a
+    Skips informational comments output by `make -np`, when used with a
     ConditionFilter.
 
     ## Transition System Definition

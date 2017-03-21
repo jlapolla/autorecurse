@@ -34,12 +34,12 @@ class TestGnuMake(unittest.TestCase):
     def test_execution_directory(self):
         gnu = GnuMake.get_instance()
         self.assertEqual(gnu.execution_directory('-h'.split()), TestGnuMake.CWD)
-        self.assertEqual(gnu.execution_directory('-f Makefile -qp'.split()), TestGnuMake.CWD)
-        self.assertEqual(gnu.execution_directory('-f Makefile -qp -C /etc/usr'.split()), '/etc/usr')
-        self.assertEqual(gnu.execution_directory('-f Makefile -qp -C / --directory etc --directory=usr'.split()), '/etc/usr')
-        self.assertEqual(gnu.execution_directory('-f Makefile -qp -C / --directory etc -C .. --directory=usr'.split()), '/usr')
-        self.assertEqual(gnu.execution_directory('-f Makefile -qp -C test_sample'.split()), os.path.join(TestGnuMake.CWD, 'test_sample'))
+        self.assertEqual(gnu.execution_directory('-f Makefile -np'.split()), TestGnuMake.CWD)
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C /etc/usr'.split()), '/etc/usr')
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C / --directory etc --directory=usr'.split()), '/etc/usr')
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C / --directory etc -C .. --directory=usr'.split()), '/usr')
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C test_sample'.split()), os.path.join(TestGnuMake.CWD, 'test_sample'))
         with self.assertRaises(ArgumentError):
-            self.assertEqual(gnu.execution_directory('-f Makefile -qp -C'.split()), '/etc/usr')
+            self.assertEqual(gnu.execution_directory('-f Makefile -np -C'.split()), '/etc/usr')
 
 

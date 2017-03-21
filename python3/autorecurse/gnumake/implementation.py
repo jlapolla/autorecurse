@@ -245,16 +245,14 @@ class TargetReader:
             """
             args = []
             args.append(self._parent.executable_name)
-            args.append('-qp')
+            args.append('-np')
             if len(self._makefile.exec_path) != 0:
                 args.append('-C')
                 args.append(self._makefile.exec_path)
             args.append('-f')
             args.append(self._makefile.file_path)
             result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if not ((result.returncode == 0) or (result.returncode == 1)):
-                # Return code == 1 is okay, since the -q option returns
-                # 1 when the default target is out of date.
+            if result.returncode != 0:
                 sys.stderr.write(result.stderr.decode())
                 raise subprocess.CalledProcessError(result.returncode, ' '.join(result.args), result.stdout, result.stderr)
             self._stringio = StringIO(result.stdout.decode())
