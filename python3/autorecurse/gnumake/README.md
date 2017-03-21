@@ -200,38 +200,109 @@ the rules in the `-f` file override the rules in the nested rule file,
 and `make` issues a warning. Errors may occur if the `-f` file is
 intended to be executed from another execution directory.
 
-# Outstanding Issues
+### Reading Nested Targets
 
-## `make -qp` does not search implicit rules for all targets
+When `autorecurse` reads targets in nested makefiles, it does not read
+the makefiles directly. Instead, it calls `make -p -f <makefile>` and
+parses the output database to get the nested targets. This allows `make`
+to perform its natural preprocessing steps (e.g. expanding variables),
+and results in accurate nested targets.
 
-When autorecurse runs `make -qp`, it does not do an implicit rule search
-for all targets. Implicit rule search is done lazily: it is only done
-for goals specified on the command line (and recursively for their
-prerequisites), or the default goal.
+*Aside: `autorecurse` actually calls `make -np -f <makefile>` to avoid
+running recipes and updating targets.*
 
-Fortunately, it does list all targets regardless (even though their
-prerequisites may not be complete). We can get all nested targets in two
-phases:
+Unfortunately, `make -p` does not always provide details for targets
+that use an implicit or pattern rule, so it does not reflect the actual
+relationships between some targets and their prerequisites. In general,
+`make -p` will check implicit rules for targets that are listed as goals
+on the command line (and their prerequisites, recursively), or the
+default goal if no target is listed, but it skips the implicit rule
+check for other targets it finds.
 
-- Run `make -np -f makefile` to get all terminal targets. List all
-  targets in a targets file as prerequisites of a `.PHONY:
-  autorecurse-search` target
-- Run `make -np -f makefile -f <targets-makefile> autorecurse-search` to
-  find all nested targets
+Therefore, in order to discover all targets and their prerequisites,
+`autorecurse` must call `make -p -f <makefile> <list-of-all-targets>`.
+However, listing all targets as goals will produce a long command line
+which may cause errors on some systems. Instead, we use another target,
+`autorecurse-all-targets` which depends on all targets found in the
+makefile (i.e. `autorecurse-all-targets` depends on the targets output
+by an initial `make -p -f <makefile>`). The resulting command line is
+`make -p -f <makefile> autorecurse-all-targets`.
 
-We can generate a single target file for all nested makefiles in an execution
-directory by including all nested makefiles in each invocation. We can
-cache the target makefile for an execution directory. The nested rule
-file depends on the nested target file, and the nested target file
-depends on the nested makefiles it was generated from.
+We need to define `autorecurse-all-targets` in another makefile in order
+to make `make` aware of this target. The makefile that defines
+`autorecurse-all-targets` is called the **target listing file**.
 
-*Aside: It may be possible to generate a nested target file for each
-makefile individually, instead of generating it for all nested makefiles
-in an execution directory. This is a slight optimization, since multiple
-execution directories could use the cached nested target files for a
-particular makefile. However, for the sake of simplicity, we will avoid
-this behavior for now. We will create and cache nested target files for
-an entire execution directory.*
+How does the target listing file relate to the nested rule file, nested
+update file, and nested makefiles for a particular execution directory?
+The following makefile excerpt summarizes their relationships:
+
+```make
+nested-update-file: $(NESTED_MAKEFILES)
+        # Created by `autorecurse gnumake` on every invocation
+
+# Defined in nested-update-file
+target-listing-file-XXX: $(NESTED_MAKEFILE_XXX)
+        autorecurse targetlisting -C $(NESTED_MAKEFILE_DIR_XXX) -f $(NESTED_MAKEFILE_XXX) -o <target-listing-file-XXX>
+
+# Defined in nested-update-file
+nested-rule-file: $(TARGET_LISTING_FILES) $(NESTED_MAKEFILES)
+        autorecurse nestedrules -C <execution_directory> -o <nested-rule-file>
+```
+
+Each target listing file defines the following rule for its
+corresponding makefile:
+
+```make
+.PHONY: autorecurse-all-targets
+autorecurse-all-targets: $(ALL_MAKEFILE_TARGETS)
+```
+
+### Operation Outline, Revision IV
+
+Let's elaborate on the steps given in the Operation Outline section.
+
+`autorecurse` performs the following steps when you invoke `autorecurse
+gnumake`:
+
+- Determine the **exeuction directory**. If there are no `-C` options,
+  this is the current working directory.
+- Locate all makefiles in the execution directory and its subfolders
+  (recursively). These are the **nested makefiles**.
+- Create a **nested update file** for the execution directory.
+- Invoke `make -f <nested-update-file> -f <nested-rule-file>
+  <OTHER_ARGUMENTS>`
+- `make` checks each **target listing file**:
+  - If a target listing file needs to be updated, `make` will call
+    `autorecurse targetlisting -C <makefile-dir> -f <makefile> -o
+    <target-listing-file>`, and the following additional steps occur as
+    a result:
+  - Call `make -np -C <makefile-dir> -f <makefile>`.
+  - Read all targets in output database.
+  - Create target listing file with one rule for
+    `autorecurse-all-targets`, which depends on all targets found.
+  - `autorecurse targetlisting . . .` returns.
+- `make` checks the **nested rule file**:
+  - If the nested rule file needs to be updated, `make` will call
+    `autorecurse nestedrules -C <execution-directory> -o
+    <nested-rule-file>`, and the following additional steps occur as a
+    result:
+  - Locate all nested makefiles in the execution directory.
+  - For each nested makefile:
+    - call `make -np -C <nested-makefile-dir-XXX> -f
+      <nested-makefile-XXX> -f <target-listing-file-XXX>
+      autorecurse-all-targets`. Specifying `autorecurse-all-targets` as
+      the goal ensures that all implicit rule are searched.
+    - Read all targets in output database. This is the full set of
+      **nested targets**.
+  - Translate all nested targets into literal targets relative to the
+    execution directory.
+  - Output rules for nested targets to the nested rule file.
+  - `autorecurse nestedrules . . .` returns.
+- `make` reads the nested rule file.
+- `make` reads all other makefiles and arguments.
+- `make` executes.
+- `autorecurse` deletes the nested update file. The taret listing files
+  and nested rule file are cached for future invocations.
 
 # Links Index
 
