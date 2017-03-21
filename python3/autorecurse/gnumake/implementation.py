@@ -95,11 +95,6 @@ class Target:
         instance._recipe_lines = list(recipe_lines)
         return instance
 
-    @staticmethod
-    def make_from_parse_context(context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> 'Target':
-        builder = ParseContextTargetBuilder.get_instance()
-        return builder.build_target(context, target_index)
-
     @property
     def file(self) -> Makefile:
         return self._file
