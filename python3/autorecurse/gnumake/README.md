@@ -200,6 +200,39 @@ the rules in the `-f` file override the rules in the nested rule file,
 and `make` issues a warning. Errors may occur if the `-f` file is
 intended to be executed from another execution directory.
 
+# Outstanding Issues
+
+## `make -qp` does not search implicit rules for all targets
+
+When autorecurse runs `make -qp`, it does not do an implicit rule search
+for all targets. Implicit rule search is done lazily: it is only done
+for goals specified on the command line (and recursively for their
+prerequisites), or the default goal.
+
+Fortunately, it does list all targets regardless (even though their
+prerequisites may not be complete). We can get all nested targets in two
+phases:
+
+- Run `make -np -f makefile` to get all terminal targets. List all
+  targets in a targets file as prerequisites of a `.PHONY:
+  autorecurse-search` target
+- Run `make -np -f makefile -f <targets-makefile> autorecurse-search` to
+  find all nested targets
+
+We can generate a single target file for all nested makefiles in an execution
+directory by including all nested makefiles in each invocation. We can
+cache the target makefile for an execution directory. The nested rule
+file depends on the nested target file, and the nested target file
+depends on the nested makefiles it was generated from.
+
+*Aside: It may be possible to generate a nested target file for each
+makefile individually, instead of generating it for all nested makefiles
+in an execution directory. This is a slight optimization, since multiple
+execution directories could use the cached nested target files for a
+particular makefile. However, for the sake of simplicity, we will avoid
+this behavior for now. We will create and cache nested target files for
+an entire execution directory.*
+
 # Links Index
 
 - [Remaking Makefiles (GNU Make manual)][7]

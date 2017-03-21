@@ -148,6 +148,9 @@ class TestTargetReader(unittest.TestCase):
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
+            it = target.recipe_lines
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -165,6 +168,9 @@ class TestTargetReader(unittest.TestCase):
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
+            it = target.recipe_lines
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -180,6 +186,11 @@ class TestTargetReader(unittest.TestCase):
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
+            it = target.recipe_lines
+            it.move_to_next()
+            self.assertEqual(it.current_item, 'touch $@')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -193,6 +204,9 @@ class TestTargetReader(unittest.TestCase):
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
+            it = target.recipe_lines
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
 
             target_iterator.move_to_next()
             target = target_iterator.current_item
@@ -204,6 +218,11 @@ class TestTargetReader(unittest.TestCase):
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
             self.assertIs(target.file, makefile)
+            it = target.recipe_lines
+            it.move_to_next()
+            self.assertEqual(it.current_item, 'mkdir $(OBJDIR)')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
 
             target_iterator.move_to_next()
             self.assertIs(target_iterator.is_at_end, True)
