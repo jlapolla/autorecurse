@@ -124,6 +124,10 @@ class Target:
     def order_only_prerequisites(self) -> Iterator[str]:
         return ListIterator.make(self._order_only_prerequisites)
 
+    @property
+    def recipe_lines(self) -> Iterator[str]:
+        return ListIterator.make(self._recipe_lines)
+
 
 class ParseContextTargetBuilder:
 
@@ -148,10 +152,20 @@ class ParseContextTargetBuilder:
             order_only_prerequisites.append(item.IDENTIFIER().symbol.text)
         recipe_lines = []
         for item in context.recipe().RECIPE_LINE():
-            recipe_lines.append(item.symbol.text)
+            line = self._trim_recipe_line(item.symbol.text)
+            recipe_lines.append(line)
         target = Target.make(prerequisites, order_only_prerequisites, recipe_lines)
         target.path = context.target(target_index).IDENTIFIER().symbol.text
         return target
+
+    def _trim_recipe_line(self, recipe_line: str) -> str:
+        remove_count = 0
+        if (recipe_line.rfind('\t') + 1 + remove_count == len(recipe_line)):
+            remove_count = remove_count + 1
+        if (recipe_line.rfind('\n') + 1 + remove_count == len(recipe_line)):
+            remove_count = remove_count + 1
+        end_index = len(recipe_line) - remove_count
+        return recipe_line[0:end_index]
 
 
 class Factory:

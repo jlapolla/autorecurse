@@ -45,6 +45,17 @@ a b c: d | e"""
         self.assertEqual(it.current_item, 'slash\\ ')
         it.move_to_next()
         self.assertIs(it.is_at_end, True)
+        it = target.recipe_lines
+        it.move_to_next()
+        self.assertEqual(it.current_item, '  Hurray:|;#\t it works\\quite\\well\\')
+        it.move_to_next()
+        self.assertEqual(it.current_item, '  And this is still recipe text \\')
+        it.move_to_next()
+        self.assertEqual(it.current_item, 'And this tab is removed # Not a comment!')
+        it.move_to_next()
+        self.assertEqual(it.current_item, '  More recipe (trailing spaces)  ')
+        it.move_to_next()
+        self.assertIs(it.is_at_end, True)
 
         ctx = parser.makefileRule()
         self.assertIsNone(ctx.exception)
@@ -60,6 +71,17 @@ a b c: d | e"""
         it.move_to_next()
         self.assertIs(it.is_at_end, True)
         it = target.order_only_prerequisites
+        it.move_to_next()
+        self.assertIs(it.is_at_end, True)
+        it = target.recipe_lines
+        it.move_to_next()
+        self.assertEqual(it.current_item, '|:recipes!!;; # Oh\tboy!')
+        it.move_to_next()
+        self.assertEqual(it.current_item, ' :#I can\'t wait...')
+        it.move_to_next()
+        self.assertEqual(it.current_item, ' ...until this recipe is over!')
+        it.move_to_next()
+        self.assertEqual(it.current_item, '')
         it.move_to_next()
         self.assertIs(it.is_at_end, True)
 
@@ -99,6 +121,9 @@ a b c: d | e"""
         it = target.order_only_prerequisites
         it.move_to_next()
         self.assertEqual(it.current_item, 'e')
+        it.move_to_next()
+        self.assertIs(it.is_at_end, True)
+        it = target.recipe_lines
         it.move_to_next()
         self.assertIs(it.is_at_end, True)
 
