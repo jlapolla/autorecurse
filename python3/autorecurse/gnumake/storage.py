@@ -134,3 +134,38 @@ class TargetListingTargetReader(TargetReader):
         return TargetListingTargetReader.Context.make(self, makefile)
 
 
+class NestedRuleTargetReader(TargetReader):
+
+    class Context(TargetReader.Context):
+
+        @staticmethod
+        def make(parent: 'NestedRuleTargetReader', makefile: Makefile) -> IteratorContext[Target]:
+            instance = NestedRuleTargetReader.Context()
+            TargetReader.Context._setup(instance, parent, makefile)
+            return instance
+
+        def _spawn_subprocess(self) -> Popen:
+            target_listing_file = self._parent._storage_engine.target_listing_file_path(self._makefile)
+            args = []
+            args.append(self._parent.executable_name)
+            args.append('-np')
+            args.append('-C')
+            args.append(self._makefile.exec_path)
+            args.append('-f')
+            args.append(self._makefile.file_path)
+            args.append('-f')
+            args.append(target_listing_file)
+            args.append('autorecurse-all-targets')
+            return Popen(args, stdout=PIPE, universal_newlines=True)
+
+    @staticmethod
+    def make(executable_name: str, storage_engine: StorageEngine) -> 'NestedRuleTargetReader':
+        instance = NestedRuleTargetReader()
+        TargetReader._setup(instance, executable_name)
+        instance._storage_engine = storage_engine
+        return instance
+
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
+        return NestedRuleTargetReader.Context.make(self, makefile)
+
+
