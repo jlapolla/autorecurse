@@ -119,7 +119,7 @@ corresponding nested rule file:
 - The rule's **target** is the nested rule file.
 - The rule's prerequisites are the corresponding nested makefiles.
 - The rule's recipe is always `autorecurse nestedrules -C
-  <execution-directory> -o <nested-rule-file>`.
+  <execution-directory>`.
 
 Once the nested update file is created, `autorecurse` invokes `make`
 with:
@@ -161,9 +161,8 @@ gnumake`:
 - Invoke `make -f <nested-update-file> -f <nested-rule-file>
   <OTHER_ARGUMENTS>`
   - If the **nested rule file** needs to be updated, `make` will call
-    `autorecurse nestedrules -C <execution-directory> -o
-    <nested-rule-file>`, and the following additional steps occur as a
-    result:
+    `autorecurse nestedrules -C <execution-directory>`, and the
+    following additional steps occur as a result:
   - Locate all nested makefiles in the execution directory.
   - Read all targets in nested makefiles. These are called **nested
     targets**.
@@ -242,11 +241,11 @@ nested-update-file: $(NESTED_MAKEFILES)
 
 # Defined in nested-update-file
 target-listing-file-XXX: $(NESTED_MAKEFILE_XXX)
-        autorecurse targetlisting -C $(NESTED_MAKEFILE_DIR_XXX) -f $(NESTED_MAKEFILE_XXX) -o <target-listing-file-XXX>
+        autorecurse targetlisting -C $(NESTED_MAKEFILE_DIR_XXX) -f $(NESTED_MAKEFILE_XXX)
 
 # Defined in nested-update-file
 nested-rule-file: $(TARGET_LISTING_FILES) $(NESTED_MAKEFILES)
-        autorecurse nestedrules -C <execution_directory> -o <nested-rule-file>
+        autorecurse nestedrules -C <execution_directory>
 ```
 
 Each target listing file defines the following rule for its
@@ -273,9 +272,8 @@ gnumake`:
   <OTHER_ARGUMENTS>`
 - `make` checks each **target listing file**:
   - If a target listing file needs to be updated, `make` will call
-    `autorecurse targetlisting -C <makefile-dir> -f <makefile> -o
-    <target-listing-file>`, and the following additional steps occur as
-    a result:
+    `autorecurse targetlisting -C <makefile-dir> -f <makefile>`, and the
+    following additional steps occur as a result:
   - Call `make -np -C <makefile-dir> -f <makefile>`.
   - Read all targets in output database.
   - Create target listing file with one rule for
@@ -283,9 +281,8 @@ gnumake`:
   - `autorecurse targetlisting . . .` returns.
 - `make` checks the **nested rule file**:
   - If the nested rule file needs to be updated, `make` will call
-    `autorecurse nestedrules -C <execution-directory> -o
-    <nested-rule-file>`, and the following additional steps occur as a
-    result:
+    `autorecurse nestedrules -C <execution-directory>`, and the
+    following additional steps occur as a result:
   - Locate all nested makefiles in the execution directory.
   - For each nested makefile:
     - call `make -np -C <nested-makefile-dir-XXX> -f
