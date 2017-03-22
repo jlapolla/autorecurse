@@ -33,6 +33,7 @@ class GnuMake:
     @staticmethod
     def _init_storage_engine(instance: 'GnuMake') -> None:
         mapping = {}
+        mapping[DirectoryEnum.NESTED_RULE] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
         mapping[DirectoryEnum.TARGET_LISTING] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
         mapping[DirectoryEnum.TMP] = os.path.realpath(os.path.expanduser('~/.autorecurse/tmp'))
         directory_mapping = DictionaryDirectoryMapping.make(mapping)
@@ -110,5 +111,8 @@ class GnuMake:
         literal_target = Target.make(prerequisites, order_only_prerequisites, recipe_lines)
         literal_target.path = rel_path
         return literal_target
+
+    def nested_rule_file_path(self, execution_directory: str) -> str:
+        return self._storage_engine.nested_rule_file_path(execution_directory)
 
 
