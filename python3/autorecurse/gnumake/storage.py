@@ -14,8 +14,17 @@ class StorageEngine(metaclass=ABCMeta):
     def create_nested_update_file(self) -> FileLifetimeManager:
         pass
 
+    @abstractmethod
+    def target_listing_file_path(self, makefile: Makefile) -> str:
+        pass
+
+    @abstractmethod
+    def create_target_listing_file(self, makefile: Makefile) -> None:
+        pass
+
 class FileStorageEngine(StorageEngine):
 
+    @staticmethod
     def make(directory_mapping: DirectoryMapping) -> StorageEngine:
         instance = FileStorageEngine()
         instance._directory_mapping = directory_mapping
