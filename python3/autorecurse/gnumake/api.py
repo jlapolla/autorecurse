@@ -80,4 +80,35 @@ class GnuMake:
         target.path = 'autorecurse-all-targets'
         return target
 
+    def target_to_literal_target(self, target: Target, execution_directory: str) -> Target:
+        """
+        ## Specification Domain
+
+        - target.file is not None
+        """
+        exec_path = target.file.exec_path
+        prerequisites = []
+        for prerequisite in target.prerequisites:
+            abs_path = os.path.join(exec_path, prerequisite)
+            rel_path = os.path.relpath(abs_path, start=execution_directory)
+            prerequisites.append(rel_path)
+        order_only_prerequisites = []
+        for order_only_prerequisite in target.order_only_prerequisites:
+            abs_path = os.path.join(exec_path, order_only_prerequisite)
+            rel_path = os.path.relpath(abs_path, start=execution_directory)
+            order_only_prerequisites.append(rel_path)
+        recipe_args = []
+        recipe_args.append(self.executable_name)
+        recipe_args.append('-C')
+        recipe_args.append(target.file.exec_path)
+        recipe_args.append('-f')
+        recipe_args.append(target.file.file_path)
+        recipe_args.append(target.path)
+        recipe_lines = [' '.join(recipe_args)]
+        abs_path = os.path.join(exec_path, target.path)
+        rel_path = os.path.relpath(abs_path, start=execution_directory)
+        literal_target = Target.make(prerequisites, order_only_prerequisites, recipe_lines)
+        literal_target.path = rel_path
+        return literal_target
+
 
