@@ -1,7 +1,7 @@
 from autorecurse.lib.iterator import IteratorContext
 from autorecurse.lib.file import FileLifetimeManager
-from autorecurse.gnumake.implementation import ArgumentParserFactory, DefaultTargetFormatter, Makefile, NestedMakefileLocator, TargetListingTargetReader, Target
-from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine
+from autorecurse.gnumake.implementation import ArgumentParserFactory, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
+from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, TargetListingTargetReader
 from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
 import os

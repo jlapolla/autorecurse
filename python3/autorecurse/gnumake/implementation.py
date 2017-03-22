@@ -3,8 +3,6 @@ from argparse import ArgumentParser, ArgumentError
 from io import StringIO, TextIOBase
 from typing import List
 import os
-from subprocess import Popen, PIPE, CalledProcessError
-import subprocess
 import sys
 from antlr4 import CommonTokenStream, InputStream
 from antlr4.error.Errors import ParseCancellationException
@@ -259,75 +257,6 @@ class Factory:
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
         makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
-
-
-class TargetReader(metaclass=ABCMeta):
-
-    class Context(IteratorContext[Target], metaclass=ABCMeta):
-
-        @staticmethod
-        def _setup(instance: 'TargetReader.Context', parent: 'TargetReader', makefile: Makefile) -> None:
-            instance._parent = parent
-            instance._makefile = makefile
-            instance._process = None
-
-        def __enter__(self) -> Iterator[Target]:
-            self._process = self._spawn_subprocess()
-            return Factory.make_target_iterator_for_file(self._process.stdout, self._makefile)
-
-        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-            if self._process is not None:
-                self._process.stdout.close()
-                self._process.wait()
-                if self._process.returncode != 0:
-                    raise CalledProcessError(self._process.returncode, ' '.join(self._process.args))
-            return False
-
-        @abstractmethod
-        def _spawn_subprocess(self) -> Popen:
-            pass
-
-    @staticmethod
-    def _setup(instance: 'TargetReader', executable_name: str) -> None:
-        instance._executable_name = executable_name
-
-    @property
-    def executable_name(self) -> str:
-        return self._executable_name
-
-    @abstractmethod
-    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
-        pass
-
-
-class TargetListingTargetReader(TargetReader):
-
-    class Context(TargetReader.Context):
-
-        @staticmethod
-        def make(parent: 'TargetListingTargetReader', makefile: Makefile) -> IteratorContext[Target]:
-            instance = TargetListingTargetReader.Context()
-            TargetReader.Context._setup(instance, parent, makefile)
-            return instance
-
-        def _spawn_subprocess(self) -> Popen:
-            args = []
-            args.append(self._parent.executable_name)
-            args.append('-np')
-            args.append('-C')
-            args.append(self._makefile.exec_path)
-            args.append('-f')
-            args.append(self._makefile.file_path)
-            return Popen(args, stdout=PIPE, universal_newlines=True)
-
-    @staticmethod
-    def make(executable_name: str) -> 'TargetListingTargetReader':
-        instance = TargetListingTargetReader()
-        TargetReader._setup(instance, executable_name)
-        return instance
-
-    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
-        return TargetListingTargetReader.Context.make(self, makefile)
 
 
 class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
