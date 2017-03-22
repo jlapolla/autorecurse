@@ -236,45 +236,6 @@ class TestTargetListingTargetReader(unittest.TestCase):
             self.assertIs(target_iterator.is_at_end, True)
 
 
-class TestPriorityMakefileLocator(unittest.TestCase):
-
-    def test_with_result_1(self):
-        locator = PriorityMakefileLocator.make(['does_not_exist.py', 'foo.c', 'bar.c'])
-        with locator.makefile_iterator('test_sample/gnu/project/src') as it:
-            self.assertIs(it.is_at_start, True)
-            it.move_to_next()
-            makefile = it.current_item
-            self.assertEqual(makefile.exec_path, 'test_sample/gnu/project/src')
-            self.assertEqual(makefile.file_path, 'foo.c')
-            it.move_to_next()
-            self.assertIs(it.is_at_end, True)
-
-    def test_with_result_2(self):
-        locator = PriorityMakefileLocator.make(['does_not_exist.py', 'bar.c', 'foo.c'])
-        with locator.makefile_iterator('test_sample/gnu/project/src') as it:
-            self.assertIs(it.is_at_start, True)
-            it.move_to_next()
-            makefile = it.current_item
-            self.assertEqual(makefile.exec_path, 'test_sample/gnu/project/src')
-            self.assertEqual(makefile.file_path, 'bar.c')
-            it.move_to_next()
-            self.assertIs(it.is_at_end, True)
-
-    def test_without_result_1(self):
-        locator = PriorityMakefileLocator.make(['does_not_exist.py'])
-        with locator.makefile_iterator('test_sample/gnu/project/src') as it:
-            self.assertIs(it.is_at_start, True)
-            it.move_to_next()
-            self.assertIs(it.is_at_end, True)
-
-    def test_without_result_2(self):
-        locator = PriorityMakefileLocator.make([])
-        with locator.makefile_iterator('test_sample/gnu/project/src') as it:
-            self.assertIs(it.is_at_start, True)
-            it.move_to_next()
-            self.assertIs(it.is_at_end, True)
-
-
 class TestNestedMakefileLocator(unittest.TestCase):
 
     CWD = os.path.realpath(os.getcwd())
