@@ -33,6 +33,7 @@ class GnuMake:
     @staticmethod
     def _init_storage_engine(instance: 'GnuMake') -> None:
         mapping = {}
+        mapping[DirectoryEnum.TARGET_LISTING] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
         mapping[DirectoryEnum.TMP] = os.path.realpath(os.path.expanduser('~/.autorecurse/tmp'))
         directory_mapping = DictionaryDirectoryMapping.make(mapping)
         instance._storage_engine = FileStorageEngine.make(directory_mapping)
@@ -50,5 +51,8 @@ class GnuMake:
 
     def create_nested_update_file(self) -> FileLifetimeManager:
         return self._storage_engine.create_nested_update_file()
+
+    def target_listing_file_path(self, makefile: Makefile) -> str:
+        return self._storage_engine.target_listing_file_path(makefile)
 
 

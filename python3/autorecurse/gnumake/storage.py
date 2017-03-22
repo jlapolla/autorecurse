@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from autorecurse.lib.file import FileLifetimeManager, UniqueFileCreator
 from autorecurse.common.storage import DirectoryMapping
+from autorecurse.gnumake.implementation import Makefile
+import hashlib
+import os
 
 
 class StorageEngine(metaclass=ABCMeta):
@@ -24,9 +27,23 @@ class FileStorageEngine(StorageEngine):
         self._directory_mapping.make_directory(DirectoryEnum.TMP)
         return FileLifetimeManager.make(file_creator)
 
+    def target_listing_file_path(self, makefile: Makefile) -> str:
+        """
+        ## Notes
+
+        - For application-wide consistency, the passed Makefile must use
+          canonical absolute paths (as returned by os.path.realpath).
+        """
+        hash = hashlib.sha1()
+        hash.update(makefile.path.encode())
+        filename = ''.join(['target-listing.', hash.hexdigest(), '.makefile'])
+        directory = self._directory_mapping.get_directory(DirectoryEnum.TARGET_LISTING)
+        return os.path.join(directory, filename)
+
 
 class DirectoryEnum:
 
+    TARGET_LISTING = 'target listing'
     TMP = 'tmp'
 
 

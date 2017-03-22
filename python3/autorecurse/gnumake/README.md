@@ -208,8 +208,8 @@ parses the output database to get the nested targets. This allows `make`
 to perform its natural preprocessing steps (e.g. expanding variables),
 and results in accurate nested targets.
 
-*Aside: `autorecurse` actually calls `make -np -f <makefile>` to avoid
-running recipes and updating targets.*
+*Aside: `autorecurse` actually calls `make -np -f <makefile>` (note the
+`-n` flag) to avoid running recipes and updating targets.*
 
 Unfortunately, `make -p` does not always provide details for targets
 that use an implicit or pattern rule, so it does not reflect the actual
