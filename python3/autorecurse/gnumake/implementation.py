@@ -3,6 +3,7 @@ from argparse import ArgumentParser, ArgumentError
 from io import StringIO, TextIOBase
 from typing import List
 import os
+from subprocess import Popen, PIPE, CalledProcessError
 import subprocess
 import sys
 from antlr4 import CommonTokenStream, InputStream
@@ -233,34 +234,29 @@ class TargetReader:
         def _setup(instance: 'TargetReader.Context', parent: 'TargetReader', makefile: Makefile) -> None:
             instance._parent = parent
             instance._makefile = makefile
-            instance._stringio = None
+            instance._process = None
 
         def __enter__(self) -> Iterator[Target]:
-            """
-            ## Suggestions
+            self._process = self._spawn_subprocess()
+            return Factory.make_target_iterator_for_file(self._process.stdout, self._makefile)
 
-            - Use subprocess.Popen and feed stdout directly to the
-              parsing pipeline. This will require a TextIOWrapper, and
-              additional code in __exit__.
-            """
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            if self._process is not None:
+                self._process.stdout.close()
+                self._process.wait()
+                if self._process.returncode != 0:
+                    raise CalledProcessError(self._process.returncode, ' '.join(self._process.args))
+            return False
+
+        def _spawn_subprocess(self):
             args = []
             args.append(self._parent.executable_name)
             args.append('-np')
-            if len(self._makefile.exec_path) != 0:
-                args.append('-C')
-                args.append(self._makefile.exec_path)
+            args.append('-C')
+            args.append(self._makefile.exec_path)
             args.append('-f')
             args.append(self._makefile.file_path)
-            result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode != 0:
-                sys.stderr.write(result.stderr.decode())
-                raise subprocess.CalledProcessError(result.returncode, ' '.join(result.args), result.stdout, result.stderr)
-            self._stringio = StringIO(result.stdout.decode())
-            return Factory.make_target_iterator_for_file(self._stringio, self._makefile)
-
-        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-            self._stringio.close()
-            return False
+            return Popen(args, stdout=PIPE, universal_newlines=True)
 
     @staticmethod
     def make(executable_name: str) -> 'TargetReader':
