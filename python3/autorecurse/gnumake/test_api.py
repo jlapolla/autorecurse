@@ -42,4 +42,11 @@ class TestGnuMake(unittest.TestCase):
         with self.assertRaises(ArgumentError):
             self.assertEqual(gnu.execution_directory('-f Makefile -np -C'.split()), '/etc/usr')
 
+    @unittest.skip('Writes files to user\'s home directory')
+    def test_target_listing_file(self):
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/project/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu = GnuMake.get_instance()
+        gnu.update_target_listing_file(makefile)
+
 

@@ -1,6 +1,6 @@
 from autorecurse.lib.iterator import IteratorContext
 from autorecurse.lib.file import FileLifetimeManager
-from autorecurse.gnumake.implementation import ArgumentParserFactory, Makefile, NestedMakefileLocator
+from autorecurse.gnumake.implementation import ArgumentParserFactory, DefaultTargetFormatter, Makefile, NestedMakefileLocator, TargetListingTargetReader, Target
 from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine
 from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
@@ -38,6 +38,10 @@ class GnuMake:
         directory_mapping = DictionaryDirectoryMapping.make(mapping)
         instance._storage_engine = FileStorageEngine.make(directory_mapping)
 
+    @property
+    def executable_name(self) -> str:
+        return 'make'
+
     def nested_makefiles(self, directory_path: str) -> IteratorContext[Makefile]:
         return self._makefile_locator.makefile_iterator(directory_path)
 
@@ -54,5 +58,26 @@ class GnuMake:
 
     def target_listing_file_path(self, makefile: Makefile) -> str:
         return self._storage_engine.target_listing_file_path(makefile)
+
+    def update_target_listing_file(self, makefile: Makefile) -> None:
+        target = self._get_target_listing_target(makefile)
+        self._storage_engine.create_target_listing_file(makefile)
+        with open(self.target_listing_file_path(makefile), mode='w') as file:
+            target_formatter = DefaultTargetFormatter.make()
+            file.write('.PHONY: ')
+            file.write(target.path)
+            file.write('\n')
+            target_formatter.print(target, file)
+            file.write('\n')
+
+    def _get_target_listing_target(self, makefile: Makefile) -> Target:
+        target_reader = TargetListingTargetReader.make(self.executable_name)
+        makefile_targets = []
+        with target_reader.target_iterator(makefile) as targets:
+            for target in targets:
+                makefile_targets.append(target.path)
+        target = Target.make(makefile_targets, [], [])
+        target.path = 'autorecurse-all-targets'
+        return target
 
 

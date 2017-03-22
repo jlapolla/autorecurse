@@ -40,6 +40,13 @@ class FileStorageEngine(StorageEngine):
         directory = self._directory_mapping.get_directory(DirectoryEnum.TARGET_LISTING)
         return os.path.join(directory, filename)
 
+    def create_target_listing_file(self, makefile: Makefile) -> None:
+        path = self.target_listing_file_path(makefile)
+        if not os.path.isfile(path):
+            self._directory_mapping.make_directory(DirectoryEnum.TARGET_LISTING)
+            with open(path, mode='a') as file:
+                pass
+
 
 class DirectoryEnum:
 
