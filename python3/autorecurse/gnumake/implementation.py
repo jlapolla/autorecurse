@@ -220,15 +220,9 @@ class Factory:
         return makefile_target_iterator
 
 
-class TargetReader:
+class TargetReader(metaclass=ABCMeta):
 
-    class Context(IteratorContext[Target]):
-
-        @staticmethod
-        def make(parent: 'TargetReader', makefile: Makefile) -> IteratorContext[Target]:
-            instance = TargetReader.Context()
-            TargetReader.Context._setup(instance, parent, makefile)
-            return instance
+    class Context(IteratorContext[Target], metaclass=ABCMeta):
 
         @staticmethod
         def _setup(instance: 'TargetReader.Context', parent: 'TargetReader', makefile: Makefile) -> None:
@@ -248,7 +242,34 @@ class TargetReader:
                     raise CalledProcessError(self._process.returncode, ' '.join(self._process.args))
             return False
 
-        def _spawn_subprocess(self):
+        @abstractmethod
+        def _spawn_subprocess(self) -> Popen:
+            pass
+
+    @staticmethod
+    def _setup(instance: 'TargetReader', executable_name: str) -> None:
+        instance._executable_name = executable_name
+
+    @property
+    def executable_name(self) -> str:
+        return self._executable_name
+
+    @abstractmethod
+    def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
+        pass
+
+
+class TargetListingTargetReader(TargetReader):
+
+    class Context(TargetReader.Context):
+
+        @staticmethod
+        def make(parent: 'TargetListingTargetReader', makefile: Makefile) -> IteratorContext[Target]:
+            instance = TargetListingTargetReader.Context()
+            TargetReader.Context._setup(instance, parent, makefile)
+            return instance
+
+        def _spawn_subprocess(self) -> Popen:
             args = []
             args.append(self._parent.executable_name)
             args.append('-np')
@@ -259,21 +280,13 @@ class TargetReader:
             return Popen(args, stdout=PIPE, universal_newlines=True)
 
     @staticmethod
-    def make(executable_name: str) -> 'TargetReader':
-        instance = TargetReader()
+    def make(executable_name: str) -> 'TargetListingTargetReader':
+        instance = TargetListingTargetReader()
         TargetReader._setup(instance, executable_name)
         return instance
 
-    @staticmethod
-    def _setup(instance: 'TargetReader', executable_name: str) -> None:
-        instance._executable_name = executable_name
-
-    @property
-    def executable_name(self) -> str:
-        return self._executable_name
-
     def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
-        return TargetReader.Context.make(self, makefile)
+        return TargetListingTargetReader.Context.make(self, makefile)
 
 
 class MakefileRuleParserToIteratorAdapter(Iterator[Target]):

@@ -128,10 +128,10 @@ a b c: d | e"""
         self.assertIs(it.is_at_end, True)
 
 
-class TestTargetReader(unittest.TestCase):
+class TestTargetListingTargetReader(unittest.TestCase):
 
     def test_target_iterator(self):
-        target_reader = TargetReader.make('make')
+        target_reader = TargetListingTargetReader.make('make')
         makefile = Makefile.make('test_sample/gnu/project/Makefile')
         with target_reader.target_iterator(makefile) as target_iterator:
             self.assertIs(target_iterator.is_at_start, True)
