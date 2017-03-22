@@ -1,12 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from typing import Generic, Iterable, TypeVar
+import typing
 
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 
 
-class Iterator(Generic[T_co], metaclass=ABCMeta):
+class Iterator(Generic[T_co], Iterable[T_co], metaclass=ABCMeta):
     """
     A stream of items.
 
@@ -93,6 +94,9 @@ class Iterator(Generic[T_co], metaclass=ABCMeta):
     def move_to_end(self) -> None:
         while not self.is_at_end:
             self.move_to_next()
+
+    def __iter__(self) -> typing.Iterator[T_co]:
+        return PythonIteratorWrapper.make(self)
 
 
 class IteratorContext(Generic[T_co], metaclass=ABCMeta):
@@ -225,6 +229,28 @@ class IteratorConcatenator(Iterator[T]):
 
     def _to_E(self) -> None:
         self._current_iterator = None
+
+
+class PythonIteratorWrapper(typing.Iterator[T_co]):
+
+    @staticmethod
+    def make(iterator: Iterator[T_co]) -> typing.Iterator[T_co]:
+        instance = PythonIteratorWrapper()
+        instance._iterator = iterator
+        return instance
+
+    def __iter__(self) -> typing.Iterator[T_co]:
+        return self
+
+    def __next__(self):
+        if not self._iterator.is_at_end: # State S or I
+            self._iterator.move_to_next()
+            if not self._iterator.is_at_end: # S -> I or I -> I
+                return self._iterator.current_item
+            else: # S -> E or I -> E
+                raise StopIteration()
+        else: # State E
+            raise StopIteration()
 
 
 del T_co
