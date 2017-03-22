@@ -49,7 +49,7 @@ class TestDefaultTargetFormatter(unittest.TestCase):
             return strbuff.getvalue()
 
 
-class TestTarget(unittest.TestCase):
+class TestParseContextTargetBuilder(unittest.TestCase):
 
     def test_basic_operation(self):
         string = """\\backslash\\target\\:: source\\ |\t\\back\tslash\\ 
