@@ -125,6 +125,47 @@ class Target:
         return ListIterator.make(self._recipe_lines)
 
 
+class TargetFormatter(metaclass=ABCMeta):
+
+    @abstractmethod
+    def print(self, target: Target, file: TextIOBase) -> None:
+        pass
+
+
+class DefaultTargetFormatter(TargetFormatter):
+
+    _INSTANCE = None
+
+    @staticmethod
+    def make() -> TargetFormatter:
+        if DefaultTargetFormatter._INSTANCE is None:
+            DefaultTargetFormatter._INSTANCE = DefaultTargetFormatter()
+        return DefaultTargetFormatter._INSTANCE
+
+    def print(self, target: Target, file: TextIOBase) -> None:
+        file.write(target.path)
+        file.write(':')
+        for prerequisite in target.prerequisites:
+            file.write(' ')
+            file.write(prerequisite)
+        first_oo_prerequisite = True
+        for oo_prerequisite in target.order_only_prerequisites:
+            if first_oo_prerequisite:
+                file.write(' |')
+                first_oo_prerequisite = False
+            file.write(' ')
+            file.write(oo_prerequisite)
+        has_recipe_lines = False
+        for recipe_line in target.recipe_lines:
+            file.write('\n\t')
+            file.write(recipe_line)
+            if not has_recipe_lines:
+                has_recipe_lines = True
+        if not has_recipe_lines:
+            file.write(' ;')
+        file.write('\n')
+
+
 class ParseContextTargetBuilder:
 
     _INSTANCE = None
