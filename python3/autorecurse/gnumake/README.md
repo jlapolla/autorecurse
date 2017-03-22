@@ -291,7 +291,7 @@ gnumake`:
     - call `make -np -C <nested-makefile-dir-XXX> -f
       <nested-makefile-XXX> -f <target-listing-file-XXX>
       autorecurse-all-targets`. Specifying `autorecurse-all-targets` as
-      the goal ensures that all implicit rule are searched.
+      the goal ensures that all implicit rules are searched.
     - Read all targets in output database. This is the full set of
       **nested targets**.
   - Translate all nested targets into literal targets relative to the
