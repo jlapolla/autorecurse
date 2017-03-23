@@ -1,7 +1,7 @@
 from autorecurse.lib.iterator import IteratorContext
 from autorecurse.lib.file import FileLifetimeManager
 from autorecurse.gnumake.implementation import ArgumentParserFactory, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
-from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, TargetListingTargetReader
+from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, NestedRuleTargetReader, TargetListingTargetReader
 from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
 import os
@@ -12,17 +12,16 @@ class GnuMake:
     _INSTANCE = None
 
     @staticmethod
-    def get_instance() -> 'GnuMake':
+    def make() -> 'GnuMake':
         if GnuMake._INSTANCE is None:
-            GnuMake._INSTANCE = GnuMake._make()
+            GnuMake._INSTANCE = GnuMake()
+            GnuMake._init_nested_makefile_locator(GnuMake._INSTANCE)
+            GnuMake._init_storage_engine(GnuMake._INSTANCE)
         return GnuMake._INSTANCE
 
     @staticmethod
-    def _make() -> 'GnuMake':
-        instance = GnuMake()
-        GnuMake._init_nested_makefile_locator(instance)
-        GnuMake._init_storage_engine(instance)
-        return instance
+    def get_instance() -> 'GnuMake':
+        return GnuMake.make()
 
     @staticmethod
     def _init_nested_makefile_locator(instance: 'GnuMake') -> None:
@@ -114,5 +113,18 @@ class GnuMake:
 
     def nested_rule_file_path(self, execution_directory: str) -> str:
         return self._storage_engine.nested_rule_file_path(execution_directory)
+
+    def update_nested_rule_file(self, execution_directory: str) -> None:
+        target_reader = NestedRuleTargetReader.make(self.executable_name, self._storage_engine)
+        target_formatter = DefaultTargetFormatter.make()
+        self._storage_engine.create_nested_rule_file(execution_directory)
+        with open(self.nested_rule_file_path(execution_directory), mode='w') as file:
+            with self.nested_makefiles(execution_directory) as nested_makefiles:
+                for nested_makefile in nested_makefiles:
+                    with target_reader.target_iterator(nested_makefile) as nested_targets:
+                        for nested_target in nested_targets:
+                            literal_target = self.target_to_literal_target(nested_target, execution_directory)
+                            target_formatter.print(literal_target, file)
+                            file.write('\n')
 
 

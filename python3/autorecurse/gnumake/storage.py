@@ -26,6 +26,10 @@ class StorageEngine(metaclass=ABCMeta):
     def nested_rule_file_path(self, execution_directory: str) -> str:
         pass
 
+    @abstractmethod
+    def create_nested_rule_file(self, execution_directory: str) -> None:
+        pass
+
 class FileStorageEngine(StorageEngine):
 
     @staticmethod
@@ -77,6 +81,13 @@ class FileStorageEngine(StorageEngine):
         hash.update(message.encode())
         return hash.hexdigest()
 
+    def create_nested_rule_file(self, execution_directory: str) -> None:
+        path = self.nested_rule_file_path(execution_directory)
+        if not os.path.isfile(path):
+            self._directory_mapping.make_directory(DirectoryEnum.NESTED_RULE)
+            with open(path, mode='a') as file:
+                pass
+
 
 class DirectoryEnum:
 
@@ -103,9 +114,12 @@ class TargetReader(metaclass=ABCMeta):
             if self._process is not None:
                 self._process.stdout.close()
                 self._process.wait()
-                if self._process.returncode != 0:
-                    raise CalledProcessError(self._process.returncode, ' '.join(self._process.args))
+                self._check_returncode()
             return False
+
+        def _check_returncode(self) -> None:
+            if self._process.returncode != 0:
+                raise CalledProcessError(self._process.returncode, ' '.join(self._process.args))
 
         @abstractmethod
         def _spawn_subprocess(self) -> Popen:
@@ -133,6 +147,9 @@ class TargetListingTargetReader(TargetReader):
             instance = TargetListingTargetReader.Context()
             TargetReader.Context._setup(instance, parent, makefile)
             return instance
+
+        def _check_returncode(self) -> None:
+            pass
 
         def _spawn_subprocess(self) -> Popen:
             args = []
@@ -163,6 +180,9 @@ class NestedRuleTargetReader(TargetReader):
             instance = NestedRuleTargetReader.Context()
             TargetReader.Context._setup(instance, parent, makefile)
             return instance
+
+        def _check_returncode(self) -> None:
+            pass
 
         def _spawn_subprocess(self) -> Popen:
             target_listing_file = self._parent._storage_engine.target_listing_file_path(self._makefile)
