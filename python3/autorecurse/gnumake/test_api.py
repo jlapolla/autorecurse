@@ -49,4 +49,19 @@ class TestGnuMake(unittest.TestCase):
         gnu = GnuMake.get_instance()
         gnu.update_target_listing_file(makefile)
 
+    @unittest.skip('Writes files to user\'s home directory')
+    def test_nested_rule_file(self):
+        gnu = GnuMake.make()
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu.update_target_listing_file(makefile)
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/project-1/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu.update_target_listing_file(makefile)
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/project-2/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu.update_target_listing_file(makefile)
+        execution_directory = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects')
+        gnu.update_nested_rule_file(execution_directory)
+
 

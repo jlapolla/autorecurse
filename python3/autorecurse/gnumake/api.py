@@ -98,9 +98,10 @@ class GnuMake:
             rel_path = os.path.relpath(abs_path, start=execution_directory)
             order_only_prerequisites.append(rel_path)
         recipe_args = []
-        recipe_args.append(self.executable_name)
-        recipe_args.append('-C')
-        recipe_args.append(target.file.exec_path)
+        recipe_args.append('@$(MAKE) --no-print-directory -C')
+        abs_path = exec_path
+        rel_path = os.path.relpath(abs_path, start=execution_directory)
+        recipe_args.append(rel_path)
         recipe_args.append('-f')
         recipe_args.append(target.file.file_path)
         recipe_args.append(target.path)
@@ -123,8 +124,9 @@ class GnuMake:
                 for nested_makefile in nested_makefiles:
                     with target_reader.target_iterator(nested_makefile) as nested_targets:
                         for nested_target in nested_targets:
-                            literal_target = self.target_to_literal_target(nested_target, execution_directory)
-                            target_formatter.print(literal_target, file)
-                            file.write('\n')
+                            if nested_target.path != 'autorecurse-all-targets':
+                                literal_target = self.target_to_literal_target(nested_target, execution_directory)
+                                target_formatter.print(literal_target, file)
+                                file.write('\n')
 
 
