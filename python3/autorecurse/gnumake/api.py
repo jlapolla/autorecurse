@@ -4,6 +4,7 @@ from autorecurse.gnumake.implementation import ArgumentParserFactory, DefaultTar
 from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, NestedRuleTargetReader, TargetListingTargetReader
 from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
+from io import TextIOBase
 import os
 
 
@@ -55,6 +56,27 @@ class GnuMake:
 
     def create_nested_update_file(self) -> FileLifetimeManager:
         return self._storage_engine.create_nested_update_file()
+
+    def update_nested_update_file(self, file: TextIOBase, execution_directory: str) -> None:
+        target_formatter = DefaultTargetFormatter.make()
+        nested_rule_file_prerequisites = []
+        with self.nested_makefiles(execution_directory) as nested_makefiles:
+            for nested_makefile in nested_makefiles:
+                makefile_exec_path = os.path.relpath(nested_makefile.exec_path, start=execution_directory)
+                makefile_file_path = nested_makefile.file_path
+                makefile_path = os.path.join(makefile_exec_path, makefile_file_path)
+                prerequisites = [makefile_path]
+                recipe_lines = [' '.join(['autorecurse targetlisting', makefile_exec_path, makefile_file_path])]
+                target = Target.make(prerequisites, [], recipe_lines)
+                target.path = self.target_listing_file_path(nested_makefile)
+                target_formatter.print(target, file)
+                file.write('\n')
+                nested_rule_file_prerequisites.append(target.path)
+        recipe_lines = [' '.join(['autorecurse nestedrules', os.path.relpath(execution_directory, start=execution_directory)])]
+        target = Target.make(nested_rule_file_prerequisites, [], recipe_lines)
+        target.path = self.nested_rule_file_path(execution_directory)
+        target_formatter.print(target, file)
+        file.write('\n')
 
     def target_listing_file_path(self, makefile: Makefile) -> str:
         return self._storage_engine.target_listing_file_path(makefile)
