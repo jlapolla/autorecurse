@@ -298,7 +298,7 @@ gnumake`:
 - `make` reads the nested rule file.
 - `make` reads all other makefiles and arguments.
 - `make` executes.
-- `autorecurse` deletes the nested update file. The taret listing files
+- `autorecurse` deletes the nested update file. The target listing files
   and nested rule file are cached for future invocations.
 
 # Links Index
