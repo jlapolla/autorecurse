@@ -78,8 +78,11 @@ class Cli:
                 if args[0] == 'gnumake':
                     namespace, make_args = parser.parse_known_args(args)
                     gnu = GnuMake.make()
-                    execution_directory = gnu.execution_directory(args[1:])
-                    raise NotImplementedError()
+                    execution_directory = gnu.execution_directory(make_args)
+                    with gnu.create_nested_update_file() as file_manager:
+                        with file_manager.open_file('w') as file:
+                            gnu.update_nested_update_file(file, execution_directory)
+                        gnu.run_make(make_args, file_manager.file_path)
                     break
                 if args[0] == 'targetlisting':
                     namespace = parser.parse_args(args)
@@ -95,6 +98,8 @@ class Cli:
                     gnu = GnuMake.make()
                     gnu.update_nested_rule_file(directory)
                     break
+                parser.parse_args(args)
+                break
             parser.parse_args(['-h'])
             break
         pass

@@ -117,6 +117,10 @@ class FileLifetimeManager:
     def open_file(self, *args, **kwargs) -> IOBase:
         return open(self._file_creator.file_path, *args, **kwargs)
 
+    @property
+    def file_path(self) -> str:
+        return self._file_creator.file_path
+
     def __enter__(self) -> 'FileLifetimeManager':
         self._file_creator.create_file()
         return self

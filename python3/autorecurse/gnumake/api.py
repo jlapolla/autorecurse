@@ -6,6 +6,8 @@ from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
 from io import TextIOBase
 import os
+import sys
+import subprocess
 
 
 class GnuMake:
@@ -150,5 +152,17 @@ class GnuMake:
                                 literal_target = self.target_to_literal_target(nested_target, execution_directory)
                                 target_formatter.print(literal_target, file)
                                 file.write('\n')
+
+    def run_make(self, args: List[str], nested_update_file_path: str) -> None:
+        execution_directory = self.execution_directory(args)
+        prefix_args = []
+        prefix_args.append(self.executable_name)
+        prefix_args.append('-f')
+        prefix_args.append(self.nested_rule_file_path(execution_directory))
+        prefix_args.append('-f')
+        prefix_args.append(nested_update_file_path)
+        prefix_args.extend(args)
+        result = subprocess.run(prefix_args)
+        sys.exit(result.returncode)
 
 
