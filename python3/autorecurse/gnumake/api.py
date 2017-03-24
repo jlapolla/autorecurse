@@ -3,11 +3,11 @@ from autorecurse.lib.file import FileLifetimeManager
 from autorecurse.gnumake.implementation import ArgumentParserFactory, BaseMakefileLocator, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
 from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, NestedRuleTargetReader, TargetListingTargetReader
 from autorecurse.common.storage import DictionaryDirectoryMapping
+from subprocess import Popen
 from typing import List
 from io import TextIOBase
 import os
 import sys
-import subprocess
 
 
 class GnuMake:
@@ -188,7 +188,12 @@ class GnuMake:
         suffix_args.append(nested_update_file_path)
         prefix_args.extend(args)
         prefix_args.extend(suffix_args)
-        result = subprocess.run(prefix_args)
-        sys.exit(result.returncode)
+        proc = Popen(prefix_args)
+        try:
+            proc.wait()
+        except KeyboardInterrupt:
+            proc.terminate()
+            proc.wait()
+        sys.exit(proc.returncode)
 
 
