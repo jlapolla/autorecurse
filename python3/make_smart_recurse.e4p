@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-20, 09:13:21 -->
+<!-- Saved: 2017-03-24, 13:22:39 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -101,6 +101,10 @@
     <Source>test_main.py</Source>
     <Source>autorecurse/lib/file.py</Source>
     <Source>autorecurse/lib/test_file.py</Source>
+    <Source>autorecurse/cli.py</Source>
+    <Source>autorecurse/gnumake/storage.py</Source>
+    <Source>autorecurse/common/__init__.py</Source>
+    <Source>autorecurse/common/storage.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
