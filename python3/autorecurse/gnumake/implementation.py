@@ -379,38 +379,10 @@ class DirectoryMakefileLocator(metaclass=ABCMeta):
         pass
 
 
-class NestedMakefileLocator(DirectoryMakefileLocator):
+class PriorityMakefileLocator(DirectoryMakefileLocator):
 
-    class Context(IteratorContext[Makefile]):
-
-        @staticmethod
-        def make(parent: 'NestedMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
-            instance = NestedMakefileLocator.Context()
-            instance._parent = parent
-            instance._directory_path = directory_path
-            return instance
-
-        def __enter__(self) -> Iterator[Makefile]:
-            list_ = []
-            for dirpath, dirnames, filenames in os.walk(self._directory_path):
-                name = self._parent._get_best_name(filenames)
-                if name is not None:
-                    abs_path = os.path.realpath(os.path.join(os.getcwd(), dirpath))
-                    list_.append(Makefile.make_with_exec_path(abs_path, name))
-                else:
-                    dirnames.clear()
-            return ListIterator.make(list_)
-
-        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-            return False
-
-    def make() -> 'NestedMakefileLocator':
-        instance = NestedMakefileLocator()
+    def _setup(instance: 'PriorityMakefileLocator') -> None:
         instance._priorities = {}
-        return instance
-
-    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
-        return NestedMakefileLocator.Context.make(self, directory_path)
 
     def set_filename_priorities(self, filenames: List[str]) -> None:
         self._priorities = {}
@@ -429,6 +401,79 @@ class NestedMakefileLocator(DirectoryMakefileLocator):
                     best_name = name
                     best_priority = priority
         return best_name
+
+
+class NestedMakefileLocator(PriorityMakefileLocator):
+
+    class Context(IteratorContext[Makefile]):
+
+        @staticmethod
+        def make(parent: 'NestedMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = NestedMakefileLocator.Context()
+            instance._parent = parent
+            instance._directory_path = directory_path
+            return instance
+
+        def __enter__(self) -> Iterator[Makefile]:
+            list_ = []
+            first_directory = True
+            for dirpath, dirnames, filenames in os.walk(self._directory_path):
+                name = self._parent._get_best_name(filenames)
+                if name is not None:
+                    if not first_directory:
+                        abs_path = os.path.realpath(os.path.join(os.getcwd(), dirpath))
+                        list_.append(Makefile.make_with_exec_path(abs_path, name))
+                else:
+                    dirnames.clear()
+                if first_directory:
+                    first_directory = False
+            return ListIterator.make(list_)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            return False
+
+    def make() -> 'NestedMakefileLocator':
+        instance = NestedMakefileLocator()
+        PriorityMakefileLocator._setup(instance)
+        return instance
+
+    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
+        return NestedMakefileLocator.Context.make(self, directory_path)
+
+
+class BaseMakefileLocator(PriorityMakefileLocator):
+
+    class Context(IteratorContext[Makefile]):
+
+        @staticmethod
+        def make(parent: 'BaseMakefileLocator', directory_path: str) -> IteratorContext[Makefile]:
+            instance = BaseMakefileLocator.Context()
+            instance._parent = parent
+            instance._directory_path = directory_path
+            return instance
+
+        def __enter__(self) -> Iterator[Makefile]:
+            filenames = []
+            for entry in os.scandir(self._directory_path):
+                if entry.is_file():
+                    filenames.append(entry.name)
+            list_ = []
+            name = self._parent._get_best_name(filenames)
+            if name is not None:
+                abs_path = os.path.realpath(os.path.join(os.getcwd(), self._directory_path))
+                list_.append(Makefile.make_with_exec_path(abs_path, name))
+            return ListIterator.make(list_)
+
+        def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+            return False
+
+    def make() -> 'BaseMakefileLocator':
+        instance = BaseMakefileLocator()
+        PriorityMakefileLocator._setup(instance)
+        return instance
+
+    def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
+        return BaseMakefileLocator.Context.make(self, directory_path)
 
 
 class ThrowingArgumentParser(ArgumentParser):

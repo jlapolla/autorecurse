@@ -1,6 +1,6 @@
 from autorecurse.lib.iterator import IteratorContext
 from autorecurse.lib.file import FileLifetimeManager
-from autorecurse.gnumake.implementation import ArgumentParserFactory, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
+from autorecurse.gnumake.implementation import ArgumentParserFactory, BaseMakefileLocator, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
 from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, NestedRuleTargetReader, TargetListingTargetReader
 from autorecurse.common.storage import DictionaryDirectoryMapping
 from typing import List
@@ -19,6 +19,7 @@ class GnuMake:
         if GnuMake._INSTANCE is None:
             GnuMake._INSTANCE = GnuMake()
             GnuMake._init_nested_makefile_locator(GnuMake._INSTANCE)
+            GnuMake._init_base_makefile_locator(GnuMake._INSTANCE)
             GnuMake._init_storage_engine(GnuMake._INSTANCE)
         return GnuMake._INSTANCE
 
@@ -30,7 +31,13 @@ class GnuMake:
     def _init_nested_makefile_locator(instance: 'GnuMake') -> None:
         locator = NestedMakefileLocator.make()
         locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
-        instance._makefile_locator = locator
+        instance._nested_makefile_locator = locator
+
+    @staticmethod
+    def _init_base_makefile_locator(instance: 'GnuMake') -> None:
+        locator = BaseMakefileLocator.make()
+        locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
+        instance._base_makefile_locator = locator
 
     @staticmethod
     def _init_storage_engine(instance: 'GnuMake') -> None:
@@ -45,8 +52,16 @@ class GnuMake:
     def executable_name(self) -> str:
         return 'make'
 
+    def base_makefile(self, directory_path: str) -> Makefile:
+        with self._base_makefile_locator.makefile_iterator(directory_path) as makefiles:
+            result = None
+            for makefile in makefiles:
+                result = makefile
+                break
+            return result
+
     def nested_makefiles(self, directory_path: str) -> IteratorContext[Makefile]:
-        return self._makefile_locator.makefile_iterator(directory_path)
+        return self._nested_makefile_locator.makefile_iterator(directory_path)
 
     def execution_directory(self, args: List[str]) -> str:
         parser = ArgumentParserFactory.create_parser()
@@ -157,11 +172,17 @@ class GnuMake:
         execution_directory = self.execution_directory(args)
         prefix_args = []
         prefix_args.append(self.executable_name)
-        prefix_args.append('-f')
-        prefix_args.append(self.nested_rule_file_path(execution_directory))
-        prefix_args.append('-f')
-        prefix_args.append(nested_update_file_path)
+        suffix_args = []
+        base_makefile = self.base_makefile(execution_directory)
+        if base_makefile is not None:
+            suffix_args.append('-f')
+            suffix_args.append(base_makefile.file_path)
+        suffix_args.append('-f')
+        suffix_args.append(self.nested_rule_file_path(execution_directory))
+        suffix_args.append('-f')
+        suffix_args.append(nested_update_file_path)
         prefix_args.extend(args)
+        prefix_args.extend(suffix_args)
         result = subprocess.run(prefix_args)
         sys.exit(result.returncode)
 
