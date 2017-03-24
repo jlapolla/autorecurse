@@ -18,6 +18,7 @@ class GnuMake:
     def make() -> 'GnuMake':
         if GnuMake._INSTANCE is None:
             GnuMake._INSTANCE = GnuMake()
+            GnuMake._INSTANCE._executable_name = 'make'
             GnuMake._init_nested_makefile_locator(GnuMake._INSTANCE)
             GnuMake._init_base_makefile_locator(GnuMake._INSTANCE)
             GnuMake._init_storage_engine(GnuMake._INSTANCE)
@@ -50,7 +51,11 @@ class GnuMake:
 
     @property
     def executable_name(self) -> str:
-        return 'make'
+        return self._executable_name
+
+    @executable_name.setter
+    def executable_name(self, value: str) -> None:
+        self._executable_name = value
 
     def base_makefile(self, directory_path: str) -> Makefile:
         with self._base_makefile_locator.makefile_iterator(directory_path) as makefiles:
