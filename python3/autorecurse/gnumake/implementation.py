@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from argparse import ArgumentParser, ArgumentError
+from argparse import ArgumentParser
 from io import StringIO, TextIOBase
 from typing import List
 import os
@@ -11,6 +11,7 @@ from autorecurse.lib.line import FileLineIterator, LineToCharIterator
 from autorecurse.lib.stream import ConditionFilter
 from autorecurse.gnumake.grammar import DatabaseSectionFilter, FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
 from autorecurse.lib.antlr4.stream import TokenSourceToIteratorAdapter, TokenToCharIterator
+from autorecurse.lib.python.argparse import ThrowingArgumentParser
 
 
 class Makefile:
@@ -474,12 +475,6 @@ class BaseMakefileLocator(PriorityMakefileLocator):
 
     def makefile_iterator(self, directory_path: str) -> IteratorContext[Makefile]:
         return BaseMakefileLocator.Context.make(self, directory_path)
-
-
-class ThrowingArgumentParser(ArgumentParser):
-
-    def error(self, message: str) -> None:
-        raise ArgumentError(None, message)
 
 
 class ArgumentParserFactory:
