@@ -1,8 +1,9 @@
-from abc import ABCMeta, abstractmethod
-from autorecurse.lib.iterator import Iterator, IteratorContext
-from autorecurse.lib.file import FileLifetimeManager, UniqueFileCreator
 from autorecurse.common.storage import DirectoryMapping
-from autorecurse.gnumake.implementation import Factory, Makefile, Target
+from autorecurse.lib.file import FileLifetimeManager, UniqueFileCreator
+from autorecurse.lib.iterator import Iterator, IteratorContext
+from autorecurse.gnumake.data import Makefile, Target
+from autorecurse.gnumake.implementation import Factory
+from abc import ABCMeta, abstractmethod
 from subprocess import Popen, PIPE, CalledProcessError
 import hashlib
 import os
