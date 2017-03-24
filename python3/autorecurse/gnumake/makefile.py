@@ -1,6 +1,6 @@
 from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
 from autorecurse.gnumake.data import Makefile, Target
-from autorecurse.gnumake.implementation import Factory
+from autorecurse.gnumake.parse import Factory
 from autorecurse.gnumake.storage import StorageEngine
 from abc import ABCMeta, abstractmethod
 from subprocess import Popen, PIPE, CalledProcessError
