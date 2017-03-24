@@ -1,8 +1,10 @@
 from autorecurse.lib.iterator import IteratorContext
 from autorecurse.lib.file import FileLifetimeManager
-from autorecurse.gnumake.implementation import ArgumentParserFactory, BaseMakefileLocator, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
+from autorecurse.gnumake.implementation import BaseMakefileLocator, DefaultTargetFormatter, Makefile, NestedMakefileLocator, Target
 from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, NestedRuleTargetReader, TargetListingTargetReader
 from autorecurse.common.storage import DictionaryDirectoryMapping
+from autorecurse.lib.python.argparse import ThrowingArgumentParser
+from argparse import ArgumentParser
 from subprocess import Popen
 from typing import List
 from io import TextIOBase
@@ -11,6 +13,22 @@ import sys
 
 
 class GnuMake:
+
+    class ArgumentParserFactory:
+
+        _PARSER = None
+
+        @staticmethod
+        def create_parser() -> ArgumentParser:
+            if GnuMake.ArgumentParserFactory._PARSER is None:
+                GnuMake.ArgumentParserFactory._PARSER = GnuMake.ArgumentParserFactory._create_parser()
+            return GnuMake.ArgumentParserFactory._PARSER
+
+        @staticmethod
+        def _create_parser() -> ArgumentParser:
+            parser = ThrowingArgumentParser(prog='', add_help=False, allow_abbrev=False)
+            parser.add_argument('-C', '--directory', action='append', dest='directory', metavar='dir')
+            return parser
 
     _INSTANCE = None
 
@@ -69,7 +87,7 @@ class GnuMake:
         return self._nested_makefile_locator.makefile_iterator(directory_path)
 
     def execution_directory(self, args: List[str]) -> str:
-        parser = ArgumentParserFactory.create_parser()
+        parser = GnuMake.ArgumentParserFactory.create_parser()
         directory_options = parser.parse_known_args(args)[0].directory
         if directory_options is None:
             return os.path.realpath(os.getcwd())
