@@ -1,6 +1,6 @@
-import os
 from abc import ABCMeta, abstractmethod
 from typing import Dict
+import os
 
 
 class DirectoryMapping(metaclass=ABCMeta):

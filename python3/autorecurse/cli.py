@@ -1,9 +1,9 @@
-from autorecurse.gnumake.implementation import Makefile
-from autorecurse.gnumake.api import GnuMake
+from autorecurse.gnumake.implementation import GnuMake
+from autorecurse.gnumake.data import Makefile
 from argparse import ArgumentParser
 from typing import Dict, List
-import sys
 import os
+import sys
 
 
 class Cli:

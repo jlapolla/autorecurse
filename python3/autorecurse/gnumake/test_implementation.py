@@ -1,177 +1,64 @@
+from argparse import ArgumentError
 from autorecurse.gnumake.implementation import *
-from autorecurse.gnumake.storage import TargetListingTargetReader
-from antlr4 import CommonTokenStream, InputStream
 import unittest
 import os
-from io import StringIO
 
 
-class TestDefaultTargetFormatter(unittest.TestCase):
+class TestGnuMake(unittest.TestCase):
 
-    def test_minimal_target(self):
-        target = Target.make([], [], [])
-        target.path = 'somepath'
-        actual = self._target_to_string(target)
-        expected = 'somepath: ;\n'
-        self.assertEqual(actual, expected)
+    CWD = os.path.realpath(os.getcwd())
 
-    def test_prerequisites_only(self):
-        target = Target.make(['prereq1', 'prereq2'], [], [])
-        target.path = 'somepath'
-        actual = self._target_to_string(target)
-        expected = 'somepath: prereq1 prereq2 ;\n'
-        self.assertEqual(actual, expected)
+    def test_nested_makefiles(self):
+        gnu = GnuMake.get_instance()
+        with gnu.nested_makefiles('test_sample/gnu/nested-makefiles') as it:
+            self.assertIs(it.is_at_start, True)
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-makefiles/make-folder-2'))
+            self.assertEqual(makefile.file_path, 'makefile')
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1'))
+            self.assertEqual(makefile.file_path, 'makefile')
+            it.move_to_next()
+            makefile = it.current_item
+            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1/subfolder'))
+            self.assertEqual(makefile.file_path, 'Makefile')
+            it.move_to_next()
+            self.assertIs(it.is_at_end, True)
 
-    def test_order_only_prerequisites_only(self):
-        target = Target.make([], ['ooprereq1', 'ooprereq2'], [])
-        target.path = 'somepath'
-        actual = self._target_to_string(target)
-        expected = 'somepath: | ooprereq1 ooprereq2 ;\n'
-        self.assertEqual(actual, expected)
+    def test_execution_directory(self):
+        gnu = GnuMake.get_instance()
+        self.assertEqual(gnu.execution_directory('-h'.split()), TestGnuMake.CWD)
+        self.assertEqual(gnu.execution_directory('-f Makefile -np'.split()), TestGnuMake.CWD)
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C /etc/usr'.split()), '/etc/usr')
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C / --directory etc --directory=usr'.split()), '/etc/usr')
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C / --directory etc -C .. --directory=usr'.split()), '/usr')
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C test_sample'.split()), os.path.join(TestGnuMake.CWD, 'test_sample'))
+        with self.assertRaises(ArgumentError):
+            self.assertEqual(gnu.execution_directory('-f Makefile -np -C'.split()), '/etc/usr')
 
-    def test_recipe_only(self):
-        target = Target.make([], [], ['recipe1', 'recipe2'])
-        target.path = 'somepath'
-        actual = self._target_to_string(target)
-        expected = 'somepath:\n\trecipe1\n\trecipe2\n'
-        self.assertEqual(actual, expected)
+    @unittest.skip('Writes files to user\'s home directory')
+    def test_target_listing_file(self):
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/project/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu = GnuMake.get_instance()
+        gnu.update_target_listing_file(makefile)
 
-    def test_maximal_target(self):
-        target = Target.make(['prereq1', 'prereq2'], ['ooprereq1', 'ooprereq2'], ['recipe1', 'recipe2'])
-        target.path = 'somepath'
-        actual = self._target_to_string(target)
-        expected = 'somepath: prereq1 prereq2 | ooprereq1 ooprereq2\n\trecipe1\n\trecipe2\n'
-        self.assertEqual(actual, expected)
-
-    def _target_to_string(self, target: Target) -> str:
-        with StringIO() as strbuff:
-            formatter = DefaultTargetFormatter.make()
-            formatter.print(target, strbuff)
-            return strbuff.getvalue()
-
-
-class TestParseContextTargetBuilder(unittest.TestCase):
-
-    def test_basic_operation(self):
-        string = """\\backslash\\target\\:: source\\ |\t\\back\tslash\\ 
-\t  Hurray:|;#\t it works\\quite\\well\\
-  And this is still recipe text \\
-\tAnd this tab is removed # Not a comment!
-# Interspersed comment
-
-\t  More recipe (trailing spaces)  
-next/target : next\\ source\\
-another-source\\
-\t and-another-source;|:recipes!!;; # Oh\tboy!
-\t :#I can't wait...
-# Still in the recipe
-\t ...until this recipe is over!
-# New line with lone tab
-\t
-a b c: d | e"""
-
-        input_ = InputStream(string)
-        lexer = MakefileRuleLexer(input_)
-        token_stream = CommonTokenStream(lexer)
-        parser = MakefileRuleParser(token_stream)
-
-        ctx = parser.makefileRule()
-        self.assertIsNone(ctx.exception)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 0)
-        self.assertEqual(target.path, '\\backslash\\target\\:')
-        it = target.prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'source\\ ')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.order_only_prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, '\\back')
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'slash\\ ')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.recipe_lines
-        it.move_to_next()
-        self.assertEqual(it.current_item, '  Hurray:|;#\t it works\\quite\\well\\')
-        it.move_to_next()
-        self.assertEqual(it.current_item, '  And this is still recipe text \\')
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'And this tab is removed # Not a comment!')
-        it.move_to_next()
-        self.assertEqual(it.current_item, '  More recipe (trailing spaces)  ')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-
-        ctx = parser.makefileRule()
-        self.assertIsNone(ctx.exception)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 0)
-        self.assertEqual(target.path, 'next/target')
-        it = target.prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'next\\ source')
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'another-source')
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'and-another-source')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.order_only_prerequisites
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.recipe_lines
-        it.move_to_next()
-        self.assertEqual(it.current_item, '|:recipes!!;; # Oh\tboy!')
-        it.move_to_next()
-        self.assertEqual(it.current_item, ' :#I can\'t wait...')
-        it.move_to_next()
-        self.assertEqual(it.current_item, ' ...until this recipe is over!')
-        it.move_to_next()
-        self.assertEqual(it.current_item, '')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-
-        ctx = parser.makefileRule()
-        self.assertIsNone(ctx.exception)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 0)
-        self.assertEqual(target.path, 'a')
-        it = target.prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'd')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.order_only_prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'e')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 1)
-        self.assertEqual(target.path, 'b')
-        it = target.prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'd')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.order_only_prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'e')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 2)
-        self.assertEqual(target.path, 'c')
-        it = target.prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'd')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.order_only_prerequisites
-        it.move_to_next()
-        self.assertEqual(it.current_item, 'e')
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
-        it = target.recipe_lines
-        it.move_to_next()
-        self.assertIs(it.is_at_end, True)
+    @unittest.skip('Writes files to user\'s home directory')
+    def test_nested_rule_file(self):
+        gnu = GnuMake.make()
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu.update_target_listing_file(makefile)
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/project-1/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu.update_target_listing_file(makefile)
+        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/project-2/Makefile')
+        makefile = Makefile.make(makefile_path)
+        gnu.update_target_listing_file(makefile)
+        execution_directory = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects')
+        gnu.update_nested_rule_file(execution_directory)
 
 
 class TestTargetListingTargetReader(unittest.TestCase):
