@@ -1,5 +1,5 @@
 from argparse import ArgumentError
-from autorecurse.gnumake.api import *
+from autorecurse.gnumake.implementation import *
 import unittest
 import os
 

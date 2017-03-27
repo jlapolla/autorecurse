@@ -1,4 +1,4 @@
-from autorecurse.gnumake.api import GnuMake
+from autorecurse.gnumake.implementation import GnuMake
 from autorecurse.gnumake.data import Makefile
 from argparse import ArgumentParser
 from typing import Dict, List
