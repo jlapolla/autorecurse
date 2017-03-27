@@ -1,6 +1,8 @@
 from autorecurse.gnumake.implementation import GnuMake
 from autorecurse.gnumake.data import Makefile
-from argparse import ArgumentParser
+from autorecurse.common.storage import DefaultDirectoryMapping
+from autorecurse.config import DirectoryMappingAutoLoader, DirectoryMappingReader
+from argparse import ArgumentParser, Namespace
 from typing import Dict, List
 import os
 import sys
@@ -39,6 +41,7 @@ class Cli:
         @staticmethod
         def _setup_parser(parser: 'ArgumentParser') -> None:
             parser.add_argument('--make-executable', dest='make_executable', metavar='<make-path>', help='Path to `make` executable.')
+            parser.add_argument('--config-file', dest='config_file_path', metavar='<config-file>', help='Path to `autorecurse` configuration file.')
 
         @staticmethod
         def _init_gnumake(subparsers) -> None:
@@ -76,6 +79,7 @@ class Cli:
         while True:
             if 0 < len(args):
                 namespace, other_args = parser.parse_known_args(args)
+                self._configure_application(namespace)
                 if namespace.command == 'gnumake':
                     namespace, make_args = parser.parse_known_args(args)
                     gnu = GnuMake.make()
@@ -109,6 +113,14 @@ class Cli:
                 break
             parser.parse_args(['-h'])
             break
-        pass
+
+
+    def _configure_application(self, namespace: Namespace) -> None:
+        if namespace.config_file_path is None:
+            DirectoryMappingAutoLoader.make().auto_load()
+        else:
+            reader = DirectoryMappingReader.make()
+            mapping = reader.parse_directory_mapping(namespace.config_file_path)
+            DefaultDirectoryMapping.set(mapping)
 
 

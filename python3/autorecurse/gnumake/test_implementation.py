@@ -1,4 +1,6 @@
 from argparse import ArgumentError
+from autorecurse.common.storage import DefaultDirectoryMapping, DictionaryDirectoryMapping
+from autorecurse.gnumake.storage import DirectoryEnum
 from autorecurse.gnumake.implementation import *
 import unittest
 import os
@@ -7,6 +9,17 @@ import os
 class TestGnuMake(unittest.TestCase):
 
     CWD = os.path.realpath(os.getcwd())
+
+    def setUp(self):
+        mapping_dict = {}
+        mapping_dict[DirectoryEnum.NESTED_RULE] = '~/.autorecurse/cache'
+        mapping_dict[DirectoryEnum.TARGET_LISTING] = '~/.autorecurse/cache'
+        mapping_dict[DirectoryEnum.TMP] = '~/.autorecurse/tmp'
+        mapping = DictionaryDirectoryMapping.make(mapping_dict)
+        try:
+            DefaultDirectoryMapping.make()
+        except Exception:
+            DefaultDirectoryMapping.set(mapping)
 
     def test_nested_makefiles(self):
         gnu = GnuMake.get_instance()

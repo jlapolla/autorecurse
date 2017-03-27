@@ -1,8 +1,8 @@
 from autorecurse.lib.iterator import Iterator, IteratorContext, ListIterator
 from autorecurse.lib.file import FileLifetimeManager
 from autorecurse.lib.python.argparse import ThrowingArgumentParser
-from autorecurse.common.storage import DictionaryDirectoryMapping
-from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, StorageEngine
+from autorecurse.common.storage import DefaultDirectoryMapping
+from autorecurse.gnumake.storage import FileStorageEngine, StorageEngine
 from autorecurse.gnumake.data import DefaultTargetFormatter, Makefile, Target
 from autorecurse.gnumake.parse import Factory
 from abc import ABCMeta, abstractmethod
@@ -62,12 +62,7 @@ class GnuMake:
 
     @staticmethod
     def _init_storage_engine(instance: 'GnuMake') -> None:
-        mapping = {}
-        mapping[DirectoryEnum.NESTED_RULE] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
-        mapping[DirectoryEnum.TARGET_LISTING] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
-        mapping[DirectoryEnum.TMP] = os.path.realpath(os.path.expanduser('~/.autorecurse/tmp'))
-        directory_mapping = DictionaryDirectoryMapping.make(mapping)
-        instance._storage_engine = FileStorageEngine.make(directory_mapping)
+        instance._storage_engine = FileStorageEngine.make(DefaultDirectoryMapping.make())
 
     @property
     def executable_name(self) -> str:
