@@ -68,6 +68,10 @@
     <Source>antlr4/Utils.py</Source>
     <Source>antlr4/xpath/__init__.py</Source>
     <Source>antlr4/xpath/XPath.py</Source>
+    <Source>autorecurse/cli.py</Source>
+    <Source>autorecurse/common/__init__.py</Source>
+    <Source>autorecurse/common/storage.py</Source>
+    <Source>autorecurse/gnumake/data.py</Source>
     <Source>autorecurse/gnumake/grammar/filter.py</Source>
     <Source>autorecurse/gnumake/grammar/__init__.py</Source>
     <Source>autorecurse/gnumake/grammar/MakefileRuleLexer.py</Source>
@@ -77,7 +81,13 @@
     <Source>autorecurse/gnumake/grammar/test_MakefileRuleLexer.py</Source>
     <Source>autorecurse/gnumake/grammar/test_MakefileRuleParser.py</Source>
     <Source>autorecurse/gnumake/grammar/test_TargetParagraphLexer.py</Source>
+    <Source>autorecurse/gnumake/implementation.py</Source>
     <Source>autorecurse/gnumake/__init__.py</Source>
+    <Source>autorecurse/gnumake/parse.py</Source>
+    <Source>autorecurse/gnumake/storage.py</Source>
+    <Source>autorecurse/gnumake/test_data.py</Source>
+    <Source>autorecurse/gnumake/test_implementation.py</Source>
+    <Source>autorecurse/gnumake/test_parse.py</Source>
     <Source>autorecurse/__init__.py</Source>
     <Source>autorecurse/lib/antlr4/abstract.py</Source>
     <Source>autorecurse/lib/antlr4/custom.py</Source>
@@ -85,30 +95,20 @@
     <Source>autorecurse/lib/antlr4/stream.py</Source>
     <Source>autorecurse/lib/buffer.py</Source>
     <Source>autorecurse/lib/fifo.py</Source>
+    <Source>autorecurse/lib/file.py</Source>
     <Source>autorecurse/lib/hash.py</Source>
     <Source>autorecurse/lib/__init__.py</Source>
     <Source>autorecurse/lib/iterator.py</Source>
     <Source>autorecurse/lib/line.py</Source>
+    <Source>autorecurse/lib/python/argparse.py</Source>
+    <Source>autorecurse/lib/python/__init__.py</Source>
     <Source>autorecurse/lib/stream.py</Source>
+    <Source>autorecurse/lib/test_file.py</Source>
     <Source>autorecurse/lib/test_iterator.py</Source>
     <Source>autorecurse/lib/test_line.py</Source>
     <Source>autorecurse/lib/test_stream.py</Source>
     <Source>__init__.py</Source>
     <Source>test_main.py</Source>
-    <Source>autorecurse/lib/file.py</Source>
-    <Source>autorecurse/lib/test_file.py</Source>
-    <Source>autorecurse/cli.py</Source>
-    <Source>autorecurse/gnumake/storage.py</Source>
-    <Source>autorecurse/common/__init__.py</Source>
-    <Source>autorecurse/common/storage.py</Source>
-    <Source>autorecurse/lib/python/__init__.py</Source>
-    <Source>autorecurse/lib/python/argparse.py</Source>
-    <Source>autorecurse/gnumake/test_data.py</Source>
-    <Source>autorecurse/gnumake/data.py</Source>
-    <Source>autorecurse/gnumake/test_parse.py</Source>
-    <Source>autorecurse/gnumake/parse.py</Source>
-    <Source>autorecurse/gnumake/test_implementation.py</Source>
-    <Source>autorecurse/gnumake/implementation.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
