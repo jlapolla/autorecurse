@@ -1,4 +1,4 @@
-from autorecurse.lib.iterator import Iterator, IteratorConcatenator, IteratorContext, ListIterator
+from autorecurse.lib.iterator import Iterator, IteratorContext, ListIterator
 from autorecurse.gnumake.data import Makefile, Target
 from autorecurse.gnumake.parse import Factory
 from autorecurse.gnumake.storage import StorageEngine

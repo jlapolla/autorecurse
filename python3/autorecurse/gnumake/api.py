@@ -1,10 +1,10 @@
 from autorecurse.lib.iterator import IteratorContext
 from autorecurse.lib.file import FileLifetimeManager
+from autorecurse.lib.python.argparse import ThrowingArgumentParser
+from autorecurse.common.storage import DictionaryDirectoryMapping
 from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine
 from autorecurse.gnumake.data import DefaultTargetFormatter, Makefile, Target
 from autorecurse.gnumake.makefile import BaseMakefileLocator, NestedMakefileLocator, NestedRuleTargetReader, TargetListingTargetReader
-from autorecurse.common.storage import DictionaryDirectoryMapping
-from autorecurse.lib.python.argparse import ThrowingArgumentParser
 from argparse import ArgumentParser
 from subprocess import Popen
 from typing import List
