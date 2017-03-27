@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project make_smart_recurse -->
-<!-- Saved: 2017-03-27, 07:08:18 -->
+<!-- Saved: 2017-03-27, 08:53:56 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -68,7 +68,6 @@
     <Source>antlr4/Utils.py</Source>
     <Source>antlr4/xpath/__init__.py</Source>
     <Source>antlr4/xpath/XPath.py</Source>
-    <Source>autorecurse/gnumake/api.py</Source>
     <Source>autorecurse/gnumake/grammar/filter.py</Source>
     <Source>autorecurse/gnumake/grammar/__init__.py</Source>
     <Source>autorecurse/gnumake/grammar/MakefileRuleLexer.py</Source>
@@ -79,7 +78,6 @@
     <Source>autorecurse/gnumake/grammar/test_MakefileRuleParser.py</Source>
     <Source>autorecurse/gnumake/grammar/test_TargetParagraphLexer.py</Source>
     <Source>autorecurse/gnumake/__init__.py</Source>
-    <Source>autorecurse/gnumake/test_api.py</Source>
     <Source>autorecurse/__init__.py</Source>
     <Source>autorecurse/lib/antlr4/abstract.py</Source>
     <Source>autorecurse/lib/antlr4/custom.py</Source>
@@ -105,12 +103,12 @@
     <Source>autorecurse/common/storage.py</Source>
     <Source>autorecurse/lib/python/__init__.py</Source>
     <Source>autorecurse/lib/python/argparse.py</Source>
-    <Source>autorecurse/gnumake/makefile.py</Source>
     <Source>autorecurse/gnumake/test_data.py</Source>
     <Source>autorecurse/gnumake/data.py</Source>
     <Source>autorecurse/gnumake/test_parse.py</Source>
     <Source>autorecurse/gnumake/parse.py</Source>
-    <Source>autorecurse/gnumake/test_makefile.py</Source>
+    <Source>autorecurse/gnumake/test_implementation.py</Source>
+    <Source>autorecurse/gnumake/implementation.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
