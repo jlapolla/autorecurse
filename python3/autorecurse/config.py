@@ -1,4 +1,4 @@
-from autorecurse.common.storage import DefaultDirectoryMapping, DictionaryDirectoryMapping, DirectoryMapping
+from autorecurse.common.storage import DictionaryDirectoryMapping, DirectoryMapping
 from autorecurse.gnumake.storage import DirectoryEnum as GnuMakeDirectoryEnum
 from configparser import ConfigParser
 from abc import ABCMeta, abstractmethod
@@ -6,42 +6,26 @@ import os
 import sys
 
 
-class UnsupportedPlatformError(Exception):
-
-    def __init__(self, message: str = None) -> None:
-        if message is None:
-            super().__init__('Platform not supported.')
-        else:
-            super().__init__(message)
-
-
-class DirectoryMappingAutoLoader:
+class ConfigFileLocator:
 
     _INSTANCE = None
 
     @staticmethod
-    def make() -> 'DirectoryMappingAutoLoader':
-        if DirectoryMappingAutoLoader._INSTANCE is None:
-            DirectoryMappingAutoLoader._INSTANCE = DirectoryMappingAutoLoader()
-        return DirectoryMappingAutoLoader._INSTANCE
+    def make() -> 'ConfigFileLocator':
+        if ConfigFileLocator._INSTANCE is None:
+            ConfigFileLocator._INSTANCE = ConfigFileLocator()
+        return ConfigFileLocator._INSTANCE
 
-    def auto_load(self) -> None:
-        config_file_path = self.auto_config_file_path()
-        if config_file_path is None:
-            raise UnsupportedPlatformError('No configuration file for ' + sys.platform + ' platform.')
-        self.load_from_path(config_file_path)
-
-    def load_from_path(self, config_file_path: str) -> None:
-        reader = DirectoryMappingReader.make()
-        mapping = reader.parse_directory_mapping(config_file_path)
-        DefaultDirectoryMapping.set(mapping)
+    def include_default_config_files(self, builder: 'ConfigFileConverter') -> None:
+        builder.include_config_file(self.default_config_file_path())
+        path = self.platform_config_file_path()
+        if path is not None:
+            builder.include_config_file(path)
 
     def default_config_file_path(self) -> str:
         return os.path.join(os.path.realpath(sys.path[0]), 'config', 'default.txt')
 
-    def auto_config_file_path(self) -> str:
-        if os.path.isfile(self.default_config_file_path()):
-            return self.default_config_file_path()
+    def platform_config_file_path(self) -> str:
         config_dir = os.path.join(os.path.realpath(sys.path[0]), 'config')
         if sys.platform.startswith('linux'):
             return os.path.join(config_dir, 'linux.txt')
@@ -52,22 +36,6 @@ class DirectoryMappingAutoLoader:
         if sys.platform.startswith('darwin'):
             return os.path.join(config_dir, 'osx.txt')
         return None
-
-
-class DirectoryMappingReader:
-
-    _INSTANCE = None
-
-    @staticmethod
-    def make() -> 'DirectoryMappingReader':
-        if DirectoryMappingReader._INSTANCE is None:
-            DirectoryMappingReader._INSTANCE = DirectoryMappingReader()
-        return DirectoryMappingReader._INSTANCE
-
-    def parse_directory_mapping(self, config_file_path: str) -> DirectoryMapping:
-        builder = DirectoryMappingBuilder.make()
-        builder.include_config_file(config_file_path)
-        return builder.build_directory_mapping()
 
 
 class ConfigFileConverter(metaclass=ABCMeta):
