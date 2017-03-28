@@ -1,0 +1,5 @@
+# https://msdn.microsoft.com/en-us/library/windows/desktop/dd378457.aspx
+[gnumake]
+    cache_dir = %LOCALAPPDATA%\Autorecurse\Cache\gnumake
+    temp_dir  = %LOCALAPPDATA%\Autorecurse\Temp\gnumake
+

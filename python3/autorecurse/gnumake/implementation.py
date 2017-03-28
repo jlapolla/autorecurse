@@ -1,10 +1,10 @@
 from autorecurse.lib.iterator import Iterator, IteratorContext, ListIterator
 from autorecurse.lib.file import FileLifetimeManager
 from autorecurse.lib.python.argparse import ThrowingArgumentParser
-from autorecurse.common.storage import DictionaryDirectoryMapping
-from autorecurse.gnumake.storage import DirectoryEnum, FileStorageEngine, StorageEngine
+from autorecurse.common.storage import DefaultDirectoryMapping
+from autorecurse.gnumake.storage import FileStorageEngine, StorageEngine
 from autorecurse.gnumake.data import DefaultTargetFormatter, Makefile, Target
-from autorecurse.gnumake.parse import Factory
+from autorecurse.gnumake.parse import DefaultParsePipelineFactory
 from abc import ABCMeta, abstractmethod
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE, CalledProcessError
@@ -41,7 +41,7 @@ class GnuMake:
             GnuMake._INSTANCE._executable_name = 'make'
             GnuMake._init_nested_makefile_locator(GnuMake._INSTANCE)
             GnuMake._init_base_makefile_locator(GnuMake._INSTANCE)
-            GnuMake._init_storage_engine(GnuMake._INSTANCE)
+            GnuMake._INSTANCE._storage_engine = None
         return GnuMake._INSTANCE
 
     @staticmethod
@@ -62,12 +62,17 @@ class GnuMake:
 
     @staticmethod
     def _init_storage_engine(instance: 'GnuMake') -> None:
-        mapping = {}
-        mapping[DirectoryEnum.NESTED_RULE] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
-        mapping[DirectoryEnum.TARGET_LISTING] = os.path.realpath(os.path.expanduser('~/.autorecurse/cache'))
-        mapping[DirectoryEnum.TMP] = os.path.realpath(os.path.expanduser('~/.autorecurse/tmp'))
-        directory_mapping = DictionaryDirectoryMapping.make(mapping)
-        instance._storage_engine = FileStorageEngine.make(directory_mapping)
+        instance._storage_engine = FileStorageEngine.make(DefaultDirectoryMapping.make())
+
+    @property
+    def storage_engine(self) -> StorageEngine:
+        if self._storage_engine is None:
+            GnuMake._init_storage_engine(self)
+        return self._storage_engine
+
+    @storage_engine.setter
+    def storage_engine(self, value: StorageEngine) -> None:
+        self._storage_engine = value
 
     @property
     def executable_name(self) -> str:
@@ -97,7 +102,7 @@ class GnuMake:
             return os.path.realpath(os.path.join(os.getcwd(), *directory_options))
 
     def create_nested_update_file(self) -> FileLifetimeManager:
-        return self._storage_engine.create_nested_update_file()
+        return self.storage_engine.create_nested_update_file()
 
     def update_nested_update_file(self, file: TextIOBase, execution_directory: str) -> None:
         target_formatter = DefaultTargetFormatter.make()
@@ -121,11 +126,11 @@ class GnuMake:
         file.write('\n')
 
     def target_listing_file_path(self, makefile: Makefile) -> str:
-        return self._storage_engine.target_listing_file_path(makefile)
+        return self.storage_engine.target_listing_file_path(makefile)
 
     def update_target_listing_file(self, makefile: Makefile) -> None:
         target = self._get_target_listing_target(makefile)
-        self._storage_engine.create_target_listing_file(makefile)
+        self.storage_engine.create_target_listing_file(makefile)
         with open(self.target_listing_file_path(makefile), mode='w') as file:
             target_formatter = DefaultTargetFormatter.make()
             file.write('.PHONY: ')
@@ -177,12 +182,12 @@ class GnuMake:
         return literal_target
 
     def nested_rule_file_path(self, execution_directory: str) -> str:
-        return self._storage_engine.nested_rule_file_path(execution_directory)
+        return self.storage_engine.nested_rule_file_path(execution_directory)
 
     def update_nested_rule_file(self, execution_directory: str) -> None:
-        target_reader = NestedRuleTargetReader.make(self.executable_name, self._storage_engine)
+        target_reader = NestedRuleTargetReader.make(self.executable_name, self.storage_engine)
         target_formatter = DefaultTargetFormatter.make()
-        self._storage_engine.create_nested_rule_file(execution_directory)
+        self.storage_engine.create_nested_rule_file(execution_directory)
         with open(self.nested_rule_file_path(execution_directory), mode='w') as file:
             with self.nested_makefiles(execution_directory) as nested_makefiles:
                 for nested_makefile in nested_makefiles:
@@ -229,7 +234,7 @@ class TargetReader(metaclass=ABCMeta):
 
         def __enter__(self) -> Iterator[Target]:
             self._process = self._spawn_subprocess()
-            return Factory.make_target_iterator_for_file(self._process.stdout, self._makefile)
+            return DefaultParsePipelineFactory.make().build_parse_pipeline(self._process.stdout, self._makefile)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             if self._process is not None:

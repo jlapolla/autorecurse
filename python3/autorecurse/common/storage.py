@@ -32,3 +32,19 @@ class DictionaryDirectoryMapping(DirectoryMapping):
         return self._directory_dict[symbolic_name]
 
 
+class DefaultDirectoryMapping:
+
+    _INSTANCE = None
+
+    @staticmethod
+    def make() -> DirectoryMapping:
+        if DefaultDirectoryMapping._INSTANCE is not None:
+            return DefaultDirectoryMapping._INSTANCE
+        else:
+            raise Exception('Default directory mapping not initialized.')
+
+    @staticmethod
+    def set(mapping: DirectoryMapping) -> None:
+        DefaultDirectoryMapping._INSTANCE = mapping
+
+
