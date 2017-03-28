@@ -32,7 +32,11 @@ class ConfigFileLocator:
         if sys.platform.startswith('cygwin'):
             return os.path.join(config_dir, 'cygwin.txt')
         if sys.platform.startswith('win'):
-            return os.path.join(config_dir, 'windows.txt')
+            # https://msdn.microsoft.com/en-us/library/windows/desktop/dd378457.aspx
+            if 'LOCALAPPDATA' in os.environ:
+                return os.path.join(config_dir, 'windows.txt')
+            elif 'USERPROFILE' in os.environ:
+                return os.path.join(config_dir, 'windows-legacy.txt')
         if sys.platform.startswith('darwin'):
             return os.path.join(config_dir, 'osx.txt')
         return None
@@ -69,6 +73,7 @@ class DirectoryMappingBuilder(ConfigFileConverter):
         return DictionaryDirectoryMapping.make(self._dict)
 
     def _expand_path(self, path: str) -> str:
+        result = os.path.normcase(path) # Needed to process 'default.txt' on Windows (since it uses forward slashes)
         result = os.path.expandvars(path)
         result = os.path.expanduser(path)
         return os.path.realpath(result)

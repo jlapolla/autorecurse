@@ -1,0 +1,4 @@
+[gnumake]
+    cache_dir = ~/.autorecurse/cache/gnumake
+    temp_dir  = ~/.autorecurse/tmp/gnumake
+
