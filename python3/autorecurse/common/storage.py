@@ -45,9 +45,6 @@ class DefaultDirectoryMapping:
 
     @staticmethod
     def set(mapping: DirectoryMapping) -> None:
-        if DefaultDirectoryMapping._INSTANCE is None:
-            DefaultDirectoryMapping._INSTANCE = mapping
-        else:
-            raise Exception('Attempt to overwrite default directory mapping.')
+        DefaultDirectoryMapping._INSTANCE = mapping
 
 
