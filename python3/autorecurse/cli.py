@@ -1,7 +1,7 @@
 from autorecurse.gnumake.implementation import GnuMake
 from autorecurse.gnumake.data import Makefile
 from autorecurse.common.storage import DefaultDirectoryMapping
-from autorecurse.config import DirectoryMappingAutoLoader, DirectoryMappingReader
+from autorecurse.config import DirectoryMappingAutoLoader, DirectoryMappingBuilder
 from argparse import ArgumentParser, Namespace
 from typing import Dict, List
 import os
@@ -116,10 +116,14 @@ class Cli:
 
 
     def _configure_application(self, namespace: Namespace) -> None:
-        directory_auto_loader = DirectoryMappingAutoLoader.make()
-        if namespace.config_file_path is None:
-            directory_auto_loader.auto_load()
-        else:
-            directory_auto_loader.load_from_path(namespace.config_file_path)
+        auto_loader = DirectoryMappingAutoLoader.make()
+        builder = DirectoryMappingBuilder.make()
+        path = auto_loader.auto_config_file_path()
+        if path is not None:
+            builder.include_config_file(path)
+        path = namespace.config_file_path
+        if path is not None:
+            builder.include_config_file(path)
+        DefaultDirectoryMapping.set(builder.build_directory_mapping())
 
 

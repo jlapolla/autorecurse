@@ -1,6 +1,7 @@
 from autorecurse.common.storage import DefaultDirectoryMapping, DictionaryDirectoryMapping, DirectoryMapping
 from autorecurse.gnumake.storage import DirectoryEnum as GnuMakeDirectoryEnum
 from configparser import ConfigParser
+from abc import ABCMeta, abstractmethod
 import os
 import sys
 
@@ -64,15 +65,40 @@ class DirectoryMappingReader:
         return DirectoryMappingReader._INSTANCE
 
     def parse_directory_mapping(self, config_file_path: str) -> DirectoryMapping:
-        with open(config_file_path, 'r') as file:
+        builder = DirectoryMappingBuilder.make()
+        builder.include_config_file(config_file_path)
+        return builder.build_directory_mapping()
+
+
+class ConfigFileConverter(metaclass=ABCMeta):
+
+    @abstractmethod
+    def include_config_file(self, config_file_path: str) -> None:
+        pass
+
+
+class DirectoryMappingBuilder(ConfigFileConverter):
+
+    @staticmethod
+    def make() -> 'DirectoryMappingBuilder':
+        instance = DirectoryMappingBuilder()
+        instance._dict = {}
+        return instance
+
+    def include_config_file(self, path: str) -> None:
+        with open(path, 'r') as file:
             config = ConfigParser(dict_type=dict, empty_lines_in_values=False, interpolation=None)
-            config.read_file(file, source=config_file_path)
-            gnumake_config = config['gnumake']
-            mapping = {}
-            mapping[GnuMakeDirectoryEnum.NESTED_RULE] = self._expand_path(gnumake_config['cache_dir'])
-            mapping[GnuMakeDirectoryEnum.TARGET_LISTING] = self._expand_path(gnumake_config['cache_dir'])
-            mapping[GnuMakeDirectoryEnum.TMP] = self._expand_path(gnumake_config['temp_dir'])
-            return DictionaryDirectoryMapping.make(mapping)
+            config.read_file(file, source=path)
+            if 'gnumake' in config:
+                gnumake_config = config['gnumake']
+                if 'cache_dir' in gnumake_config:
+                    self._dict[GnuMakeDirectoryEnum.NESTED_RULE] = self._expand_path(gnumake_config['cache_dir'])
+                    self._dict[GnuMakeDirectoryEnum.TARGET_LISTING] = self._expand_path(gnumake_config['cache_dir'])
+                if 'temp_dir' in gnumake_config:
+                    self._dict[GnuMakeDirectoryEnum.TMP] = self._expand_path(gnumake_config['temp_dir'])
+
+    def build_directory_mapping(self) -> DirectoryMapping:
+        return DictionaryDirectoryMapping.make(self._dict)
 
     def _expand_path(self, path: str) -> str:
         result = os.path.expandvars(path)
