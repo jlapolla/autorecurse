@@ -4,7 +4,7 @@ from autorecurse.lib.python.argparse import ThrowingArgumentParser
 from autorecurse.common.storage import DefaultDirectoryMapping
 from autorecurse.gnumake.storage import FileStorageEngine, StorageEngine
 from autorecurse.gnumake.data import DefaultTargetFormatter, Makefile, Target
-from autorecurse.gnumake.parse import Factory
+from autorecurse.gnumake.parse import DefaultParsePipelineFactory
 from abc import ABCMeta, abstractmethod
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE, CalledProcessError
@@ -234,7 +234,7 @@ class TargetReader(metaclass=ABCMeta):
 
         def __enter__(self) -> Iterator[Target]:
             self._process = self._spawn_subprocess()
-            return Factory.make_target_iterator_for_file(self._process.stdout, self._makefile)
+            return DefaultParsePipelineFactory.make().build_parse_pipeline(self._process.stdout, self._makefile)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             if self._process is not None:

@@ -5,7 +5,8 @@ from autorecurse.lib.line import FileLineIterator, LineToCharIterator
 from autorecurse.lib.stream import ConditionFilter
 from autorecurse.gnumake.grammar import DatabaseSectionFilter, FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
 from autorecurse.gnumake.data import Makefile, Target
-from autorecurse.lib.antlr4.stream import TokenSourceToIteratorAdapter, TokenToCharIterator
+from autorecurse.lib.antlr4.stream import IteratorToCharStreamAdapter, IteratorToTokenStreamAdapter, TokenSourceToIteratorAdapter, TokenToCharIterator
+from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
 
 
@@ -48,11 +49,25 @@ class ParseContextTargetBuilder:
         return recipe_line[0:end_index]
 
 
-class Factory:
+class ParsePipelineFactory(metaclass=ABCMeta):
+
+    @abstractmethod
+    def build_parse_pipeline(self, file: TextIOBase, makefile: Makefile) -> Iterator[Target]:
+        pass
+
+
+class BufferedParsePipelineFactory(ParsePipelineFactory):
+
+    _INSTANCE = None
 
     @staticmethod
-    def make_target_iterator_for_file(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
-        file_lines = FileLineIterator.make(fp)
+    def make() -> ParsePipelineFactory:
+        if BufferedParsePipelineFactory._INSTANCE is None:
+            BufferedParsePipelineFactory._INSTANCE = BufferedParsePipelineFactory()
+        return BufferedParsePipelineFactory._INSTANCE
+
+    def build_parse_pipeline(self, file: TextIOBase, makefile: Makefile) -> Iterator[Target]:
+        file_lines = FileLineIterator.make(file)
         database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
         file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
         file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
@@ -83,9 +98,19 @@ class Factory:
         makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
 
+
+class StreamingParsePipelineFactory(ParsePipelineFactory):
+
+    _INSTANCE = None
+
     @staticmethod
-    def make_target_iterator_for_file_streaming(fp: TextIOBase, makefile: Makefile) -> Iterator[Target]:
-        file_lines = FileLineIterator.make(fp)
+    def make() -> ParsePipelineFactory:
+        if StreamingParsePipelineFactory._INSTANCE is None:
+            StreamingParsePipelineFactory._INSTANCE = StreamingParsePipelineFactory()
+        return StreamingParsePipelineFactory._INSTANCE
+
+    def build_parse_pipeline(self, file: TextIOBase, makefile: Makefile) -> Iterator[Target]:
+        file_lines = FileLineIterator.make(file)
         database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
         file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
         file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
@@ -102,6 +127,26 @@ class Factory:
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
         makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
+
+
+class DefaultParsePipelineFactory:
+
+    _INSTANCE = None
+
+    @staticmethod
+    def make() -> ParsePipelineFactory:
+        if DefaultParsePipelineFactory._INSTANCE is not None:
+            return DefaultParsePipelineFactory._INSTANCE
+        else:
+            raise Exception('Default parse pipeline factory not initialized.')
+
+    @staticmethod
+    def set(value: ParsePipelineFactory) -> None:
+        DefaultParsePipelineFactory._INSTANCE = value
+
+
+DefaultParsePipelineFactory.set(BufferedParsePipelineFactory.make())
+
 
 
 class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
