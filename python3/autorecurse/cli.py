@@ -116,11 +116,10 @@ class Cli:
 
 
     def _configure_application(self, namespace: Namespace) -> None:
+        directory_auto_loader = DirectoryMappingAutoLoader.make()
         if namespace.config_file_path is None:
-            DirectoryMappingAutoLoader.make().auto_load()
+            directory_auto_loader.auto_load()
         else:
-            reader = DirectoryMappingReader.make()
-            mapping = reader.parse_directory_mapping(namespace.config_file_path)
-            DefaultDirectoryMapping.set(mapping)
+            directory_auto_loader.load_from_path(namespace.config_file_path)
 
 
