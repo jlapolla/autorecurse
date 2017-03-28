@@ -41,9 +41,9 @@ class Cli:
 
         @staticmethod
         def _setup_parser(parser: 'ArgumentParser') -> None:
-            parser.add_argument('--make-executable', dest='make_executable', metavar='<make-path>', help='Path to `make` executable. Default is `make`.')
+            parser.add_argument('--make-executable', dest='make_executable', metavar='<make-path>', default='make', help='Path to `make` executable. Default is `make`.')
             parser.add_argument('--config-file', dest='config_file_path', metavar='<config-file>', help='Path to custom `autorecurse` configuration file.')
-            parser.add_argument('--optimize', dest='optimization', metavar='<optimization>', choices=['memory', 'time'], help='Use `--optimize memory` to minimize memory consumption. Use `--optimize time` to minimize execution time. Default is `--optimize time`.')
+            parser.add_argument('--optimize', dest='optimization', metavar='<optimization>', choices=['memory', 'time'], default='time', help='Use `--optimize memory` to minimize memory consumption. Use `--optimize time` to minimize execution time. Default is `--optimize time`.')
 
         @staticmethod
         def _init_gnumake(subparsers) -> None:
@@ -85,8 +85,7 @@ class Cli:
                 if namespace.command == 'gnumake':
                     namespace, make_args = parser.parse_known_args(args)
                     gnu = GnuMake.make()
-                    if namespace.make_executable is not None:
-                        gnu.executable_name = namespace.make_executable
+                    gnu.executable_name = namespace.make_executable
                     execution_directory = gnu.execution_directory(make_args)
                     with gnu.create_nested_update_file() as file_manager:
                         with file_manager.open_file('w') as file:
@@ -99,16 +98,14 @@ class Cli:
                     file = namespace.makefile
                     makefile = Makefile.make_with_exec_path(directory, file)
                     gnu = GnuMake.make()
-                    if namespace.make_executable is not None:
-                        gnu.executable_name = namespace.make_executable
+                    gnu.executable_name = namespace.make_executable
                     gnu.update_target_listing_file(makefile)
                     break
                 if namespace.command == 'nestedrules':
                     namespace = parser.parse_args(args)
                     directory = os.path.realpath(os.path.join(os.getcwd(), namespace.dir))
                     gnu = GnuMake.make()
-                    if namespace.make_executable is not None:
-                        gnu.executable_name = namespace.make_executable
+                    gnu.executable_name = namespace.make_executable
                     gnu.update_nested_rule_file(directory)
                     break
                 parser.parse_args(args)
@@ -134,8 +131,8 @@ class Cli:
             if namespace.optimization == 'memory':
                 DefaultParsePipelineFactory.set(StreamingParsePipelineFactory.make())
                 break
-            # namespace.optimization == 'time'
-            DefaultParsePipelineFactory.set(BufferedParsePipelineFactory.make())
-            break
+            if namespace.optimization == 'time':
+                DefaultParsePipelineFactory.set(BufferedParsePipelineFactory.make())
+                break
 
 
