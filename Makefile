@@ -27,7 +27,7 @@ test: $(ANTLR)
 	cd python3 && python3 -m unittest discover
 
 profile.prof: $(ANTLR)
-	python3 -m cProfile -o $@ python3/test_main.py
+	cd python3 && python3 -m cProfile -o ../$@ main.py --make-executable /usr/bin/make targetlisting test_sample/gnu/project Makefile
 
 cachegrind.out.0: profile.prof
 	pyprof2calltree -o $@ -i $<
@@ -39,6 +39,10 @@ profile: clean-profile cachegrind.out.0
 .PHONY: clean-profile
 clean-profile:
 	rm -f profile.prof cachegrind.out.0
+
+.PHONY: memprofile
+memprofile:
+	cd python3 && mprof run --include-children main.py --make-executable /usr/bin/make targetlisting test_sample/gnu/project Makefile && mprof plot
 
 .DEFAULT_GOAL := antlr
 
