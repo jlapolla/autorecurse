@@ -1,6 +1,6 @@
 from autorecurse.gnumake.implementation import GnuMake
 from autorecurse.gnumake.data import Makefile
-from autorecurse.gnumake.parse import BufferedParsePipelineFactory, DefaultParsePipelineFactory, StreamingParsePipelineFactory
+from autorecurse.gnumake.parse import BalancedParsePipelineFactory, BufferedParsePipelineFactory, DefaultParsePipelineFactory, StreamingParsePipelineFactory
 from autorecurse.common.storage import DefaultDirectoryMapping
 from autorecurse.config import ConfigFileLocator, DirectoryMappingBuilder
 from argparse import ArgumentParser, Namespace
@@ -43,7 +43,7 @@ class Cli:
         def _setup_parser(parser: 'ArgumentParser') -> None:
             parser.add_argument('--make-executable', dest='make_executable', metavar='<make-path>', default='make', help='Path to `make` executable. Default is `make`.')
             parser.add_argument('--config-file', dest='config_file_path', metavar='<config-file>', help='Path to custom `autorecurse` configuration file.')
-            parser.add_argument('--optimize', dest='optimization', metavar='<optimization>', choices=['memory', 'time'], default='time', help='Use `--optimize memory` to minimize memory consumption. Use `--optimize time` to minimize execution time. Default is `--optimize time`.')
+            parser.add_argument('--optimize', dest='optimization', metavar='<optimization>', choices=['balanced', 'memory', 'time'], default='balanced', help='`--optimize memory` minimizes peak memory consumption. `--optimize time` to minimizes execution time. `--optimize balanced` balances execution time with peak memory optimization. Default is `--optimize balanced`.')
 
         @staticmethod
         def _init_gnumake(subparsers) -> None:
@@ -128,6 +128,9 @@ class Cli:
 
     def _configure_parse_pipeline(self, namespace: Namespace) -> None:
         while True:
+            if namespace.optimization == 'balanced':
+                DefaultParsePipelineFactory.set(BalancedParsePipelineFactory.make())
+                break
             if namespace.optimization == 'memory':
                 DefaultParsePipelineFactory.set(StreamingParsePipelineFactory.make())
                 break
