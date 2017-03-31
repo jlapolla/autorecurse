@@ -4,7 +4,8 @@ from autorecurse.gnumake.parse import BalancedParsePipelineFactory, BufferedPars
 from autorecurse.common.storage import DefaultDirectoryMapping
 from autorecurse.config import ConfigFileLocator, DirectoryMappingBuilder
 from argparse import ArgumentParser, Namespace
-from typing import Dict, List
+from io import TextIOBase
+from typing import cast, Dict, List
 import os
 import sys
 
@@ -33,7 +34,7 @@ class Cli:
 
         @staticmethod
         def _init_args() -> Dict:
-            args = {}
+            args = {} # type: Dict[str, object]
             args['prog'] = 'autorecurse'
             args['description'] = 'Recursively call `make` on makefiles in subdirectories.'
             args['allow_abbrev'] = False
@@ -47,7 +48,7 @@ class Cli:
 
         @staticmethod
         def _init_gnumake(subparsers) -> None:
-            args = {}
+            args = {} # type: Dict[str, object]
             args['help'] = 'Run GNU Make.'
             args['description'] = 'Run GNU Make.'
             args['allow_abbrev'] = False
@@ -55,7 +56,7 @@ class Cli:
 
         @staticmethod
         def _init_targetlisting(subparsers) -> None:
-            args = {}
+            args = {} # type: Dict[str, object]
             args['help'] = 'Generate target listing file for <makefile>.'
             args['description'] = 'Generate target listing file for <makefile>.'
             args['allow_abbrev'] = False
@@ -65,7 +66,7 @@ class Cli:
 
         @staticmethod
         def _init_nestedrules(subparsers) -> None:
-            args = {}
+            args = {} # type: Dict[str, object]
             args['help'] = 'Generate nested rule file for <dir>.'
             args['description'] = 'Generate nested rule file for <dir>.'
             args['allow_abbrev'] = False
@@ -89,14 +90,14 @@ class Cli:
                     execution_directory = gnu.execution_directory(make_args)
                     with gnu.create_nested_update_file() as file_manager:
                         with file_manager.open_file('w') as file:
-                            gnu.update_nested_update_file(file, execution_directory)
+                            gnu.update_nested_update_file(cast(TextIOBase, file), execution_directory)
                         gnu.run_make(make_args, file_manager.file_path)
                     break
                 if namespace.command == 'targetlisting':
                     namespace = parser.parse_args(args)
                     directory = os.path.realpath(os.path.join(os.getcwd(), namespace.dir))
-                    file = namespace.makefile
-                    makefile = Makefile.make_with_exec_path(directory, file)
+                    file_name = namespace.makefile
+                    makefile = Makefile.make_with_exec_path(directory, file_name)
                     gnu = GnuMake.make()
                     gnu.executable_name = namespace.make_executable
                     gnu.update_target_listing_file(makefile)
