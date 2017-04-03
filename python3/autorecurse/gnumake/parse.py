@@ -8,6 +8,7 @@ from autorecurse.gnumake.data import Makefile, Target
 from autorecurse.lib.antlr4.stream import IteratorToCharStreamAdapter, IteratorToTokenStreamAdapter, TokenSourceToIteratorAdapter, TokenToCharIterator
 from abc import ABCMeta, abstractmethod
 from io import StringIO, TextIOBase
+from typing import cast
 
 
 class ParseContextTargetBuilder:
@@ -24,7 +25,7 @@ class ParseContextTargetBuilder:
     def make() -> 'ParseContextTargetBuilder':
         return ParseContextTargetBuilder()
 
-    def build_target(self, context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> None:
+    def build_target(self, context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> Target:
         prerequisites = []
         for item in context.prerequisite():
             prerequisites.append(item.IDENTIFIER().symbol.text)
@@ -79,9 +80,9 @@ class BufferedParsePipelineFactory(ParsePipelineFactory):
             while file_section_chars.has_current_item:
                 strbuff.write(file_section_chars.current_item)
                 file_section_chars.move_to_next()
-            char_stream_1 = InputStream(strbuff.getvalue())
+            char_stream_1 = InputStream(cast(StringIO, strbuff).getvalue())
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
-        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer) # type: ignore
         paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
         char_stream_2 = None
         with StringIO() as strbuff:
@@ -90,7 +91,7 @@ class BufferedParsePipelineFactory(ParsePipelineFactory):
             while paragraph_chars.has_current_item:
                 strbuff.write(paragraph_chars.current_item)
                 paragraph_chars.move_to_next()
-            char_stream_2 = InputStream(strbuff.getvalue())
+            char_stream_2 = InputStream(cast(StringIO, strbuff).getvalue())
         makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
         token_stream_1 = CommonTokenStream(makefile_rule_lexer)
         makefile_rule_parser = MakefileRuleParser(token_stream_1)
@@ -117,13 +118,13 @@ class StreamingParsePipelineFactory(ParsePipelineFactory):
         file_section_chars = LineToCharIterator.make(file_section_no_comments)
         char_stream_1 = IteratorToCharStreamAdapter.make(file_section_chars)
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
-        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer) # type: ignore
         paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
         char_stream_2 = IteratorToCharStreamAdapter.make(paragraph_chars)
         makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
-        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer)
+        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer) # type: ignore
         token_stream_1 = IteratorToTokenStreamAdapter.make(makefile_rule_tokens)
-        makefile_rule_parser = MakefileRuleParser(token_stream_1)
+        makefile_rule_parser = MakefileRuleParser(token_stream_1) # type: ignore
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
         makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
@@ -152,9 +153,9 @@ class BalancedParsePipelineFactory(ParsePipelineFactory):
             while file_section_chars.has_current_item:
                 strbuff.write(file_section_chars.current_item)
                 file_section_chars.move_to_next()
-            char_stream_1 = InputStream(strbuff.getvalue())
+            char_stream_1 = InputStream(cast(StringIO, strbuff).getvalue())
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
-        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer) # type: ignore
         paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
         char_stream_2 = None
         with StringIO() as strbuff:
@@ -163,11 +164,11 @@ class BalancedParsePipelineFactory(ParsePipelineFactory):
             while paragraph_chars.has_current_item:
                 strbuff.write(paragraph_chars.current_item)
                 paragraph_chars.move_to_next()
-            char_stream_2 = InputStream(strbuff.getvalue())
+            char_stream_2 = InputStream(cast(StringIO, strbuff).getvalue())
         makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
-        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer)
+        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer) # type: ignore
         token_stream_1 = IteratorToTokenStreamAdapter.make(makefile_rule_tokens)
-        makefile_rule_parser = MakefileRuleParser(token_stream_1)
+        makefile_rule_parser = MakefileRuleParser(token_stream_1) # type: ignore
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
         makefile_target_iterator.makefile = makefile
         return makefile_target_iterator
@@ -195,8 +196,17 @@ DefaultParsePipelineFactory.set(BalancedParsePipelineFactory.make())
 
 class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._index = None # type: int
+        self._target = None # type: Target
+        self._context = None # type: MakefileRuleParser.MakefileRuleContext
+        self._is_at_end = None # type: bool
+        self._makefile = None # type: Makefile
+        self._parser = None # type: MakefileRuleParser
+
     @staticmethod
-    def make(parser: MakefileRuleParser) -> Iterator[Target]:
+    def make(parser: MakefileRuleParser) -> 'MakefileRuleParserToIteratorAdapter':
         instance = MakefileRuleParserToIteratorAdapter()
         MakefileRuleParserToIteratorAdapter._setup(instance, parser)
         return instance
