@@ -65,6 +65,10 @@ class FileSectionFilter(Condition[Line]):
             (_BEFORE_PRINTING, _LINE): _PRINTING
             }
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._state = None # type: int
+
     @staticmethod
     def make() -> 'FileSectionFilter':
         instance = FileSectionFilter()
@@ -144,6 +148,10 @@ class DatabaseSectionFilter(Condition[Line]):
             (_PRINTING, _LINE): _PRINTING,
             }
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._state = None # type: int
+
     @staticmethod
     def make() -> Condition[Line]:
         instance = DatabaseSectionFilter()
@@ -196,6 +204,10 @@ class InformationalCommentFilter(Condition[Line]):
     """
 
     _INFORMATIONAL_RE = re.compile(r'^#  ')
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._printing = None # type: bool
 
     @staticmethod
     def make() -> 'InformationalCommentFilter':
