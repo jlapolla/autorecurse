@@ -30,6 +30,10 @@ class StorageEngine(metaclass=ABCMeta):
 
 class FileStorageEngine(StorageEngine):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._directory_mapping = None # type: DirectoryMapping
+
     @staticmethod
     def make(directory_mapping: DirectoryMapping) -> StorageEngine:
         instance = FileStorageEngine()
