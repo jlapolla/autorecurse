@@ -151,6 +151,13 @@ class Buffer(Iterator[T]):
 
 class StringBuffer(Buffer[str]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._string = None # type: str
+        self._is_at_start = None # type: bool
+        self._is_at_end = None # type: bool
+        self._current_index = None # type: int
+
     @staticmethod
     def make(string: str) -> 'StringBuffer':
         instance = StringBuffer()
