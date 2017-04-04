@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from io import IOBase
-from typing import Dict
+from typing import cast, Dict
 import os
 import tempfile
 
@@ -52,6 +52,13 @@ class FileCreator(metaclass=ABCMeta):
 
 
 class UniqueFileCreator(FileCreator):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._file_path = None # type: str
+        self._file_name_suffix = None # type: str
+        self._file_name_prefix = None # type: str
+        self._directory = None # type: str
 
     @staticmethod
     def make() -> 'UniqueFileCreator':
@@ -108,6 +115,10 @@ class UniqueFileCreator(FileCreator):
 
 class FileLifetimeManager:
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._file_creator = None # type: FileCreator
+
     @staticmethod
     def make(file_creator: FileCreator) -> 'FileLifetimeManager':
         instance = FileLifetimeManager()
@@ -115,7 +126,7 @@ class FileLifetimeManager:
         return instance
 
     def open_file(self, *args, **kwargs) -> IOBase:
-        return open(self._file_creator.file_path, *args, **kwargs)
+        return cast(IOBase, open(self._file_creator.file_path, *args, **kwargs))
 
     @property
     def file_path(self) -> str:
