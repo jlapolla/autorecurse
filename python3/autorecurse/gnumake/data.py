@@ -7,6 +7,11 @@ import os
 
 class Makefile:
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._exec_path = None # type: str
+        self._file_path = None # type: str
+
     @staticmethod
     def make(path: str) -> 'Makefile':
         instance = Makefile()
@@ -75,6 +80,14 @@ class Makefile:
 
 
 class Target:
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._file = None # type: Makefile
+        self._path = None # type: str
+        self._prerequisites = None # type: List[str]
+        self._order_only_prerequisites = None # type: List[str]
+        self._recipe_lines = None # type: List[str]
 
     @staticmethod
     def make(prerequisites: List[str], order_only_prerequisites: List[str], recipe_lines: List[str]) -> 'Target':

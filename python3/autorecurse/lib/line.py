@@ -1,6 +1,7 @@
 from autorecurse.lib.iterator import Iterator
 from autorecurse.lib.stream import Condition
 from io import TextIOBase
+from typing import cast
 
 
 class LineBreakError(Exception):
@@ -13,6 +14,11 @@ class LineBreakError(Exception):
 
 
 class Line:
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._content = None # type: str
+        self._line_number = None # type: int
 
     @staticmethod
     def make(content: str) -> 'Line':
@@ -62,23 +68,31 @@ class Line:
     def __str__(self) -> str:
         return self.content
 
-    def __eq__(self, other: 'Line') -> bool:
-        if (other.__class__ is self.__class__) and (self.content == other.content) and (self.has_line_number is other.has_line_number):
-            if self.has_line_number:
-                if self.line_number == other.line_number:
+    def __eq__(self, other: object) -> bool:
+        if (other.__class__ is self.__class__):
+            right = cast(Line, other)
+            if (self.content == right.content) and (self.has_line_number is right.has_line_number):
+                if self.has_line_number:
+                    if self.line_number == right.line_number:
+                        return True
+                else:
                     return True
-            else:
-                return True
         return False
 
     def __hash__(self) -> int:
         if self.has_line_number:
-            return hash(self.content, self.line_number)
+            return hash((self.content, self.line_number))
         else:
             return hash(self.content)
 
 
 class FileLineIterator(Iterator[Line]):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._line = None # type: Line
+        self._is_at_end = None # type: bool
+        self._file = None # type: TextIOBase
 
     @staticmethod
     def make(fp: TextIOBase) -> 'FileLineIterator':
@@ -142,6 +156,12 @@ class FileLineIterator(Iterator[Line]):
 class LineToCharIterator(Iterator[str]):
 
     EOL_LF = '\n'
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._index = None # type: int
+        self._eol = None # type: str
+        self._source = None # type: Iterator[Line]
 
     @staticmethod
     def make(source: Iterator[Line]) -> Iterator[str]:
@@ -241,6 +261,10 @@ class EmptyLineFilter(Condition[Line]):
     """
 
     _EMPTY_LINE = Line.make('')
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._printing = None # type: bool
 
     @staticmethod
     def make() -> 'EmptyLineFilter':

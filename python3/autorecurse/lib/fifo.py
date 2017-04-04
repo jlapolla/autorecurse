@@ -1,10 +1,11 @@
 from autorecurse.lib.buffer import Buffer
 from abc import abstractmethod
-from typing import TypeVar, Generic, List
+from typing import Dict, Generic, List, TypeVar
 import sys
 
 
 T = TypeVar('T')
+U = TypeVar('U')
 
 
 class FifoBase(Buffer[T]):
@@ -296,39 +297,53 @@ class ManagedFifo(FifoBase[T]):
 
 class LinkedFifo(Fifo[T]):
 
-    class LinkElement(Generic[T]):
+    class LinkElement(Generic[U]):
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._content = None # type: U
+            self._next = None # type: LinkedFifo.LinkElement
 
         @staticmethod
-        def make(content: T) -> 'LinkedFifo.LinkElement':
-            instance = LinkedFifo.LinkElement()
+        def make(content: U) -> 'LinkedFifo.LinkElement[U]':
+            instance = LinkedFifo.LinkElement() # type: LinkedFifo.LinkElement[U]
             LinkedFifo.LinkElement._setup(instance, content)
             return instance
 
         @staticmethod
-        def _setup(instance: 'LinkedFifo.LinkElement', content: T) -> None:
+        def _setup(instance: 'LinkedFifo.LinkElement[U]', content: U) -> None:
             instance._content = content
             instance._next = None
 
         @property
-        def content(self) -> T:
+        def content(self) -> U:
             return self._content
 
         @property
-        def next(self) -> 'LinkedFifo.LinkElement':
+        def next(self) -> 'LinkedFifo.LinkElement[U]':
             return self._next
 
         @next.setter
-        def next(self, value: 'LinkedFifo.LinkElement') -> None:
+        def next(self, value: 'LinkedFifo.LinkElement[U]') -> None:
             self._next = value
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._start_element = None # type: LinkedFifo.LinkElement[T]
+        self._current_element = None # type: LinkedFifo.LinkElement[T]
+        self._end_element = None # type: LinkedFifo.LinkElement[T]
+        self._is_at_end = None # type: bool
+        self._current_index = None # type: int
+        self._count = None # type: int
+
     @staticmethod
-    def make() -> 'LinkedFifo':
-        instance = LinkedFifo()
+    def make() -> 'LinkedFifo[T]':
+        instance = LinkedFifo() # type: LinkedFifo[T]
         LinkedFifo._setup(instance)
         return instance
 
     @staticmethod
-    def _setup(instance: 'LinkedFifo') -> None:
+    def _setup(instance: 'LinkedFifo[T]') -> None:
         instance._to_SE()
 
     @property
@@ -502,9 +517,19 @@ class ArrayedFifo(Fifo[T]):
 
     DEFAULT_CAPACITY_FACTOR = 1.0
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._list = None # type: List[T]
+        self._index = None # type: int
+        self._physical_index_start = None # type: int
+        self._physical_index_end = None # type: int
+        self._is_at_end = None # type: bool
+        self._inverted = None # type: bool
+        self._capacity_factor = None # type: float
+
     @staticmethod
     def make() -> 'ArrayedFifo[T]':
-        instance = ArrayedFifo()
+        instance = ArrayedFifo() # type: ArrayedFifo[T]
         ArrayedFifo._setup(instance)
         return instance
 
@@ -667,7 +692,7 @@ class ArrayedFifo(Fifo[T]):
         - self.count <= new_capacity
         """
         # State S, I, E, SE, or EE
-        new_list = [None] * new_capacity
+        new_list = [None] * new_capacity # type: List[T]
         self._copy_to_list(new_list)
         if self.count != new_capacity:
             count = self.count
@@ -732,6 +757,10 @@ class FifoManager(ManagedFifo[T]):
 
     class ReferenceCounter:
 
+        def __init__(self) -> None:
+            super().__init__()
+            self._count = None # type: int
+
         @staticmethod
         def make() -> 'FifoManager.ReferenceCounter':
             instance = FifoManager.ReferenceCounter()
@@ -752,14 +781,21 @@ class FifoManager(ManagedFifo[T]):
         def decrement(self) -> None:
             self._count = self._count - 1
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._refcounters = None # type: List[FifoManager.ReferenceCounter]
+        self._ref_token_dict = None # type: Dict[int, FifoManager.ReferenceCounter]
+        self._current_reference_token = None # type: int
+        self._fifo = None # type: Fifo[T]
+
     @staticmethod
-    def make(fifo: Fifo[T]) -> 'FifoToManagdFifoAdapter':
-        instance = FifoManager()
+    def make(fifo: Fifo[T]) -> 'FifoManager[T]':
+        instance = FifoManager() # type: FifoManager[T]
         FifoManager._setup(instance, fifo)
         return instance
 
     @staticmethod
-    def _setup(instance: 'FifoManager', fifo: Fifo[T]) -> None:
+    def _setup(instance: 'FifoManager[T]', fifo: Fifo[T]) -> None:
         instance._refcounters = []
         instance._ref_token_dict = {}
         instance._current_reference_token = 0
@@ -767,7 +803,7 @@ class FifoManager(ManagedFifo[T]):
         FifoManager._initialize_ref_counters(instance)
 
     @staticmethod
-    def _initialize_ref_counters(instance: 'FifoManager') -> None:
+    def _initialize_ref_counters(instance: 'FifoManager[T]') -> None:
         count = instance._fifo.count
         while (count != 0):
             instance._refcounters.append(FifoManager.ReferenceCounter.make())
@@ -859,7 +895,7 @@ class FifoManager(ManagedFifo[T]):
         while (ref_token in self._ref_token_dict) and (ref_token != self._current_reference_token):
             ref_token = self._next_reference_token(self._current_reference_token)
         if ref_token == self._current_reference_token:
-            raise RuntimeError('Reached maximum number of active strong references: ' + FifoManager.MAX_ACTIVE_REFERENCES + '. You must release some references to continue.')
+            raise RuntimeError('Reached maximum number of active strong references: ' + str(FifoManager.MAX_ACTIVE_REFERENCES) + '. You must release some references to continue.')
         return ref_token
 
     def _next_reference_token(self, ref_token: int) -> int:
@@ -870,7 +906,7 @@ class FifoManager(ManagedFifo[T]):
             result = 0
         return result
 
-    def _current_reference_counter(self) -> 'FifoManager.ReferenceCounter[T]':
+    def _current_reference_counter(self) -> 'FifoManager.ReferenceCounter':
         # State I
         return self._refcounters[self.current_index]
 
@@ -944,9 +980,27 @@ class FifoStateCacheWrapper(Fifo[T]):
     Memoizes Fifo state queries.
     """
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._fifo = None # type: Fifo[T]
+        self._current_item_valid = None # type: bool
+        self._current_item = None # type: T
+        self._has_current_item_valid = None # type: bool
+        self._has_current_item = None # type: bool
+        self._is_at_start_valid = None # type: bool
+        self._is_at_start = None # type: bool
+        self._is_at_end_valid = None # type: bool
+        self._is_at_end = None # type: bool
+        self._count_valid = None # type: bool
+        self._count = None # type: int
+        self._current_index_valid = None # type: bool
+        self._current_index = None # type: int
+        self._is_empty_valid = None # type: bool
+        self._is_empty = None # type: bool
+
     @staticmethod
     def make(fifo: Fifo[T]) -> 'FifoStateCacheWrapper[T]':
-        instance = FifoStateCacheWrapper()
+        instance = FifoStateCacheWrapper() # type: FifoStateCacheWrapper[T]
         FifoStateCacheWrapper._setup(instance, fifo)
         return instance
 
@@ -1119,14 +1173,19 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
     - move_to_global_index: S I E
     """
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._start_index = None # type: int
+        self._fifo = None # type: Fifo[T]
+
     @staticmethod
-    def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper':
-        instance = FifoGlobalIndexWrapper()
+    def make(fifo: Fifo[T]) -> 'FifoGlobalIndexWrapper[T]':
+        instance = FifoGlobalIndexWrapper() # type: FifoGlobalIndexWrapper[T]
         FifoGlobalIndexWrapper._setup(instance, fifo)
         return instance
 
     @staticmethod
-    def _setup(instance: 'FifoGlobalIndexWrapper', fifo: Fifo[T]) -> None:
+    def _setup(instance: 'FifoGlobalIndexWrapper[T]', fifo: Fifo[T]) -> None:
         instance._fifo = fifo
         instance._start_index = 0
 
@@ -1151,6 +1210,7 @@ class FifoGlobalIndexWrapper(FifoWrapper[T]):
         self.inner_object.move_to_index(local_index)
 
 
+del U
 del T
 
 

@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, Iterable, TypeVar
+from typing import Generic, Iterable, List, TypeVar
 import typing
 
 
@@ -112,14 +112,19 @@ class IteratorContext(Generic[T_co], metaclass=ABCMeta):
 
 class ListIterator(Iterator[T]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._list = None # type: List[T]
+        self._is_at_start = None # type: bool
+
     @staticmethod
-    def make(it: Iterable[T]) -> 'ListIterator':
-        instance = ListIterator()
+    def make(it: Iterable[T]) -> 'ListIterator[T]':
+        instance = ListIterator() # type: ListIterator[T]
         ListIterator._setup(instance, it)
         return instance
 
     @staticmethod
-    def _setup(instance: 'ListIterator', it: Iterable[T]) -> None:
+    def _setup(instance: 'ListIterator[T]', it: Iterable[T]) -> None:
         instance._list = list(it)
         instance._is_at_start = True
 
@@ -150,21 +155,26 @@ class ListIterator(Iterator[T]):
         self._list.clear()
 
 
-class IteratorConcatenator(Iterator[T]):
+class IteratorConcatenator(Iterator[T_co]):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._current_iterator = None # type: Iterator[T_co]
+        self._source = None # type: Iterator[Iterator[T_co]]
 
     @staticmethod
-    def make(source: Iterator[Iterator[T]]) -> 'IteratorConcatenator[T]':
-        instance = IteratorConcatenator()
+    def make(source: Iterator[Iterator[T_co]]) -> 'IteratorConcatenator[T_co]':
+        instance = IteratorConcatenator() # type: IteratorConcatenator[T_co]
         IteratorConcatenator._setup(instance, source)
         return instance
 
     @staticmethod
-    def _setup(instance: 'IteratorConcatenator[T]', source: Iterator[Iterator[T]]) -> None:
+    def _setup(instance: 'IteratorConcatenator[T_co]', source: Iterator[Iterator[T_co]]) -> None:
         instance._source = source
         IteratorConcatenator._init_current_iterator(instance)
 
     @staticmethod
-    def _init_current_iterator(instance: 'IteratorConcatenator[T]') -> None:
+    def _init_current_iterator(instance: 'IteratorConcatenator[T_co]') -> None:
         if instance._source.is_at_start: # State S (instance._source)
             instance._to_S()
         elif instance._source.has_current_item: # State I (instance._source)
@@ -180,7 +190,7 @@ class IteratorConcatenator(Iterator[T]):
             instance._to_E()
 
     @property
-    def current_item(self) -> T:
+    def current_item(self) -> T_co:
         return self._current_iterator.current_item
 
     @property
@@ -233,9 +243,13 @@ class IteratorConcatenator(Iterator[T]):
 
 class PythonIteratorWrapper(typing.Iterator[T_co]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._iterator = None # type: Iterator[T_co]
+
     @staticmethod
     def make(iterator: Iterator[T_co]) -> typing.Iterator[T_co]:
-        instance = PythonIteratorWrapper()
+        instance = PythonIteratorWrapper() # type: PythonIteratorWrapper[T_co]
         instance._iterator = iterator
         return instance
 

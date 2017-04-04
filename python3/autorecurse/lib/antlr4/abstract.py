@@ -1,7 +1,7 @@
-from antlr4 import Token
+from antlr4.Token import Token
 from abc import ABCMeta, abstractmethod
 from io import StringIO
-from typing import Tuple
+from typing import cast, Tuple
 
 
 """
@@ -73,7 +73,7 @@ class TokenStream(IntStream):
                 while index != stop_index:
                     strbuffer.write(self.get(index).text)
                     index = index + 1
-                return strbuffer.getvalue()
+                return cast(StringIO, strbuffer).getvalue()
         else:
             return self.getText((0, self._total_stream_size))
 

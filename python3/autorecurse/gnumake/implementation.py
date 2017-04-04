@@ -8,7 +8,7 @@ from autorecurse.gnumake.parse import DefaultParsePipelineFactory
 from abc import ABCMeta, abstractmethod
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE, CalledProcessError
-from typing import List
+from typing import cast, Dict, List
 from io import TextIOBase
 import os
 import sys
@@ -33,6 +33,13 @@ class GnuMake:
             return parser
 
     _INSTANCE = None
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._base_makefile_locator = None # type: DirectoryMakefileLocator
+        self._nested_makefile_locator = None # type: DirectoryMakefileLocator
+        self._storage_engine = None # type: StorageEngine
+        self._executable_name = None # type: str
 
     @staticmethod
     def make() -> 'GnuMake':
@@ -136,7 +143,7 @@ class GnuMake:
             file.write('.PHONY: ')
             file.write(target.path)
             file.write('\n')
-            target_formatter.print(target, file)
+            target_formatter.print(target, cast(TextIOBase, file))
             file.write('\n')
 
     def _get_target_listing_target(self, makefile: Makefile) -> Target:
@@ -195,7 +202,7 @@ class GnuMake:
                         for nested_target in nested_targets:
                             if nested_target.path != 'autorecurse-all-targets':
                                 literal_target = self.target_to_literal_target(nested_target, execution_directory)
-                                target_formatter.print(literal_target, file)
+                                target_formatter.print(literal_target, cast(TextIOBase, file))
                                 file.write('\n')
 
     def run_make(self, args: List[str], nested_update_file_path: str) -> None:
@@ -227,14 +234,18 @@ class TargetReader(metaclass=ABCMeta):
     class Context(IteratorContext[Target], metaclass=ABCMeta):
 
         @staticmethod
-        def _setup(instance: 'TargetReader.Context', parent: 'TargetReader', makefile: Makefile) -> None:
-            instance._parent = parent
+        def _setup(instance: 'TargetReader.Context', makefile: Makefile) -> None:
             instance._makefile = makefile
             instance._process = None
 
+        def __init__(self) -> None:
+            super().__init__()
+            self._makefile = None # type: Makefile
+            self._process = None # type: Popen
+
         def __enter__(self) -> Iterator[Target]:
             self._process = self._spawn_subprocess()
-            return DefaultParsePipelineFactory.make().build_parse_pipeline(self._process.stdout, self._makefile)
+            return DefaultParsePipelineFactory.make().build_parse_pipeline(cast(TextIOBase, self._process.stdout), self._makefile)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             if self._process is not None:
@@ -245,7 +256,7 @@ class TargetReader(metaclass=ABCMeta):
 
         def _check_returncode(self) -> None:
             if self._process.returncode != 0:
-                raise CalledProcessError(self._process.returncode, ' '.join(self._process.args))
+                raise CalledProcessError(self._process.returncode, ' '.join(self._process.args)) # type: ignore
 
         @abstractmethod
         def _spawn_subprocess(self) -> Popen:
@@ -254,6 +265,10 @@ class TargetReader(metaclass=ABCMeta):
     @staticmethod
     def _setup(instance: 'TargetReader', executable_name: str) -> None:
         instance._executable_name = executable_name
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._executable_name = None # type: str
 
     @property
     def executable_name(self) -> str:
@@ -271,8 +286,13 @@ class TargetListingTargetReader(TargetReader):
         @staticmethod
         def make(parent: 'TargetListingTargetReader', makefile: Makefile) -> IteratorContext[Target]:
             instance = TargetListingTargetReader.Context()
-            TargetReader.Context._setup(instance, parent, makefile)
+            TargetReader.Context._setup(instance, makefile)
+            instance._parent = parent
             return instance
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._parent = None # type: TargetListingTargetReader
 
         def _check_returncode(self) -> None:
             pass
@@ -304,8 +324,13 @@ class NestedRuleTargetReader(TargetReader):
         @staticmethod
         def make(parent: 'NestedRuleTargetReader', makefile: Makefile) -> IteratorContext[Target]:
             instance = NestedRuleTargetReader.Context()
-            TargetReader.Context._setup(instance, parent, makefile)
+            TargetReader.Context._setup(instance, makefile)
+            instance._parent = parent
             return instance
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._parent = None # type: NestedRuleTargetReader
 
         def _check_returncode(self) -> None:
             pass
@@ -331,6 +356,10 @@ class NestedRuleTargetReader(TargetReader):
         instance._storage_engine = storage_engine
         return instance
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._storage_engine = None # type: StorageEngine
+
     def target_iterator(self, makefile: Makefile) -> IteratorContext[Target]:
         return NestedRuleTargetReader.Context.make(self, makefile)
 
@@ -344,8 +373,13 @@ class DirectoryMakefileLocator(metaclass=ABCMeta):
 
 class PriorityMakefileLocator(DirectoryMakefileLocator):
 
+    @staticmethod
     def _setup(instance: 'PriorityMakefileLocator') -> None:
         instance._priorities = {}
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._priorities = None # type: Dict[str, int]
 
     def set_filename_priorities(self, filenames: List[str]) -> None:
         self._priorities = {}
@@ -377,6 +411,11 @@ class NestedMakefileLocator(PriorityMakefileLocator):
             instance._directory_path = directory_path
             return instance
 
+        def __init__(self) -> None:
+            super().__init__()
+            self._parent = None # type: NestedMakefileLocator
+            self._directory_path = None # type: str
+
         def __enter__(self) -> Iterator[Makefile]:
             list_ = []
             first_directory = True
@@ -395,6 +434,7 @@ class NestedMakefileLocator(PriorityMakefileLocator):
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             return False
 
+    @staticmethod
     def make() -> 'NestedMakefileLocator':
         instance = NestedMakefileLocator()
         PriorityMakefileLocator._setup(instance)
@@ -415,6 +455,11 @@ class BaseMakefileLocator(PriorityMakefileLocator):
             instance._directory_path = directory_path
             return instance
 
+        def __init__(self) -> None:
+            super().__init__()
+            self._parent = None # type: BaseMakefileLocator
+            self._directory_path = None # type: str
+
         def __enter__(self) -> Iterator[Makefile]:
             filenames = []
             for entry in os.scandir(self._directory_path):
@@ -430,6 +475,7 @@ class BaseMakefileLocator(PriorityMakefileLocator):
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             return False
 
+    @staticmethod
     def make() -> 'BaseMakefileLocator':
         instance = BaseMakefileLocator()
         PriorityMakefileLocator._setup(instance)

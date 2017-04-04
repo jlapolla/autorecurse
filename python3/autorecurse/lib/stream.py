@@ -68,14 +68,19 @@ del Condition._set_current_item
 
 class ConditionFilter(Iterator[T]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._iterator = None # type: Iterator[T]
+        self._condition = None # type: Condition[T]
+
     @staticmethod
-    def make(iterator: Iterator[T], condition: Condition[T]) -> 'ConditionFilter':
-        instance = ConditionFilter()
+    def make(iterator: Iterator[T], condition: Condition[T]) -> 'ConditionFilter[T]':
+        instance = ConditionFilter() # type: ConditionFilter[T]
         ConditionFilter._setup(instance, iterator, condition)
         return instance
 
     @staticmethod
-    def _setup(instance: 'ConditionFilter', iterator: Iterator[T], condition: Condition[T]) -> None:
+    def _setup(instance: 'ConditionFilter[T]', iterator: Iterator[T], condition: Condition[T]) -> None:
         instance._iterator = iterator
         instance._condition = condition
 

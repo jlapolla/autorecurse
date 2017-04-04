@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from io import StringIO, TextIOBase
-from antlr4 import Token
+from antlr4.Token import Token
 from autorecurse.lib.iterator import Iterator
-from autorecurse.lib.fifo import ArrayedFifo, FifoGlobalIndexWrapper, FifoManager
+from autorecurse.lib.fifo import ArrayedFifo, Fifo, FifoGlobalIndexWrapper, FifoManager, ManagedFifo
 from autorecurse.lib.antlr4.abstract import IntStream, CharStream, TokenStream, TokenSource
-from typing import TypeVar
+from typing import cast, TypeVar
 
 
 T = TypeVar('T')
@@ -113,11 +113,13 @@ class IteratorToIntStreamAdapter(Iterator[T], IntStream):
       release with an invalid int has no effect.
     """
 
-    @staticmethod
-    def make(iterator: Iterator[T]) -> 'IteratorToIntStreamAdapter':
-        instance = IteratorToIntStreamAdapter()
-        IteratorToIntStreamAdapter._setup(instance, iterator)
-        return instance
+    def __init__(self) -> None:
+        super().__init__()
+        self._inner_buffer = None # type: Fifo
+        self._buffer_global = None # type: FifoGlobalIndexWrapper
+        self._buffer = None # type: ManagedFifo
+        self._iterator = None # type: Iterator[T]
+        self._source_name = None # type: str
 
     @staticmethod
     def _setup(instance: 'IteratorToIntStreamAdapter', iterator: Iterator[T]):
@@ -363,6 +365,9 @@ class IteratorToCharStreamAdapter(IteratorToIntStreamAdapter[str], CharStream):
       - start is in self._buffer (otherwise throws)
     """
 
+    def __init__(self) -> None:
+        super().__init__()
+
     @staticmethod
     def make(iterator: Iterator[str]) -> 'IteratorToCharStreamAdapter':
         instance = IteratorToCharStreamAdapter()
@@ -389,7 +394,7 @@ class IteratorToCharStreamAdapter(IteratorToIntStreamAdapter[str], CharStream):
                 try:
                     original_index = self.index
                     self.seek(start) # throws if start < 0 \/ start not in self._buffer
-                    self._write_text(strbuffer, length) # throws if stream size <= stop
+                    self._write_text(cast(TextIOBase, strbuffer), length) # throws if stream size <= stop
                     self.seek(original_index)
                 finally:
                     self._buffer.release_strong_reference(ref_token)
@@ -397,9 +402,9 @@ class IteratorToCharStreamAdapter(IteratorToIntStreamAdapter[str], CharStream):
                 length = stop - start + 1 # 0 <= length
                 original_index = self.index
                 self.seek(start) # throws if start < 0 \/ start not in self._buffer
-                self._write_text(strbuffer, length) # throws if stream size <= stop
+                self._write_text(cast(TextIOBase, strbuffer), length) # throws if stream size <= stop
                 self.seek(original_index)
-            return strbuffer.getvalue()
+            return cast(StringIO, strbuffer).getvalue()
 
     def _write_text(self, buffer_: TextIOBase, length: int) -> None:
         # State I or E
@@ -485,6 +490,9 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
     On the other hand, TokenStream uses an in-band signal (a special EOF
     token) to indicate end state.
     """
+
+    def __init__(self) -> None:
+        super().__init__()
 
     @staticmethod
     def make(iterator: Iterator[Token]) -> 'IteratorToTokenStreamAdapter':
@@ -615,6 +623,12 @@ class IteratorToTokenStreamAdapter(IteratorToIntStreamAdapter[Token], TokenStrea
 
 class TokenSourceToIteratorAdapter(Iterator[Token]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._current_item = None # type: Token
+        self._is_at_end = None # type: bool
+        self._token_source = None # type: TokenSource
+
     @staticmethod
     def make(token_source: TokenSource) -> Iterator[Token]:
         instance = TokenSourceToIteratorAdapter()
@@ -679,6 +693,12 @@ class TokenToCharIterator(Iterator[str]):
     - Stops at first EOF token encountered.
     - Does not print EOF token.
     """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._source = None # type: Iterator[Token]
+        self._index = None # type: int
+        self._text = None # type: str
 
     @staticmethod
     def make(source: Iterator[Token]) -> Iterator[str]:

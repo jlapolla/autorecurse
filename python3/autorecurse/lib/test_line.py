@@ -1,9 +1,16 @@
 from autorecurse.lib.test_iterator import IteratorTests, IteratorTestWrapper
 from autorecurse.lib.line import *
+from typing import cast, List
 import unittest
 
 
 class MockFile:
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._lines = None # type: List[Line]
+        self._current_line = None # type: Line
+        self._line_sep = None # type: str
 
     @staticmethod
     def make() -> 'MockFile':
@@ -86,15 +93,15 @@ class TestFileLineIterator(unittest.TestCase):
         file_.append_line(Line.make('Hello'))
         file_.append_line(Line.make('Goodbye'))
         file_.append_line(Line.make(''))
-        actual = FileLineIterator.make(file_)
+        actual = FileLineIterator.make(cast(TextIOBase, file_))
         expected = [Line.make_with_line_number('Hello', 1), Line.make_with_line_number('Goodbye', 2), Line.make_with_line_number('', 3)]
         return IteratorTestWrapper.make(actual, expected)
 
     @staticmethod
     def make_iterator_wrapper_empty() -> IteratorTestWrapper[Line]:
         file_ = MockFile.make()
-        actual = FileLineIterator.make(file_)
-        expected = []
+        actual = FileLineIterator.make(cast(TextIOBase, file_))
+        expected = [] # type: List[Line]
         return IteratorTestWrapper.make(actual, expected)
 
     def test_iterator_tests(self):

@@ -1,11 +1,9 @@
-from antlr4.error.Errors import RecognitionException
-from antlr4.error.ErrorStrategy import BailErrorStrategy
-from antlr4.error.DiagnosticErrorListener import DiagnosticErrorListener
+from antlr4 import BailErrorStrategy, DiagnosticErrorListener, InputStream, Lexer, Parser, RecognitionException, Token
+from antlr4.BufferedTokenStream import TokenStream
 from antlr4.CommonTokenFactory import CommonTokenFactory
-from antlr4.Lexer import Lexer
-from antlr4.Parser import Parser
-from antlr4.Token import CommonToken, Token
-from autorecurse.lib.antlr4.abstract import CharStream, TokenStream
+from antlr4.Token import CommonToken
+from typing import cast
+import autorecurse.lib.antlr4.abstract as abstract
 
 
 class CustomTokenFactory(CommonTokenFactory):
@@ -28,10 +26,10 @@ class CustomTokenFactory(CommonTokenFactory):
         return token
 
 
-class CustomLexer(Lexer):
+class CustomLexer(Lexer, abstract.TokenSource):
 
-    def __init__(self, input: CharStream) -> None:
-        super().__init__(input)
+    def __init__(self, input: abstract.CharStream) -> None:
+        super().__init__(cast(InputStream, input))
         self.addErrorListener(DiagnosticErrorListener())
         self._factory = CustomTokenFactory.get_instance()
 
@@ -41,8 +39,8 @@ class CustomLexer(Lexer):
 
 class CustomParser(Parser):
 
-    def __init__(self, input: TokenStream) -> None:
-        super().__init__(input)
+    def __init__(self, input: abstract.TokenStream) -> None:
+        super().__init__(cast(TokenStream, input))
         self.addErrorListener(DiagnosticErrorListener())
         self._errHandler = BailErrorStrategy()
 

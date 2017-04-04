@@ -1,5 +1,6 @@
 from autorecurse.gnumake.data import *
-from io import StringIO
+from io import StringIO, TextIOBase
+from typing import cast
 import unittest
 
 
@@ -43,7 +44,7 @@ class TestDefaultTargetFormatter(unittest.TestCase):
     def _target_to_string(self, target: Target) -> str:
         with StringIO() as strbuff:
             formatter = DefaultTargetFormatter.make()
-            formatter.print(target, strbuff)
-            return strbuff.getvalue()
+            formatter.print(target, cast(TextIOBase, strbuff))
+            return cast(StringIO, strbuff).getvalue()
 
 

@@ -2,6 +2,7 @@ from autorecurse.common.storage import DictionaryDirectoryMapping, DirectoryMapp
 from autorecurse.gnumake.storage import DirectoryEnum as GnuMakeDirectoryEnum
 from configparser import ConfigParser
 from abc import ABCMeta, abstractmethod
+from typing import Dict
 import os
 import sys
 
@@ -51,6 +52,10 @@ class ConfigFileConverter(metaclass=ABCMeta):
 
 class DirectoryMappingBuilder(ConfigFileConverter):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._dict = None # type: Dict[str, str]
+
     @staticmethod
     def make() -> 'DirectoryMappingBuilder':
         instance = DirectoryMappingBuilder()
@@ -59,7 +64,7 @@ class DirectoryMappingBuilder(ConfigFileConverter):
 
     def include_config_file(self, path: str) -> None:
         with open(path, 'r') as file:
-            config = ConfigParser(dict_type=dict, empty_lines_in_values=False, interpolation=None)
+            config = ConfigParser(dict_type=dict, empty_lines_in_values=False, interpolation=None) # type: ignore
             config.read_file(file, source=path)
             if 'gnumake' in config:
                 gnumake_config = config['gnumake']

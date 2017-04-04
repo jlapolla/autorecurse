@@ -1,6 +1,6 @@
 from autorecurse.lib.iterator import *
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Callable, Generic, List, TypeVar
 import unittest
 
 
@@ -9,14 +9,19 @@ T = TypeVar('T')
 
 class IteratorTestWrapper(unittest.TestCase, Iterator[T]):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._actual = None # type: Iterator[T]
+        self._expected = None # type: List[T]
+
     @staticmethod
-    def make(actual: Iterator[T], expected: Iterable[T]) -> 'IteratorTestWrapper':
-        instance = IteratorTestWrapper()
+    def make(actual: Iterator[T], expected: List[T]) -> 'IteratorTestWrapper[T]':
+        instance = IteratorTestWrapper() # type: IteratorTestWrapper[T]
         IteratorTestWrapper._setup(instance, actual, expected)
         return instance
 
     @staticmethod
-    def _setup(instance: 'IteratorTestWrapper', actual: Iterator[T], expected: Iterable[T]) -> None:
+    def _setup(instance: 'IteratorTestWrapper[T]', actual: Iterator[T], expected: List[T]) -> None:
         instance._actual = actual
         instance._expected = list(expected)
 
@@ -124,13 +129,13 @@ class TestListIterator(unittest.TestCase):
 
     @staticmethod
     def make_iterator_wrapper_content() -> IteratorTestWrapper[object]:
-        expected = [None, 'Hello', 3, None]
+        expected = [None, 'Hello', 3, None] # type: List[object]
         actual = ListIterator.make(expected)
         return IteratorTestWrapper.make(actual, expected)
 
     @staticmethod
     def make_iterator_wrapper_empty() -> IteratorTestWrapper[object]:
-        expected = []
+        expected = [] # type: List[object]
         actual = ListIterator.make(expected)
         return IteratorTestWrapper.make(actual, expected)
 
