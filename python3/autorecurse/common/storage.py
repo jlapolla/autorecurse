@@ -16,6 +16,10 @@ class DirectoryMapping(metaclass=ABCMeta):
 
 class DictionaryDirectoryMapping(DirectoryMapping):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._directory_dict = None # type: Dict[str, str]
+
     @staticmethod
     def make(mapping: Dict[str, str]) -> DirectoryMapping:
         instance = DictionaryDirectoryMapping()
