@@ -11,7 +11,7 @@ class CustomTokenFactory(CommonTokenFactory):
     _INSTANCE = None
 
     @staticmethod
-    def get_instance() -> 'CustomTokenFactory':
+    def make() -> 'CustomTokenFactory':
         if CustomTokenFactory._INSTANCE is None:
             CustomTokenFactory._INSTANCE = CustomTokenFactory()
         return CustomTokenFactory._INSTANCE
@@ -31,7 +31,7 @@ class CustomLexer(Lexer, abstract.TokenSource):
     def __init__(self, input: abstract.CharStream) -> None:
         super().__init__(cast(InputStream, input))
         self.addErrorListener(DiagnosticErrorListener())
-        self._factory = CustomTokenFactory.get_instance()
+        self._factory = CustomTokenFactory.make()
 
     def recover(self, ex: RecognitionException) -> None:
         raise ex

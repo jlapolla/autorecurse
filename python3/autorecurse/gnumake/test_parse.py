@@ -31,7 +31,7 @@ a b c: d | e"""
 
         ctx = parser.makefileRule()
         self.assertIsNone(ctx.exception)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 0)
+        target = ParseContextTargetBuilder.make().build_target(ctx, 0)
         self.assertEqual(target.path, '\\backslash\\target\\:')
         it = target.prerequisites
         it.move_to_next()
@@ -59,7 +59,7 @@ a b c: d | e"""
 
         ctx = parser.makefileRule()
         self.assertIsNone(ctx.exception)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 0)
+        target = ParseContextTargetBuilder.make().build_target(ctx, 0)
         self.assertEqual(target.path, 'next/target')
         it = target.prerequisites
         it.move_to_next()
@@ -87,7 +87,7 @@ a b c: d | e"""
 
         ctx = parser.makefileRule()
         self.assertIsNone(ctx.exception)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 0)
+        target = ParseContextTargetBuilder.make().build_target(ctx, 0)
         self.assertEqual(target.path, 'a')
         it = target.prerequisites
         it.move_to_next()
@@ -99,7 +99,7 @@ a b c: d | e"""
         self.assertEqual(it.current_item, 'e')
         it.move_to_next()
         self.assertIs(it.is_at_end, True)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 1)
+        target = ParseContextTargetBuilder.make().build_target(ctx, 1)
         self.assertEqual(target.path, 'b')
         it = target.prerequisites
         it.move_to_next()
@@ -111,7 +111,7 @@ a b c: d | e"""
         self.assertEqual(it.current_item, 'e')
         it.move_to_next()
         self.assertIs(it.is_at_end, True)
-        target = ParseContextTargetBuilder.get_instance().build_target(ctx, 2)
+        target = ParseContextTargetBuilder.make().build_target(ctx, 2)
         self.assertEqual(target.path, 'c')
         it = target.prerequisites
         it.move_to_next()

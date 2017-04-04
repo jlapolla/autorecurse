@@ -16,14 +16,10 @@ class ParseContextTargetBuilder:
     _INSTANCE = None
 
     @staticmethod
-    def get_instance() -> 'ParseContextTargetBuilder':
-        if ParseContextTargetBuilder._INSTANCE is None:
-            ParseContextTargetBuilder._INSTANCE = ParseContextTargetBuilder.make()
-        return ParseContextTargetBuilder._INSTANCE
-
-    @staticmethod
     def make() -> 'ParseContextTargetBuilder':
-        return ParseContextTargetBuilder()
+        if ParseContextTargetBuilder._INSTANCE is None:
+            ParseContextTargetBuilder._INSTANCE = ParseContextTargetBuilder()
+        return ParseContextTargetBuilder._INSTANCE
 
     def build_target(self, context: MakefileRuleParser.MakefileRuleContext, target_index: int) -> Target:
         prerequisites = []
@@ -273,7 +269,7 @@ class MakefileRuleParserToIteratorAdapter(Iterator[Target]):
             pass
 
     def _generate_target(self) -> None:
-        self._target = ParseContextTargetBuilder.get_instance().build_target(self._context, self._index)
+        self._target = ParseContextTargetBuilder.make().build_target(self._context, self._index)
         self._target.file = self.makefile
 
     def _get_next_non_empty_context(self) -> None:

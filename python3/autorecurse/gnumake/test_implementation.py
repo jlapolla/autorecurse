@@ -22,7 +22,7 @@ class TestGnuMake(unittest.TestCase):
             DefaultDirectoryMapping.set(mapping)
 
     def test_nested_makefiles(self):
-        gnu = GnuMake.get_instance()
+        gnu = GnuMake.make()
         with gnu.nested_makefiles('test_sample/gnu/nested-makefiles') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
@@ -41,7 +41,7 @@ class TestGnuMake(unittest.TestCase):
             self.assertIs(it.is_at_end, True)
 
     def test_execution_directory(self):
-        gnu = GnuMake.get_instance()
+        gnu = GnuMake.make()
         self.assertEqual(gnu.execution_directory('-h'.split()), TestGnuMake.CWD)
         self.assertEqual(gnu.execution_directory('-f Makefile -np'.split()), TestGnuMake.CWD)
         self.assertEqual(gnu.execution_directory('-f Makefile -np -C /etc/usr'.split()), '/etc/usr')
@@ -55,7 +55,7 @@ class TestGnuMake(unittest.TestCase):
     def test_target_listing_file(self):
         makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/project/Makefile')
         makefile = Makefile.make(makefile_path)
-        gnu = GnuMake.get_instance()
+        gnu = GnuMake.make()
         gnu.update_target_listing_file(makefile)
 
     @unittest.skip('Writes files to user\'s home directory')

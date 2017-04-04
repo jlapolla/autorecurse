@@ -52,10 +52,6 @@ class GnuMake:
         return GnuMake._INSTANCE
 
     @staticmethod
-    def get_instance() -> 'GnuMake':
-        return GnuMake.make()
-
-    @staticmethod
     def _init_nested_makefile_locator(instance: 'GnuMake') -> None:
         locator = NestedMakefileLocator.make()
         locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
