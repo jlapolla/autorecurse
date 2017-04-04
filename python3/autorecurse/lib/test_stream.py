@@ -2,6 +2,7 @@ from autorecurse.lib.stream import *
 from autorecurse.lib.line import Line, EmptyLineFilter
 from autorecurse.lib.iterator import ListIterator
 from autorecurse.lib.test_iterator import IteratorTests, IteratorTestWrapper
+from typing import List
 import unittest
 
 
@@ -37,15 +38,15 @@ class TestConditionFilter(unittest.TestCase):
         condition = EmptyLineFilter.make()
         iterator = ListIterator.make([blank_line, blank_line, blank_line])
         actual = ConditionFilter.make(iterator, condition)
-        expected = []
+        expected = [] # type: List[Line]
         return IteratorTestWrapper.make(actual, expected)
 
     @staticmethod
     def make_iterator_wrapper_empty() -> IteratorTestWrapper[Line]:
         condition = EmptyLineFilter.make()
-        iterator = ListIterator.make([])
+        iterator = ListIterator.make([]) # type: ListIterator[Line]
         actual = ConditionFilter.make(iterator, condition)
-        expected = []
+        expected = [] # type: List[Line]
         return IteratorTestWrapper.make(actual, expected)
 
     def test_iterator_tests(self):
