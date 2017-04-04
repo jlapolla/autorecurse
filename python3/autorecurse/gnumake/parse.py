@@ -82,7 +82,7 @@ class BufferedParsePipelineFactory(ParsePipelineFactory):
                 file_section_chars.move_to_next()
             char_stream_1 = InputStream(cast(StringIO, strbuff).getvalue())
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
-        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer) # type: ignore
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
         paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
         char_stream_2 = None
         with StringIO() as strbuff:
@@ -118,11 +118,11 @@ class StreamingParsePipelineFactory(ParsePipelineFactory):
         file_section_chars = LineToCharIterator.make(file_section_no_comments)
         char_stream_1 = IteratorToCharStreamAdapter.make(file_section_chars)
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
-        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer) # type: ignore
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
         paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
         char_stream_2 = IteratorToCharStreamAdapter.make(paragraph_chars)
         makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
-        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer) # type: ignore
+        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer)
         token_stream_1 = IteratorToTokenStreamAdapter.make(makefile_rule_tokens)
         makefile_rule_parser = MakefileRuleParser(token_stream_1) # type: ignore
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
@@ -155,7 +155,7 @@ class BalancedParsePipelineFactory(ParsePipelineFactory):
                 file_section_chars.move_to_next()
             char_stream_1 = InputStream(cast(StringIO, strbuff).getvalue())
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
-        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer) # type: ignore
+        paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
         paragraph_chars = TokenToCharIterator.make(paragraph_tokens)
         char_stream_2 = None
         with StringIO() as strbuff:
@@ -166,7 +166,7 @@ class BalancedParsePipelineFactory(ParsePipelineFactory):
                 paragraph_chars.move_to_next()
             char_stream_2 = InputStream(cast(StringIO, strbuff).getvalue())
         makefile_rule_lexer = MakefileRuleLexer(char_stream_2)
-        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer) # type: ignore
+        makefile_rule_tokens = TokenSourceToIteratorAdapter.make(makefile_rule_lexer)
         token_stream_1 = IteratorToTokenStreamAdapter.make(makefile_rule_tokens)
         makefile_rule_parser = MakefileRuleParser(token_stream_1) # type: ignore
         makefile_target_iterator = MakefileRuleParserToIteratorAdapter.make(makefile_rule_parser)
