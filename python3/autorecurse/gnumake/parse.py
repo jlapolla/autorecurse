@@ -2,7 +2,7 @@ from antlr4 import CommonTokenStream, InputStream
 from antlr4.error.Errors import ParseCancellationException
 from autorecurse.lib.iterator import Iterator
 from autorecurse.lib.line import FileLineIterator, LineToCharIterator
-from autorecurse.lib.stream import ConditionFilter
+from autorecurse.lib.stream import CompositeCondition, ConditionFilter
 from autorecurse.gnumake.grammar import DatabaseSectionFilter, FileSectionFilter, InformationalCommentFilter, MakefileRuleLexer, MakefileRuleParser, TargetParagraphLexer
 from autorecurse.gnumake.data import Makefile, Target
 from autorecurse.lib.antlr4.stream import IteratorToCharStreamAdapter, IteratorToTokenStreamAdapter, TokenSourceToIteratorAdapter, TokenToCharIterator
@@ -65,10 +65,9 @@ class BufferedParsePipelineFactory(ParsePipelineFactory):
 
     def build_parse_pipeline(self, file: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(file)
-        database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
-        file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
-        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
-        file_section_chars = LineToCharIterator.make(file_section_no_comments)
+        sub_conditions = [DatabaseSectionFilter.make(), FileSectionFilter.make(), InformationalCommentFilter.make()]
+        filtered_lines = ConditionFilter.make(file_lines, CompositeCondition.make(sub_conditions))
+        file_section_chars = LineToCharIterator.make(filtered_lines)
         char_stream_1 = None
         with StringIO() as strbuff:
             if file_section_chars.is_at_start:
@@ -108,10 +107,9 @@ class StreamingParsePipelineFactory(ParsePipelineFactory):
 
     def build_parse_pipeline(self, file: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(file)
-        database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
-        file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
-        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
-        file_section_chars = LineToCharIterator.make(file_section_no_comments)
+        sub_conditions = [DatabaseSectionFilter.make(), FileSectionFilter.make(), InformationalCommentFilter.make()]
+        filtered_lines = ConditionFilter.make(file_lines, CompositeCondition.make(sub_conditions))
+        file_section_chars = LineToCharIterator.make(filtered_lines)
         char_stream_1 = IteratorToCharStreamAdapter.make(file_section_chars)
         paragraph_lexer = TargetParagraphLexer(char_stream_1)
         paragraph_tokens = TokenSourceToIteratorAdapter.make(paragraph_lexer)
@@ -138,10 +136,9 @@ class BalancedParsePipelineFactory(ParsePipelineFactory):
 
     def build_parse_pipeline(self, file: TextIOBase, makefile: Makefile) -> Iterator[Target]:
         file_lines = FileLineIterator.make(file)
-        database_section = ConditionFilter.make(file_lines, DatabaseSectionFilter.make())
-        file_section = ConditionFilter.make(database_section, FileSectionFilter.make())
-        file_section_no_comments = ConditionFilter.make(file_section, InformationalCommentFilter.make())
-        file_section_chars = LineToCharIterator.make(file_section_no_comments)
+        sub_conditions = [DatabaseSectionFilter.make(), FileSectionFilter.make(), InformationalCommentFilter.make()]
+        filtered_lines = ConditionFilter.make(file_lines, CompositeCondition.make(sub_conditions))
+        file_section_chars = LineToCharIterator.make(filtered_lines)
         char_stream_1 = None
         with StringIO() as strbuff:
             if file_section_chars.is_at_start:

@@ -1,6 +1,6 @@
 from autorecurse.lib.iterator import Iterator
 from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Generic
+from typing import Generic, List, TypeVar
 
 
 T = TypeVar('T')
@@ -64,6 +64,36 @@ class Condition(Generic[T_contra], metaclass=ABCMeta):
         pass
 
 del Condition._set_current_item
+
+
+class CompositeCondition(Condition[T_contra]):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._sub_conditions = None # type: List[Condition[T_contra]]
+
+    @staticmethod
+    def make(sub_conditions: List[Condition[T_contra]]) -> 'CompositeCondition[T_contra]':
+        instance = CompositeCondition() # type: CompositeCondition[T_contra]
+        instance._sub_conditions = list(sub_conditions)
+        return instance
+
+    def _set_current_item(self, value: T_contra) -> None:
+        for sub_condition in self._sub_conditions:
+            sub_condition.current_item = value
+            if not sub_condition.condition:
+                return
+
+    current_item = property(None, _set_current_item)
+
+    @property
+    def condition(self) -> bool:
+        for sub_condition in self._sub_conditions:
+            if not sub_condition.condition:
+                return False
+        return True
+
+del CompositeCondition._set_current_item
 
 
 class ConditionFilter(Iterator[T]):
