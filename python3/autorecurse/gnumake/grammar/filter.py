@@ -16,6 +16,7 @@ class FileSectionFilter(Condition[Line]):
     - N = No printing <- INITIAL
     - Y = Printing
     - B = Before printing
+    - F = Finished
 
     ### Transition Labels
 
@@ -29,14 +30,17 @@ class FileSectionFilter(Condition[Line]):
       - N -> B
       - Y -> Y
       - B -> Y
+      - F -> F
     - End
       - N -> N
-      - Y -> N
+      - Y -> F
       - B -> N
+      - F -> F
     - Line
       - N -> N
       - Y -> Y
       - B -> Y
+      - F -> F
     """
 
     _START_LINE = Line.make('# Files')
@@ -46,6 +50,7 @@ class FileSectionFilter(Condition[Line]):
     _NO_PRINTING = 0
     _PRINTING = 1
     _BEFORE_PRINTING = 2
+    _FINISHED = 3
 
     # Transition Labels
     _START = 0
@@ -57,12 +62,15 @@ class FileSectionFilter(Condition[Line]):
             (_NO_PRINTING, _START): _BEFORE_PRINTING,
             (_PRINTING, _START): _PRINTING,
             (_BEFORE_PRINTING, _START): _PRINTING,
+            (_FINISHED, _START): _FINISHED,
             (_NO_PRINTING, _END): _NO_PRINTING,
-            (_PRINTING, _END): _NO_PRINTING,
+            (_PRINTING, _END): _FINISHED,
             (_BEFORE_PRINTING, _END): _NO_PRINTING,
+            (_FINISHED, _END): _FINISHED,
             (_NO_PRINTING, _LINE): _NO_PRINTING,
             (_PRINTING, _LINE): _PRINTING,
-            (_BEFORE_PRINTING, _LINE): _PRINTING
+            (_BEFORE_PRINTING, _LINE): _PRINTING,
+            (_FINISHED, _LINE): _FINISHED
             }
 
     def __init__(self) -> None:
