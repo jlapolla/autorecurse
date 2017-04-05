@@ -217,11 +217,9 @@ class LineToCharIterator(Iterator[str]):
 
     @property
     def _current_length(self) -> int:
-        if self.is_at_start: # State S
-            return 0
-        elif self.has_current_item: # State I
+        if self.has_current_item: # State I
             return len(self._content) + len(self._eol)
-        else: # State E
+        else: # State S or E
             return 0
 
     def _move_to_next_non_blank_line(self) -> None:
