@@ -1,30 +1,12 @@
 #!/usr/bin/python3
 import autorecurse_path
 from autorecurse.lib.line import FileLineIterator, Line
-from abc import ABCMeta, abstractmethod
 from io import TextIOBase
 from typing import Dict, List
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 import hashlib
 import shutil
 import os
-
-
-class LineNumber:
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._number = None # type: int
-
-    @staticmethod
-    def make(line_number: int) -> 'LineNumber':
-        instance = LineNumber()
-        instance._number = line_number
-        return instance
-
-    @property
-    def number(self) -> int:
-        return self._number
 
 
 class FileInfo:
@@ -48,53 +30,6 @@ class FileInfo:
     @property
     def skip_count(self) -> int:
         return self._skip_count
-
-
-class Functions:
-
-    _INSTANCE = None
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._source_header_lines = None # type: List[str]
-        self._commented_headers = None # type: Dict[str, List[str]]
-        self._header_first_line = None # type: str
-        self._header_last_line = None # type: str
-
-    @staticmethod
-    def make() -> 'Functions':
-        if Functions._INSTANCE is None:
-            Functions._INSTANCE = Functions()
-        return Functions._INSTANCE
-
-    @property
-    def header_first_line(self) -> str:
-        return self._header_first_line
-
-    @header_first_line.setter
-    def header_first_line(self, value: str) -> None:
-        self._header_first_line = value
-
-    @property
-    def header_last_line(self) -> str:
-        return self._header_last_line
-
-    @header_last_line.setter
-    def header_last_line(self, value: str) -> None:
-        self._header_last_line = value
-
-    def get_lines(self, path: str) -> List[str]:
-        with open(path, encoding='utf-8') as file:
-            return file.read(None).splitlines()
-
-    def comment_lines(self, comment_prefix: str, lines: List[str]) -> List[str]:
-        commented_lines = []
-        for line in lines:
-            if len(line) != 0:
-                commented_lines.append(''.join([comment_prefix, ' ', line]))
-            else:
-                commented_lines.append(comment_prefix)
-        return commented_lines
 
 
 class Cli:
@@ -168,16 +103,8 @@ class FileManager:
         return os.path.realpath(sys.path[0])
 
     @property
-    def _resource_directory(self) -> str:
-        return os.path.join(os.path.dirname(self._directory), 'resources')
-
-    @property
     def temporary_directory(self) -> str:
         return os.path.join(os.path.dirname(self._directory), 'tmp')
-
-    @property
-    def source_header_path(self) -> str:
-        return os.path.join(self._resource_directory, 'source-header.txt')
 
     def temporary_file_path(self, path: str) -> str:
         filename = ''.join(['prepend-header', self._make_hash(path), '.txt'])
