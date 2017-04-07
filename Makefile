@@ -26,15 +26,15 @@ antlr: $(ANTLR)
 test: $(ANTLR)
 	cd python3 && python3 -m unittest discover
 
-profile.prof: $(ANTLR)
-	cd python3 && python3 -m cProfile -o ../$@ main.py --make-executable /usr/bin/make targetlisting test_sample/gnu/project Makefile
+.PHONY: profile
+profile: clean-profile cachegrind.out.0
+	kcachegrind cachegrind.out.0
 
 cachegrind.out.0: profile.prof
 	pyprof2calltree -o $@ -i $<
 
-.PHONY: profile
-profile: clean-profile cachegrind.out.0
-	kcachegrind cachegrind.out.0
+profile.prof: $(ANTLR)
+	cd python3 && python3 -m cProfile -o ../$@ main.py --make-executable /usr/bin/make targetlisting test_sample/gnu/project Makefile
 
 .PHONY: clean-profile
 clean-profile:
