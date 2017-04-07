@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 import autorecurse_path
+from autorecurse.lib.file import FileLifetimeManager, UniqueFileCreator
 from autorecurse.lib.line import FileLineIterator, Line
 from io import TextIOBase
 from typing import Dict, List
 from argparse import ArgumentParser
-import hashlib
 import shutil
 import os
 
@@ -106,25 +106,17 @@ class FileManager:
     def temporary_directory(self) -> str:
         return os.path.join(os.path.dirname(self._directory), 'tmp')
 
-    def temporary_file_path(self, path: str) -> str:
-        filename = ''.join(['prepend-header', self._make_hash(path), '.txt'])
-        return os.path.join(self.temporary_directory, filename)
-
-    def _make_hash(self, message: str) -> str:
-        hash = hashlib.sha1()
-        hash.update(message.encode())
-        return hash.hexdigest()
-
     def _make_directory(self, path: str) -> None:
         if not os.path.isdir(path):
             os.makedirs(path)
 
-    def create_temporary_file(self, path: str) -> None:
-        self._make_directory(os.path.dirname(self.temporary_file_path(path)))
-        shutil.copyfile(path, self.temporary_file_path(path))
-
-    def delete_temporary_file(self, path: str) -> None:
-        os.remove(self.temporary_file_path(path))
+    def create_temporary_file(self) -> FileLifetimeManager:
+        file_creator = UniqueFileCreator.make()
+        file_creator.file_name_prefix = 'update-header.'
+        file_creator.file_name_suffix = '.txt'
+        file_creator.directory = self.temporary_directory
+        self._make_directory(self.temporary_directory)
+        return FileLifetimeManager.make(file_creator)
 
 
 class Substitution:
@@ -166,14 +158,14 @@ class Substitution:
 
 
     def execute(self) -> None:
-        self._file_manager.create_temporary_file(self._target_path)
-        with open(self._file_manager.temporary_file_path(self._target_path), encoding='utf-8') as tmp_file:
-            file_info = self._collect_file_info(tmp_file)
-            tmp_file.seek(0)
-            with open(self._target_path, mode='w', encoding='utf-8') as target_file:
-                with open(self._replacement_path, encoding='utf-8') as replacement_file:
-                    self._perform_substitution(tmp_file, target_file, replacement_file, file_info)
-        self._file_manager.delete_temporary_file(self._target_path)
+        with self._file_manager.create_temporary_file() as tmp_file_manager:
+            shutil.copyfile(self._target_path, tmp_file_manager.file_path)
+            with tmp_file_manager.open_file(encoding='utf-8') as tmp_file:
+                file_info = self._collect_file_info(tmp_file)
+                tmp_file.seek(0)
+                with open(self._target_path, mode='w', encoding='utf-8') as target_file:
+                    with open(self._replacement_path, encoding='utf-8') as replacement_file:
+                        self._perform_substitution(tmp_file, target_file, replacement_file, file_info)
 
     def _perform_substitution(self, tmp_file: TextIOBase, target_file: TextIOBase, replacement_file: TextIOBase, file_info: FileInfo) -> None:
         for line in FileLineIterator.make(tmp_file):
