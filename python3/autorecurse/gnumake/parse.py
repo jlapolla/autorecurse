@@ -1,4 +1,5 @@
-from antlr4 import CommonTokenStream, InputStream
+from antlr4 import CommonTokenStream
+from antlr4.InputStream import InputStream
 from antlr4.error.Errors import ParseCancellationException
 from autorecurse.lib.iterator import Iterator
 from autorecurse.lib.line import FileLineIterator, LineToCharIterator

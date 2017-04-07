@@ -1,5 +1,6 @@
 from autorecurse.gnumake.grammar import MakefileRuleLexer, MakefileRuleParser
-from antlr4 import CommonTokenStream, InputStream, Token
+from antlr4 import CommonTokenStream, Token
+from antlr4.InputStream import InputStream
 from antlr4.error.Errors import ParseCancellationException
 import unittest
 
