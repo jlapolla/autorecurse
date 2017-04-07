@@ -9,29 +9,6 @@ import shutil
 import os
 
 
-class FileInfo:
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._insert_before = None # type: int
-        self._skip_count = None # type: int
-
-    @staticmethod
-    def make(insert_before: int, skip_count: int) -> 'FileInfo':
-        instance = FileInfo()
-        instance._insert_before = insert_before
-        instance._skip_count = skip_count
-        return instance
-
-    @property
-    def insert_before(self) -> int:
-        return self._insert_before
-
-    @property
-    def skip_count(self) -> int:
-        return self._skip_count
-
-
 class Cli:
 
     class ArgumentParserFactory:
@@ -117,6 +94,29 @@ class FileManager:
         file_creator.directory = self.temporary_directory
         self._make_directory(self.temporary_directory)
         return FileLifetimeManager.make(file_creator)
+
+
+class FileInfo:
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._insert_before = None # type: int
+        self._skip_count = None # type: int
+
+    @staticmethod
+    def make(insert_before: int, skip_count: int) -> 'FileInfo':
+        instance = FileInfo()
+        instance._insert_before = insert_before
+        instance._skip_count = skip_count
+        return instance
+
+    @property
+    def insert_before(self) -> int:
+        return self._insert_before
+
+    @property
+    def skip_count(self) -> int:
+        return self._skip_count
 
 
 class Substitution:
