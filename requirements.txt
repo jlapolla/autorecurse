@@ -1,0 +1,7 @@
+# Requirements for developing `autorecurse`. Run `pip install -r
+# requirements.txt` to install development tools.
+antlr4-python3-runtime ~= 4.5, < 4.6
+matplotlib >= 2.0.0
+memory-profiler >= 0.45
+mypy >= 0.501
+pyprof2calltree >= 1.4.0

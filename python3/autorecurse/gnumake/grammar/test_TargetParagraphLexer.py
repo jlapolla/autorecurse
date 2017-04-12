@@ -1,5 +1,6 @@
 from autorecurse.gnumake.grammar import TargetParagraphLexer
-from antlr4 import InputStream, Token
+from antlr4.InputStream import InputStream
+from antlr4 import Token
 import unittest
 
 
