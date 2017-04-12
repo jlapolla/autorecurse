@@ -61,6 +61,7 @@ step() {
       echo $step_current 1>"$step_file"
     else
 
+      wait # Wait for background `tee` to complete
       echo [ERROR]
       exit 1
     fi
