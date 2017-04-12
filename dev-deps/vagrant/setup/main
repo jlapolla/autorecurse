@@ -1,0 +1,32 @@
+#!/usr/bin/env dash
+#
+# This is the main virtual machine provisioning script. It installs all
+# dependencies required for working on `autorecurse`.
+
+dir=`dirname $0`
+. "$dir"/step
+
+# Run `personalize` script if present
+test -f "$dir"/personalize && "$dir"/personalize
+
+# Update system package index
+step sudo apt-get update
+
+# Install Python system site packages
+step sudo apt-get install -y python3-psutil
+step sudo apt-get install -y python3-tk
+step sudo apt-get install -y python3-venv
+
+# Install native packages
+step sudo apt-get install -y antlr4
+step sudo apt-get install -y kcachegrind
+
+# Set up Python virtual environment
+step python3 -m venv --system-site-packages ~/env/python3
+step . ~/env/python3/bin/activate
+step pip install --upgrade pip
+
+# Set up project
+step git clone https://github.com/jlapolla/make-smart-recurse.git ~/git/autorecurse
+step pip install -r ~/git/autorecurse/requirements.txt
+

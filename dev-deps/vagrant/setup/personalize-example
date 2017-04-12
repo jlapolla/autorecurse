@@ -1,0 +1,24 @@
+#!/usr/bin/env dash
+#
+# Use this script to personalize your virtual machine. For example, you
+# can install and configure your favorite text editor. Some example
+# personalizations that the authors use are commented below.
+#
+# To have this script run during virtual machine provisioning, copy this
+# file and rename it to "personalize".
+
+dir=`dirname $0`
+. "$dir"/step
+
+# Example personalizations. Note: You must create `bash/.bashrc` and
+# other files you wish to copy to the virtual machine.
+#
+#step cp "$dir"/bash/.bashrc ~
+#step cp "$dir"/git/.gitconfig "$dir"/git/.gitignore_global ~
+#step cp "$dir"/vim/.vimrc ~
+#step git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+#step_nolog vim +:PluginInstall +:qa
+
+# Add your personalizations here. Be sure to use the `step` function to
+# enable logging and recovery.
+
