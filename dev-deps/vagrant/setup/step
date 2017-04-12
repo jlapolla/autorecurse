@@ -8,6 +8,11 @@
 step_file=${0}-current-step.txt
 step_log_file=${0}-log.txt
 
+# http://unix.stackexchange.com/a/29918
+tmpdir=`mktemp -p ~ -d`
+trap 'rm -rf "$tmpdir"' EXIT INT TERM HUP
+pipe="$tmpdir/pipe"
+
 step_current=1
 
 if [ $# -ge 1 ] ; then
@@ -42,8 +47,15 @@ step() {
 
     log "$step_log_file" $@
     echo $@
-    if "$@" 2>&1 | tee -a "$step_log_file" ; then
 
+    # http://stackoverflow.com/a/1221844
+    mkfifo "$pipe"
+    tee -a "$step_log_file" 0<"$pipe" &
+
+    if "$@" 1>"$pipe" 2>&1 ; then
+
+      wait # Wait for background `tee` to complete
+      rm "$pipe"
       step_current=$(($step_current + 1))
       step_start_at=$step_current
       echo $step_current 1>"$step_file"
