@@ -61,8 +61,7 @@ step() {
       echo $step_current 1>"$step_file"
     else
 
-      echo $@
-      echo ERROR!
+      echo [ERROR]
       exit 1
     fi
 
@@ -84,8 +83,7 @@ step_nolog() {
       echo $step_current 1>"$step_file"
     else
 
-      echo $@
-      echo ERROR!
+      echo [ERROR]
       exit 1
     fi
 
