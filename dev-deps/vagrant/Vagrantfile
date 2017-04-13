@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box_check_update = false
+  config.ssh.forward_x11 = true
+  config.vm.synced_folder ".", "/vagrant"
+
+  # We're using Ubuntu 16.04, since it is the latest LTS version.
+  # Comment / uncomment either the 64-bit or 32-bit version, depending
+  # on your system.
+  #
+  # These "bento" boxes are recommended by https://www.vagrantup.com/docs/boxes.html
+  #
+  config.vm.box = "bento/ubuntu-16.04" # 64-bit (amd64)
+  #config.vm.box = "bento/ubuntu-16.04-i386" # 32-bit (i386)
+
+  # You probably want the most recent version of the "bento" box. If the
+  # most recent version does not work, uncomment the following line to
+  # use the last known good version.
+  #
+  #config.vm.box_version = "2.3.4" # Known good version
+
+  config.vm.provision "shell", privileged: false, inline: "rm -f /vagrant/setup/*-current-step.txt /vagrant/setup/*-log.txt"
+  config.vm.provision "shell", privileged: false, inline: "/vagrant/setup/main"
+end
