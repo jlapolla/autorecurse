@@ -28,5 +28,5 @@ step pip install --upgrade pip
 
 # Set up project
 step git clone https://github.com/jlapolla/make-smart-recurse.git ~/git/autorecurse
-step pip install -r ~/git/autorecurse/requirements.txt
+step pip install -r ~/git/autorecurse/dev-deps/requirements.txt
 
