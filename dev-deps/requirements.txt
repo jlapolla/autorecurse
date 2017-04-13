@@ -1,5 +1,5 @@
-# Requirements for developing `autorecurse`. Run `pip install -r
-# requirements.txt` to install development tools.
+# Python dependencies for `autorecurse` development. Run `pip install -r
+# requirements.txt` to install.
 antlr4-python3-runtime ~= 4.5, < 4.6
 matplotlib >= 2.0.0
 memory-profiler >= 0.45
