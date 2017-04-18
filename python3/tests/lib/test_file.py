@@ -6,7 +6,7 @@ import unittest
 
 class TestUniqueFileCreator(unittest.TestCase):
 
-    SUBDIR_REL = os.path.normpath('test_sample/unique_file')
+    SUBDIR_REL = os.path.normpath('tests/data/unique_file')
     SUBDIR_ABS = os.path.realpath(os.path.join(os.getcwd(), SUBDIR_REL))
 
     def setUp(self):
@@ -51,7 +51,7 @@ class TestUniqueFileCreator(unittest.TestCase):
 
 class TestFileLifetimeManager(unittest.TestCase):
 
-    SUBDIR_REL = os.path.normpath('test_sample/file_lifetime')
+    SUBDIR_REL = os.path.normpath('tests/data/file_lifetime')
     SUBDIR_ABS = os.path.realpath(os.path.join(os.getcwd(), SUBDIR_REL))
 
     def setUp(self):

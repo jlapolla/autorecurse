@@ -47,7 +47,7 @@ class TestGnuMake(unittest.TestCase):
         self.assertEqual(gnu.execution_directory('-f Makefile -np -C /etc/usr'.split()), '/etc/usr')
         self.assertEqual(gnu.execution_directory('-f Makefile -np -C / --directory etc --directory=usr'.split()), '/etc/usr')
         self.assertEqual(gnu.execution_directory('-f Makefile -np -C / --directory etc -C .. --directory=usr'.split()), '/usr')
-        self.assertEqual(gnu.execution_directory('-f Makefile -np -C test_sample'.split()), os.path.join(TestGnuMake.CWD, 'test_sample'))
+        self.assertEqual(gnu.execution_directory('-f Makefile -np -C tests/data'.split()), os.path.join(TestGnuMake.CWD, 'tests/data'))
         with self.assertRaises(ArgumentError):
             self.assertEqual(gnu.execution_directory('-f Makefile -np -C'.split()), '/etc/usr')
 
