@@ -34,7 +34,7 @@ cachegrind.out.0: profile.prof
 	pyprof2calltree -o $@ -i $<
 
 profile.prof: $(ANTLR)
-	cd python3 && python3 -m cProfile -o ../$@ main.py --make-executable /usr/bin/make targetlisting test_sample/gnu/project Makefile
+	cd python3 && python3 -m cProfile -o ../$@ main.py --make-executable /usr/bin/make targetlisting tests/data/gnumake/project Makefile
 
 .PHONY: clean-profile
 clean-profile:
@@ -42,7 +42,7 @@ clean-profile:
 
 .PHONY: memprofile
 memprofile:
-	cd python3 && mprof run --include-children main.py --make-executable /usr/bin/make targetlisting test_sample/gnu/project Makefile && mprof plot
+	cd python3 && mprof run --include-children main.py --make-executable /usr/bin/make targetlisting tests/data/gnumake/project Makefile && mprof plot
 
 .DEFAULT_GOAL := antlr
 

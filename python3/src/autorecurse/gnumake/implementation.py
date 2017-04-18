@@ -9,7 +9,7 @@ from abc import ABCMeta, abstractmethod
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE, CalledProcessError
 from typing import cast, Dict, List
-from io import TextIOBase
+from io import TextIOBase, TextIOWrapper
 import os
 import sys
 
@@ -238,14 +238,16 @@ class TargetReader(metaclass=ABCMeta):
             super().__init__()
             self._makefile = None # type: Makefile
             self._process = None # type: Popen
+            self._stdout = None # type: TextIOBase
 
         def __enter__(self) -> Iterator[Target]:
             self._process = self._spawn_subprocess()
-            return DefaultParsePipelineFactory.make().build_parse_pipeline(cast(TextIOBase, self._process.stdout), self._makefile)
+            self._stdout = TextIOWrapper(self._process.stdout, encoding='utf-8')
+            return DefaultParsePipelineFactory.make().build_parse_pipeline(self._stdout, self._makefile)
 
         def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
             if self._process is not None:
-                self._process.stdout.close()
+                self._stdout.close()
                 self._process.wait()
                 self._check_returncode()
             return False
@@ -301,7 +303,7 @@ class TargetListingTargetReader(TargetReader):
             args.append(self._makefile.exec_path)
             args.append('-f')
             args.append(self._makefile.file_path)
-            return Popen(args, stdout=PIPE, universal_newlines=True)
+            return Popen(args, stdout=PIPE)
 
     @staticmethod
     def make(executable_name: str) -> 'TargetListingTargetReader':
@@ -343,7 +345,7 @@ class NestedRuleTargetReader(TargetReader):
             args.append('-f')
             args.append(target_listing_file)
             args.append('autorecurse-all-targets')
-            return Popen(args, stdout=PIPE, universal_newlines=True)
+            return Popen(args, stdout=PIPE)
 
     @staticmethod
     def make(executable_name: str, storage_engine: StorageEngine) -> 'NestedRuleTargetReader':

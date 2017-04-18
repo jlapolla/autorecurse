@@ -122,9 +122,9 @@ class Cli:
     def _configure_directory_mapping(self, namespace: Namespace) -> None:
         builder = DirectoryMappingBuilder.make()
         config_files = ConfigFileLocator.make()
-        config_files.include_default_config_files(builder)
+        config_files.include_standard_config_files(builder)
         if namespace.config_file_path is not None:
-            builder.include_config_file(namespace.config_file_path)
+            builder.include_config_file_path(namespace.config_file_path)
         DefaultDirectoryMapping.set(builder.build_directory_mapping())
 
     def _configure_parse_pipeline(self, namespace: Namespace) -> None:
