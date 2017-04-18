@@ -23,19 +23,19 @@ class TestGnuMake(unittest.TestCase):
 
     def test_nested_makefiles(self):
         gnu = GnuMake.make()
-        with gnu.nested_makefiles('test_sample/gnu/nested-makefiles') as it:
+        with gnu.nested_makefiles('tests/data/gnumake/nested-makefiles') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-makefiles/make-folder-2'))
+            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-makefiles/make-folder-2'))
             self.assertEqual(makefile.file_path, 'makefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1'))
+            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-makefiles/make-folder-1'))
             self.assertEqual(makefile.file_path, 'makefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1/subfolder'))
+            self.assertEqual(makefile.exec_path, os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-makefiles/make-folder-1/subfolder'))
             self.assertEqual(makefile.file_path, 'Makefile')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
@@ -53,7 +53,7 @@ class TestGnuMake(unittest.TestCase):
 
     @unittest.skip('Writes files to user\'s home directory')
     def test_target_listing_file(self):
-        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/project/Makefile')
+        makefile_path = os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/project/Makefile')
         makefile = Makefile.make(makefile_path)
         gnu = GnuMake.make()
         gnu.update_target_listing_file(makefile)
@@ -61,16 +61,16 @@ class TestGnuMake(unittest.TestCase):
     @unittest.skip('Writes files to user\'s home directory')
     def test_nested_rule_file(self):
         gnu = GnuMake.make()
-        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/Makefile')
+        makefile_path = os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-projects/Makefile')
         makefile = Makefile.make(makefile_path)
         gnu.update_target_listing_file(makefile)
-        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/project-1/Makefile')
+        makefile_path = os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-projects/project-1/Makefile')
         makefile = Makefile.make(makefile_path)
         gnu.update_target_listing_file(makefile)
-        makefile_path = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects/project-2/Makefile')
+        makefile_path = os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-projects/project-2/Makefile')
         makefile = Makefile.make(makefile_path)
         gnu.update_target_listing_file(makefile)
-        execution_directory = os.path.join(TestGnuMake.CWD, 'test_sample/gnu/nested-projects')
+        execution_directory = os.path.join(TestGnuMake.CWD, 'tests/data/gnumake/nested-projects')
         gnu.update_nested_rule_file(execution_directory)
 
 
@@ -78,7 +78,7 @@ class TestTargetListingTargetReader(unittest.TestCase):
 
     def test_target_iterator(self):
         target_reader = TargetListingTargetReader.make('make')
-        makefile = Makefile.make('test_sample/gnu/project/Makefile')
+        makefile = Makefile.make('tests/data/gnumake/project/Makefile')
         with target_reader.target_iterator(makefile) as target_iterator:
             self.assertIs(target_iterator.is_at_start, True)
 
@@ -189,26 +189,26 @@ class TestNestedMakefileLocator(unittest.TestCase):
     def test_with_results(self):
         locator = NestedMakefileLocator.make()
         locator.set_filename_priorities(['GNUmakefile', 'makefile', 'Makefile'])
-        with locator.makefile_iterator('test_sample/gnu/nested-makefiles') as it:
+        with locator.makefile_iterator('tests/data/gnumake/nested-makefiles') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles/make-folder-2'))
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'tests/data/gnumake/nested-makefiles/make-folder-2'))
             self.assertEqual(makefile.file_path, 'makefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1'))
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'tests/data/gnumake/nested-makefiles/make-folder-1'))
             self.assertEqual(makefile.file_path, 'makefile')
             it.move_to_next()
             makefile = it.current_item
-            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'test_sample/gnu/nested-makefiles/make-folder-1/subfolder'))
+            self.assertEqual(makefile.exec_path, os.path.join(TestNestedMakefileLocator.CWD, 'tests/data/gnumake/nested-makefiles/make-folder-1/subfolder'))
             self.assertEqual(makefile.file_path, 'Makefile')
             it.move_to_next()
             self.assertIs(it.is_at_end, True)
 
     def test_without_results(self):
         locator = NestedMakefileLocator.make()
-        with locator.makefile_iterator('test_sample/gnu/nested-makefiles') as it:
+        with locator.makefile_iterator('tests/data/gnumake/nested-makefiles') as it:
             self.assertIs(it.is_at_start, True)
             it.move_to_next()
             self.assertIs(it.is_at_end, True)

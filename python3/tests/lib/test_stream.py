@@ -1,7 +1,7 @@
 from autorecurse.lib.stream import *
 from autorecurse.lib.line import Line, EmptyLineFilter
 from autorecurse.lib.iterator import ListIterator
-from autorecurse.lib.test_iterator import IteratorTests, IteratorTestWrapper
+from tests.lib.test_iterator import IteratorTests, IteratorTestWrapper
 from typing import List
 import unittest
 

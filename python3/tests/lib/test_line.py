@@ -1,4 +1,4 @@
-from autorecurse.lib.test_iterator import IteratorTests, IteratorTestWrapper
+from tests.lib.test_iterator import IteratorTests, IteratorTestWrapper
 from autorecurse.lib.line import *
 from typing import cast, List
 import unittest

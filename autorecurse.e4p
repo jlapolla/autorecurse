@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-5.1.dtd">
+<!-- eric project file for project autorecurse -->
+<!-- Saved: 2017-04-18, 09:54:03 -->
+<!-- Copyright (C) 2017 ,  -->
+<Project version="5.1">
+  <Language>en_US</Language>
+  <Hash>c95b80a784d9cdd278714c485c489da0f1fe3568</Hash>
+  <ProgLanguage mixed="0">Python3</ProgLanguage>
+  <ProjectType>Console</ProjectType>
+  <Description></Description>
+  <Version></Version>
+  <Author></Author>
+  <Email></Email>
+  <Eol index="-1"/>
+  <Sources>
+    <Source>python3/src/autorecurse/cli.py</Source>
+    <Source>python3/src/autorecurse/common/__init__.py</Source>
+    <Source>python3/src/autorecurse/common/storage.py</Source>
+    <Source>python3/src/autorecurse/config.py</Source>
+    <Source>python3/src/autorecurse/gnumake/data.py</Source>
+    <Source>python3/src/autorecurse/gnumake/grammar/filter.py</Source>
+    <Source>python3/src/autorecurse/gnumake/grammar/__init__.py</Source>
+    <Source>python3/src/autorecurse/gnumake/grammar/MakefileRuleLexer.py</Source>
+    <Source>python3/src/autorecurse/gnumake/grammar/MakefileRuleParser.py</Source>
+    <Source>python3/src/autorecurse/gnumake/grammar/TargetParagraphLexer.py</Source>
+    <Source>python3/src/autorecurse/gnumake/implementation.py</Source>
+    <Source>python3/src/autorecurse/gnumake/__init__.py</Source>
+    <Source>python3/src/autorecurse/gnumake/parse.py</Source>
+    <Source>python3/src/autorecurse/gnumake/storage.py</Source>
+    <Source>python3/src/autorecurse/__init__.py</Source>
+    <Source>python3/src/autorecurse/lib/antlr4/abstract.py</Source>
+    <Source>python3/src/autorecurse/lib/antlr4/custom.py</Source>
+    <Source>python3/src/autorecurse/lib/antlr4/__init__.py</Source>
+    <Source>python3/src/autorecurse/lib/antlr4/stream.py</Source>
+    <Source>python3/src/autorecurse/lib/buffer.py</Source>
+    <Source>python3/src/autorecurse/lib/fifo.py</Source>
+    <Source>python3/src/autorecurse/lib/file.py</Source>
+    <Source>python3/src/autorecurse/lib/hash.py</Source>
+    <Source>python3/src/autorecurse/lib/__init__.py</Source>
+    <Source>python3/src/autorecurse/lib/iterator.py</Source>
+    <Source>python3/src/autorecurse/lib/line.py</Source>
+    <Source>python3/src/autorecurse/lib/python/argparse.py</Source>
+    <Source>python3/src/autorecurse/lib/python/__init__.py</Source>
+    <Source>python3/src/autorecurse/lib/stream.py</Source>
+    <Source>python3/tests/gnumake/grammar/__init__.py</Source>
+    <Source>python3/tests/gnumake/grammar/test_filter.py</Source>
+    <Source>python3/tests/gnumake/grammar/test_MakefileRuleLexer.py</Source>
+    <Source>python3/tests/gnumake/grammar/test_MakefileRuleParser.py</Source>
+    <Source>python3/tests/gnumake/grammar/test_TargetParagraphLexer.py</Source>
+    <Source>python3/tests/gnumake/__init__.py</Source>
+    <Source>python3/tests/gnumake/test_data.py</Source>
+    <Source>python3/tests/gnumake/test_implementation.py</Source>
+    <Source>python3/tests/gnumake/test_parse.py</Source>
+    <Source>python3/tests/__init__.py</Source>
+    <Source>python3/tests/lib/__init__.py</Source>
+    <Source>python3/tests/lib/test_file.py</Source>
+    <Source>python3/tests/lib/test_iterator.py</Source>
+    <Source>python3/tests/lib/test_line.py</Source>
+    <Source>python3/tests/lib/test_stream.py</Source>
+    <Source>python3/unittest_main.py</Source>
+  </Sources>
+  <Forms/>
+  <Translations/>
+  <Resources/>
+  <Interfaces/>
+  <Others/>
+  <MainScript>python3/unittest_main.py</MainScript>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES"/>
+    <FiletypeAssociation pattern="*.py" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.py3" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw3" type="SOURCES"/>
+  </FiletypeAssociations>
+</Project>
