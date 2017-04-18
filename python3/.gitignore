@@ -1,2 +1,5 @@
+/build
+/dist
 /mprofile_*
+/src/autorecurse.egg-info
 
