@@ -11,7 +11,7 @@ packages.
 def autorecurse_path() -> str:
     root_build_util = os.path.realpath(sys.path[0])
     root = os.path.dirname(os.path.dirname(root_build_util))
-    return os.path.join(root, 'python3')
+    return os.path.join(root, 'python3', 'src')
 
 
 if autorecurse_path() not in sys.path:

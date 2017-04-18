@@ -24,7 +24,7 @@ antlr: $(ANTLR)
 
 .PHONY: test
 test: $(ANTLR)
-	cd python3 && python3 unittest_main.py
+	cd python3 && ./unittest_main.py
 
 .PHONY: profile
 profile: clean-profile cachegrind.out.0
