@@ -22,7 +22,7 @@ class ConfigFileLocator:
     def include_standard_config_files(self, builder: 'ConfigFileConverter') -> None:
         with self._resource_name_to_file(self._default_config_resource_name()) as default_file:
             builder.include_config_file(default_file)
-        resource_name = self._platform_resource_config_name()
+        resource_name = self._platform_config_resource_name()
         if resource_name is not None:
             with self._resource_name_to_file(resource_name) as platform_file:
                 builder.include_config_file(platform_file)
@@ -30,7 +30,7 @@ class ConfigFileLocator:
     def _default_config_resource_name(self) -> str:
         return 'config/default.txt'
 
-    def _platform_resource_config_name(self) -> str:
+    def _platform_config_resource_name(self) -> str:
         if sys.platform.startswith('linux'):
             return 'config/linux.txt'
         if sys.platform.startswith('cygwin'):
