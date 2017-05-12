@@ -10,7 +10,12 @@ setup(
     packages=find_packages('src'),
     install_requires=['antlr4-python3-runtime ~= 4.5, < 4.6'],
     package_data={'autorecurse': ['config/*.txt']},
-    zip_safe=False
-        )
+    zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'autorecurse = autorecurse.cli:main'
+        ]
+    }
+)
 
 
