@@ -140,3 +140,8 @@ class Cli:
                 break
 
 
+def main() -> None:
+    cli = Cli.make()
+    cli.execute(sys.argv[1:])
+
+
