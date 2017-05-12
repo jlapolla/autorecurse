@@ -3,9 +3,7 @@ import autorecurse_path
 
 
 if __name__ == '__main__':
-    from autorecurse.cli import Cli
-    import sys
-    cli = Cli.make()
-    cli.execute(sys.argv[1:])
+    from autorecurse.cli import main
+    main()
 
 
