@@ -9,15 +9,15 @@ antlr4/TargetParagraphLexer.py antlr4/TargetParagraphLexer.tokens: antlr4/Target
 
 ANTLR += python3/src/autorecurse/gnumake/grammar/MakefileRuleLexer.py
 python3/src/autorecurse/gnumake/grammar/MakefileRuleLexer.py: antlr4/MakefileRuleLexer.py
-	printf '%s\n' 'import src/autorecurse.lib.antlr4.custom' | cat - $< 1>$@
+	printf '%s\n' 'import autorecurse.lib.antlr4.custom' | cat - $< 1>$@
 
 ANTLR += python3/src/autorecurse/gnumake/grammar/MakefileRuleParser.py
 python3/src/autorecurse/gnumake/grammar/MakefileRuleParser.py: antlr4/MakefileRuleParser.py
-	printf '%s\n' 'import src/autorecurse.lib.antlr4.custom' | cat - $< | sed '7d;8d' 1>$@
+	printf '%s\n' 'import autorecurse.lib.antlr4.custom' | cat - $< | sed '7d;8d' 1>$@
 
 ANTLR += python3/src/autorecurse/gnumake/grammar/TargetParagraphLexer.py
 python3/src/autorecurse/gnumake/grammar/TargetParagraphLexer.py: antlr4/TargetParagraphLexer.py
-	printf '%s\n' 'import src/autorecurse.lib.antlr4.custom' | cat - $< 1>$@
+	printf '%s\n' 'import autorecurse.lib.antlr4.custom' | cat - $< 1>$@
 
 .PHONY: antlr
 antlr: $(ANTLR)
